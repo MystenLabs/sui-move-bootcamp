@@ -1,4 +1,17 @@
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS generated files
+.DS_Store*
+
+.history
+node_modules
+
 .env
 .history
 build
-node_modules
