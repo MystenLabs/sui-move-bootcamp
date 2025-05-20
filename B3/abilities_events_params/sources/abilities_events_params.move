@@ -3,30 +3,105 @@ module abilities_events_params::abilities_events_params;
 use std::string::String;
 use sui::event;
 
-//Error Codes
-const EMedalOfHonorNotAvailable: u64 = 111;
-
 // Structs
 
 public struct Hero has key {
     id: UID, // required
     name: String,
+    medals: vector<Medal>,
+}
+
+public struct Medal has key, store {
+    id: UID,
+    name: String,
+}
+
+// Events
+
+public struct HeroMinted has copy, drop {
+    hero: ID,
+    owner: address,
+}
+
+public struct MedalAwarded has copy, drop {
+    hero: ID,
+    medal: ID,
+    owner: address,
+}
+
+public struct HeroRegistry has key {
+    id: UID,
+    heroes: vector<ID>,
+}
+
+public struct MedalStorage has key {
+    id: UID,
+    medals: vector<ID>,
 }
 
 // Module Initializer
-fun init(ctx: &mut TxContext) {}
+fun init(ctx: &mut TxContext) {
+    let heroRegistry = HeroRegistry {
+        id: object::new(ctx),
+        heroes: vector::empty(),
+    };
 
-public fun mint_hero(name: String, ctx: &mut TxContext): Hero {
+    let medalStorage = MedalStorage {
+        id: object::new(ctx),
+        medals: vector::empty(),
+    };
+
+    transfer::share_object(heroRegistry);
+    transfer::share_object(medalStorage);
+}
+
+public fun mint_hero(
+    heroRegistry: &mut HeroRegistry,
+    name: String,
+    ctx: &mut TxContext,
+): Hero {
     let freshHero = Hero {
         id: object::new(ctx), // creates a new UID
         name,
+        medals: vector::empty(),
     };
+
+    event::emit(HeroMinted {
+        hero: object::id(&freshHero),
+        owner: ctx.sender(),
+    });
+
+    heroRegistry.heroes.push_back(object::id(&freshHero));
+
     freshHero
 }
 
-public fun mint_and_keep_hero(name: String, ctx: &mut TxContext) {
-    let hero = mint_hero(name, ctx);
+public entry fun mint_and_keep_hero(
+    heroRegistry: &mut HeroRegistry,
+    name: String,
+    ctx: &mut TxContext,
+) {
+    let hero = mint_hero(heroRegistry, name, ctx);
+    
+
     transfer::transfer(hero, ctx.sender());
+}
+
+public entry fun award_medal_of_honor(
+    hero: &mut Hero,
+    medalStorage: &mut MedalStorage,
+    medal: Medal,
+    ctx: &mut TxContext,
+) {
+
+    event::emit(MedalAwarded {
+        hero: object::id(hero),
+        medal: object::id(&medal),
+        owner: ctx.sender(),
+    });
+
+    medalStorage.medals.push_back(object::id(&medal));
+    hero.medals.push_back(medal);
 }
 
 /////// Tests ///////
@@ -53,12 +128,19 @@ fun test_hero_creation() {
     init(test.ctx());
     test.next_tx(@USER);
 
-    //Get hero Registry
+    // Get hero Registry
+    let mut heroRegistry = take_shared<HeroRegistry>(&test);
 
-    let hero = mint_hero(b"Flash".to_string(), test.ctx());
+    // Mint hero
+    let hero = mint_hero(&mut heroRegistry, b"Flash".to_string(), test.ctx());
+
+    // Assert hero was created
     assert_eq(hero.name, b"Flash".to_string());
 
     destroy(hero);
+
+    return_shared(heroRegistry);
+
     test.end();
 }
 
@@ -74,7 +156,30 @@ fun test_hero_creation() {
 //      5. Assert that the `owner` field of the emitted event matches the expected address (e.g., @USER).
 //--------------------------------------------------------------
 #[test]
-fun test_event_thrown() { assert_eq(1, 1); }
+fun test_event_thrown() { 
+    let mut test = ts::begin(@USER);
+    init(test.ctx());
+    test.next_tx(@USER);
+
+    // Get Hero Registry
+    let mut heroRegistry = take_shared<HeroRegistry>(&test);
+
+    // Mint hero
+    let hero = mint_hero(&mut heroRegistry, b"Flash".to_string(), test.ctx());
+
+    // Get events
+    let events = event::events_by_type<HeroMinted>();
+
+    // Assert event was emitted
+    assert_eq(events.length(), 1); 
+    assert_eq(events[0].owner, @USER);
+
+    destroy(hero);
+
+    return_shared(heroRegistry);
+    
+    test.end();
+}
 
 //--------------------------------------------------------------
 //  Test 3: Medal Awarding
@@ -90,4 +195,38 @@ fun test_event_thrown() { assert_eq(1, 1); }
 //      7. Consider creating a shared `MedalStorage` object to manage the available medals.
 //--------------------------------------------------------------
 #[test]
-fun test_medal_award() { assert_eq(1, 1); }
+fun test_medal_award() { 
+    let mut test = ts::begin(@USER);
+    init(test.ctx());
+    test.next_tx(@USER);
+
+    // Get Registry and Storage
+    let mut heroRegistry = take_shared<HeroRegistry>(&test);
+    let mut medalStorage = take_shared<MedalStorage>(&test);
+
+    // Mint hero
+    let mut hero = mint_hero(&mut heroRegistry, b"Flash".to_string(), test.ctx());
+
+    // Create medal
+    let medal = Medal {
+        id: object::new(test.ctx()),
+        name: b"Medal of Honor".to_string(),
+    };
+
+    // Award medal
+    award_medal_of_honor(&mut hero, &mut medalStorage, medal, test.ctx());
+
+    // Assert medal was awarded
+    assert_eq(hero.medals.length(), 1);
+    assert_eq(hero.medals[0].name, b"Medal of Honor".to_string());
+
+    // Assert medal was stored
+    assert_eq(medalStorage.medals.length(), 1);
+
+    destroy(hero);
+
+    return_shared(heroRegistry);
+    return_shared(medalStorage);
+
+    test.end();
+}
