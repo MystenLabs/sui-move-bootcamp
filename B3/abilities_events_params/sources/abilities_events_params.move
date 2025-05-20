@@ -1,10 +1,19 @@
+/// Module documentation:
+/// This module defines the core logic for creating and managing heroes and their medals.
+/// It showcases the use of structs, resources, shared objects, events, and testing
+/// within a Sui Move smart contract.
 module abilities_events_params::abilities_events_params;
 
 use std::string::String;
 use sui::event;
 
-// Structs
 
+/// Error codes - Used for clarity and easier debugging.
+
+/// Error code used when attempting to award a medal that is not available.
+const EMedalOfHonorNotAvailable: u64 = 111;
+
+// Structs: Define the data structures used in the module.
 public struct Hero has key {
     id: UID, // required
     name: String,
@@ -217,16 +226,39 @@ fun test_medal_award() {
     award_medal_of_honor(&mut hero, &mut medalStorage, medal, test.ctx());
 
     // Assert medal was awarded
-    assert_eq(hero.medals.length(), 1);
-    assert_eq(hero.medals[0].name, b"Medal of Honor".to_string());
+    assert!(hero.medals.length()== 1, EMedalOfHonorNotAvailable);
+    assert!(hero.medals[0].name == b"Medal of Honor".to_string(), EMedalOfHonorNotAvailable);
 
     // Assert medal was stored
-    assert_eq(medalStorage.medals.length(), 1);
+    assert!(medalStorage.medals.length() == 1, EMedalOfHonorNotAvailable);
 
     destroy(hero);
 
     return_shared(heroRegistry);
     return_shared(medalStorage);
 
+    test.end();
+}
+
+#[test]
+#[expected_failure(abort_code = EMedalOfHonorNotAvailable)]
+fun test_medal_award_failure() {
+    let mut test = ts::begin(@USER);
+    init(test.ctx());
+    test.next_tx(@USER);
+
+    // Get Registry and Storage
+    let mut heroRegistry = take_shared<HeroRegistry>(&test);
+
+    // Mint hero
+    let hero = mint_hero(&mut heroRegistry, b"Flash".to_string(), test.ctx());
+
+    assert!(hero.medals.length() == 1, EMedalOfHonorNotAvailable);
+    assert!(hero.medals[0].name == b"Medal of Honor".to_string(), EMedalOfHonorNotAvailable);
+
+    return_shared(heroRegistry);
+
+    destroy(hero);
+    
     test.end();
 }
