@@ -6,7 +6,7 @@ use sui::package;
 
 public struct HERO has drop {}
 
-public struct Hero has key {
+public struct Hero has key, store {
     id: UID,
     name: String,
     blob_id: String,
@@ -37,14 +37,12 @@ fun init(otw: HERO, ctx: &mut TxContext) {
     transfer::public_transfer(display, ctx.sender());
 }
 
-public fun mint(name: String, blob_id: String, ctx: &mut TxContext) {
-    let hero = Hero {
+public fun mint(name: String, blob_id: String, ctx: &mut TxContext): Hero {
+    Hero {
         id: object::new(ctx),
         name,
         blob_id,
-    };
-
-    transfer::transfer(hero, ctx.sender());
+    }
 }
 
 #[test_only]

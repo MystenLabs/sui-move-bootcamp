@@ -1,11 +1,7 @@
 import { suiClient } from "../suiClient";
 import { Transaction } from "@mysten/sui/transactions";
 import { getSigner } from "./getSigner";
-
-const PUBLISHER_ID =
-  "0xbc575f78a6b3931ed76a32b4381910420608429c8f0ad697dae72902852122f3";
-const PACKAGE_ID =
-  "0xe6c05fa1c873fe007adf194f17f33b5d120f210dd6503a9efb642823117a8d43";
+import { ENV } from "../env";
 
 export const getHeroWithDisplay = async (id: string) => {
   // get object with display
@@ -36,23 +32,23 @@ export const updateHeroDisplay = async (
   const [display] = tx.moveCall({
     target: "0x2::display::new_with_fields",
     arguments: [
-      tx.object(PUBLISHER_ID),
+      tx.object(ENV.PUBLISHER_ID),
       tx.pure.vector("string", Object.keys(fields)),
       tx.pure.vector("string", Object.values(fields)),
     ],
-    typeArguments: [`${PACKAGE_ID}::hero::Hero`],
+    typeArguments: [`${ENV.PACKAGE_ID}::hero::Hero`],
   });
 
   // update display
   tx.moveCall({
     target: "0x2::display::update_version",
     arguments: [display],
-    typeArguments: [`${PACKAGE_ID}::hero::Hero`],
+    typeArguments: [`${ENV.PACKAGE_ID}::hero::Hero`],
   });
 
   tx.transferObjects([display], signer.toSuiAddress());
 
-  return await suiClient.signAndExecuteTransaction({
+  let result = await suiClient.signAndExecuteTransaction({
     transaction: tx,
     options: {
       showObjectChanges: true,
@@ -60,4 +56,8 @@ export const updateHeroDisplay = async (
       },
       signer: signer,
     });
+
+    await suiClient.waitForTransaction({digest: result.digest});
+
+    return result;
 };

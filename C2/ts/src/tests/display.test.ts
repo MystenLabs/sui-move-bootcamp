@@ -1,18 +1,15 @@
-import { ENV } from "../env";
 import {
   getHeroWithDisplay,
   updateHeroDisplay,
 } from "../helpers/display";
-import { suiClient } from "../suiClient";
 
 const HERO_ID =
-  "0xc51baaea630e160399b63cefa525ec0e52509d5bb52549d514d07444b6f2d3f5";
+  "0xa37b6937895226ee4a48f6543ff81354cc084cd5a26551a62112e8c31aa1e825";
 
 describe("Display Handling", () => {
   it("View display", async () => {
     const objectWithDisplay = await getHeroWithDisplay(HERO_ID);
     const display = objectWithDisplay.data?.display;
-    console.log("display1 :", display);
     expect(display).toBeDefined();
     expect(display?.data).toBeDefined();
     expect(Object.keys(display?.data!)).toHaveLength(3);
@@ -36,7 +33,6 @@ describe("Display Handling", () => {
 
     const objectWithDisplay = await getHeroWithDisplay(HERO_ID);
     const display = objectWithDisplay.data?.display;
-    console.log("display :", display);
     expect(display).toBeDefined();
     expect(display?.data).toBeDefined();
     expect(Object.keys(display?.data!)).toHaveLength(4);
