@@ -25,8 +25,8 @@ fun create_silver_currency(
     coin::create_currency(
         otw,
         DECIMALS,
-        NAME,
         SYMBOL,
+        NAME,
         DESCRIPTION,
         option::some(url::new_unsafe_from_bytes(ICON_URL)),
         ctx,
