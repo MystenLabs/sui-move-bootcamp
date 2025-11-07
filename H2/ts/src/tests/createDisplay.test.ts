@@ -7,7 +7,7 @@ test("Create Display - Devnet", async () => {
     const suiClient = new SuiClient({ url: getFullnodeUrl("devnet") });
     const tx = new Transaction();
 
-    let keys = ["name", "image", "description"];
+    let keys = ["name", "image_url", "description"];
     let values = [
         "{name}", 
         "https://aggregator.walrus-testnet.walrus.space/v1/blobs/{blob_id}", 
