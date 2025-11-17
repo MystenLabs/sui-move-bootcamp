@@ -1,8 +1,8 @@
 ---
 name: Requesting a Feature or Improvement
-about: "For feature requests. Please search for existing issues first. Also see CONTRIBUTING."
+about: "For feature requests. Please search for existing issues first."
 title: ''
-labels: Feedback, Feature
+labels: feat
 assignees: ''
 
 ---

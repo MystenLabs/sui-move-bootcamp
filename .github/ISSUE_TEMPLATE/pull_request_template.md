@@ -11,7 +11,7 @@ ______
 For contributor use:
 
 - [ ] Targeted PR against `main` branch
-- [ ] Linked to Github issue with discussion and accepted design OR link to spec that describes this work.
+- [ ] Linked to Github issue with discussion
 - [ ] Updated relevant documentation 
 - [ ] Re-reviewed `Files changed` in the Github PR explorer
 - [ ] Added appropriate labels 
