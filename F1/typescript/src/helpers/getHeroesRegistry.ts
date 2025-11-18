@@ -1,4 +1,4 @@
-import { SuiParsedData } from "@mysten/sui/dist/cjs/client";
+import { SuiParsedData } from "@mysten/sui/client";
 import { ENV } from "../env";
 import { suiClient } from "../suiClient";
 
