@@ -8,14 +8,15 @@ import {
   CardAction,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { useDecrement } from '@/hooks/counter/useDecrement';
+import { useDecrementDirect } from '@/hooks/counter/useDecrementDirect';
 import { useIncrement } from '@/hooks/counter/useIncrement';
+import { useIncrementDirect } from '@/hooks/counter/useIncrementDirect';
 import {
   type AppTab,
   activeCodeStepAtom,
@@ -23,6 +24,7 @@ import {
   logActiveStepAtom,
   logDigestAtom,
   logProgressAtom,
+  useEnokiAtom,
   visitedStepsAtom,
 } from '@/lib/atoms/ui';
 import { useCounterById, useCounterEvents } from '@/lib/counter/counter-reads';
@@ -60,6 +62,7 @@ const formatAddress = (address: string) => {
 interface PreparedTx {
   action: DemoAction;
   message: string;
+  useEnoki: boolean;
 }
 
 const HomePage = () => {
@@ -146,6 +149,7 @@ const DemoPanel = React.memo(() => {
   const [message, setMessage] = React.useState('');
   const [preparedTx, setPreparedTx] = React.useState<PreparedTx | null>(null);
   const [sponsoredAt, setSponsoredAt] = React.useState<number | null>(null);
+  const [useEnoki, setUseEnoki] = useAtom(useEnokiAtom);
 
   // Real hook for counter data
   const { data: counterData, isLoading: isCounterLoading } = useCounterById(
@@ -159,9 +163,13 @@ const DemoPanel = React.memo(() => {
     { enabled: Boolean(account?.address) },
   );
 
-  // Real mutation hooks
+  // Sponsored mutation hooks (Enoki)
   const incrementMutation = useIncrement();
   const decrementMutation = useDecrement();
+
+  // Direct mutation hooks (user pays gas)
+  const incrementDirectMutation = useIncrementDirect();
+  const decrementDirectMutation = useDecrementDirect();
 
   // Log state atoms
   const setLogProgress = useSetAtom(logProgressAtom);
@@ -198,37 +206,55 @@ const DemoPanel = React.memo(() => {
       if (
         preparedTx ||
         incrementMutation.isPending ||
-        decrementMutation.isPending
+        decrementMutation.isPending ||
+        incrementDirectMutation.isPending ||
+        decrementDirectMutation.isPending
       ) {
         return;
       }
 
       resetLog();
       const messageSnapshot = message.trim();
+      const useEnokiSnapshot = useEnoki;
 
       // Step 1: Build transaction
       setLogActiveStep(1);
       setLogProgress(1);
 
-      // Step 2: Request sponsorship (simulated delay for UI feedback)
-      setTimeout(() => {
-        setLogActiveStep(2);
-        setLogProgress(2);
-        setPreparedTx({
-          action,
-          message: messageSnapshot,
-        });
-      }, 300);
+      if (useEnokiSnapshot) {
+        // Step 2: Request sponsorship (simulated delay for UI feedback)
+        setTimeout(() => {
+          setLogActiveStep(2);
+          setLogProgress(2);
+          setPreparedTx({
+            action,
+            message: messageSnapshot,
+            useEnoki: useEnokiSnapshot,
+          });
+        }, 300);
+      } else {
+        // No sponsorship step for direct transactions
+        setTimeout(() => {
+          setPreparedTx({
+            action,
+            message: messageSnapshot,
+            useEnoki: useEnokiSnapshot,
+          });
+        }, 200);
+      }
     },
     [
       account,
+      decrementDirectMutation.isPending,
       decrementMutation.isPending,
+      incrementDirectMutation.isPending,
       incrementMutation.isPending,
       message,
       preparedTx,
       resetLog,
       setLogActiveStep,
       setLogProgress,
+      useEnoki,
     ],
   );
 
@@ -247,10 +273,14 @@ const DemoPanel = React.memo(() => {
     setLogProgress(3);
     setLogActiveStep(3);
 
-    const mutation =
-      preparedSnapshot.action === 'increment'
+    // Select the appropriate mutation based on Enoki toggle
+    const mutation = preparedSnapshot.useEnoki
+      ? preparedSnapshot.action === 'increment'
         ? incrementMutation
-        : decrementMutation;
+        : decrementMutation
+      : preparedSnapshot.action === 'increment'
+        ? incrementDirectMutation
+        : decrementDirectMutation;
 
     try {
       // Step 4: Execute
@@ -265,11 +295,13 @@ const DemoPanel = React.memo(() => {
       setLogProgress(4);
       setLogActiveStep(null);
       setLogDigest(result.digest);
-      setSponsoredAt(Date.now());
+      if (preparedSnapshot.useEnoki) {
+        setSponsoredAt(Date.now());
+      }
       setMessage('');
 
       toast.success(
-        `Counter ${preparedSnapshot.action === 'increment' ? 'incremented' : 'decremented'} successfully!`,
+        `Counter ${preparedSnapshot.action === 'increment' ? 'incremented' : 'decremented'} successfully!${preparedSnapshot.useEnoki ? '' : ' (You paid gas)'}`,
       );
 
       // Refetch data after a short delay
@@ -326,6 +358,8 @@ const DemoPanel = React.memo(() => {
     preparedTx,
     incrementMutation,
     decrementMutation,
+    incrementDirectMutation,
+    decrementDirectMutation,
     queryClient,
     setLogActiveStep,
     setLogDigest,
@@ -336,8 +370,14 @@ const DemoPanel = React.memo(() => {
   const isBusy =
     incrementMutation.isPending ||
     decrementMutation.isPending ||
+    incrementDirectMutation.isPending ||
+    decrementDirectMutation.isPending ||
     Boolean(preparedTx);
   const showSponsoredBadge = Boolean(sponsoredAt);
+
+  const handleToggleEnoki = React.useCallback(() => {
+    setUseEnoki((prev) => !prev);
+  }, [setUseEnoki]);
 
   const counterValue = counterData?.value ?? BigInt(0);
 
@@ -365,9 +405,31 @@ const DemoPanel = React.memo(() => {
             </div>
           </div>
           {account && (
-            <div className="flex justify-end">
-              <div className="inline-flex items-center gap-2 rounded-none border border-border/60 bg-muted/30 px-3 py-1.5 text-xs">
-                {clientConfig.NEXT_PUBLIC_SUI_NETWORK_NAME}
+            <div className="flex items-center justify-between gap-4">
+              <button
+                type="button"
+                onClick={handleToggleEnoki}
+                disabled={Boolean(preparedTx)}
+                className={cn(
+                  'flex cursor-pointer items-center gap-2 rounded-none border px-3 py-1.5 text-xs transition',
+                  useEnoki
+                    ? 'border-emerald-400/60 bg-emerald-400/10 text-emerald-600'
+                    : 'border-amber-400/60 bg-amber-400/10 text-amber-600',
+                  Boolean(preparedTx) && 'cursor-not-allowed opacity-50',
+                )}
+              >
+                <span
+                  className={cn(
+                    'h-2 w-2 rounded-full',
+                    useEnoki ? 'bg-emerald-400' : 'bg-amber-400',
+                  )}
+                />
+                {useEnoki ? 'Enoki Sponsored' : 'Pay Gas Yourself'}
+              </button>
+              <div className="inline-flex items-center gap-2 rounded-none px-3 py-1.5 text-xs">
+                <span className="text-muted-foreground">
+                  {clientConfig.NEXT_PUBLIC_SUI_NETWORK_NAME}
+                </span>
                 <span className="text-muted-foreground">SUI Balance:</span>
                 <span className="font-mono font-medium text-foreground">
                   {balanceData
@@ -415,20 +477,32 @@ const DemoPanel = React.memo(() => {
               {message.length}/72
             </div>
           </div>
-          {(incrementMutation.isPending || decrementMutation.isPending) &&
+          {(incrementMutation.isPending ||
+            decrementMutation.isPending ||
+            incrementDirectMutation.isPending ||
+            decrementDirectMutation.isPending) &&
           !preparedTx ? (
             <div className="rounded-none border border-dashed border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
               Processing transaction...
             </div>
           ) : null}
           {preparedTx ? (
-            <div className="rounded-none border border-amber-400/40 bg-amber-400/5 px-3 py-3 text-xs">
+            <div
+              className={cn(
+                'rounded-none border px-3 py-3 text-xs',
+                preparedTx.useEnoki
+                  ? 'border-amber-400/40 bg-amber-400/5'
+                  : 'border-rose-400/40 bg-rose-400/5',
+              )}
+            >
               <div className="space-y-1">
                 <div className="text-xs font-semibold tracking-wide text-foreground uppercase">
                   Transaction Ready
                 </div>
                 <div className="text-muted-foreground">
-                  Click Sign & Execute to submit the sponsored transaction.
+                  {preparedTx.useEnoki
+                    ? 'Click Sign & Execute to submit the sponsored transaction.'
+                    : 'Click Sign & Execute to submit. You will pay gas fees.'}
                 </div>
               </div>
               <div className="mt-3 space-y-3 text-muted-foreground">
@@ -447,13 +521,15 @@ const DemoPanel = React.memo(() => {
                   <div className="tracking-wide text-muted-foreground uppercase">
                     Sponsor
                   </div>
-                  <div>Enoki</div>
+                  <div>{preparedTx.useEnoki ? 'Enoki' : 'None'}</div>
                 </div>
                 <div className="grid gap-1">
                   <div className="tracking-wide text-muted-foreground uppercase">
                     Gas
                   </div>
-                  <div>Covered by sponsor</div>
+                  <div>
+                    {preparedTx.useEnoki ? 'Covered by sponsor' : 'Paid by you'}
+                  </div>
                 </div>
                 {preparedTx.message ? (
                   <div className="grid gap-1">
@@ -599,37 +675,33 @@ const CodePanel = React.memo(() => {
   return (
     <Card className="h-full">
       <CardHeader className="gap-2 border-b border-border/60">
-        <CardTitle>
-          Step {activeStep + 1} of {stepCount}: {currentStep.title}
-        </CardTitle>
-        <CardDescription>{currentStep.summary}</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <CodeSnippet
-          title={currentStep.title}
-          language={currentStep.language}
-          code={currentStep.code}
-          highlightLines={currentStep.highlightLines}
-        />
-      </CardContent>
-      <CardFooter className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={handlePrev}
-            disabled={activeStep === 0}
-          >
-            Prev
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleNext}
-            disabled={activeStep === stepCount - 1}
-          >
-            Next
-          </Button>
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-1">
+            <CardTitle>
+              Step {activeStep + 1} of {stepCount}: {currentStep.title}
+            </CardTitle>
+            <CardDescription>{currentStep.summary}</CardDescription>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePrev}
+              disabled={activeStep === 0}
+            >
+              Prev
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleNext}
+              disabled={activeStep === stepCount - 1}
+            >
+              Next
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 pt-2">
           {dots.map((dot) => (
             <span
               key={dot.key}
@@ -644,17 +716,28 @@ const CodePanel = React.memo(() => {
             />
           ))}
         </div>
-      </CardFooter>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <CodeSnippet
+          title={currentStep.title}
+          language={currentStep.language}
+          code={currentStep.code}
+          highlightLines={currentStep.highlightLines}
+        />
+      </CardContent>
     </Card>
   );
 });
 
 CodePanel.displayName = 'CodePanel';
 
+type LogStepStatus = 'idle' | 'active' | 'done' | 'skipped';
+
 const TransactionLog = React.memo(() => {
   const logActiveStep = useAtomValue(logActiveStepAtom);
   const logProgress = useAtomValue(logProgressAtom);
   const logDigest = useAtomValue(logDigestAtom);
+  const useEnoki = useAtomValue(useEnokiAtom);
   const setActiveStep = useSetAtom(activeCodeStepAtom);
   const setActiveTab = useSetAtom(activeTabAtom);
 
@@ -663,10 +746,25 @@ const TransactionLog = React.memo(() => {
       LOG_STEP_DEFS.map((step) => {
         const isActive = logActiveStep === step.id;
         const isDone = logProgress >= step.id;
-        const status = isActive ? 'active' : isDone ? 'done' : 'idle';
+
+        // Step 2 (Request sponsorship) should be "skipped" when not using Enoki
+        const isSponsorshipStep = step.id === 2;
+        const shouldSkip = isSponsorshipStep && !useEnoki && logProgress > 0;
+
+        let status: LogStepStatus;
+        if (shouldSkip) {
+          status = 'skipped';
+        } else if (isActive) {
+          status = 'active';
+        } else if (isDone) {
+          status = 'done';
+        } else {
+          status = 'idle';
+        }
+
         return { ...step, status };
       }),
-    [logActiveStep, logProgress],
+    [logActiveStep, logProgress, useEnoki],
   );
 
   const handleLogStepClick = React.useCallback(
@@ -686,6 +784,14 @@ const TransactionLog = React.memo(() => {
 
   const isIdle = logProgress === 0 && !logActiveStep && !logDigest;
 
+  // Calculate effective step count (3 steps when not using Enoki)
+  const effectiveStepCount = useEnoki ? 4 : 3;
+  const effectiveProgress = useEnoki
+    ? logProgress
+    : logProgress > 1
+      ? logProgress - 1
+      : logProgress;
+
   return (
     <details className="rounded-none border border-border bg-card" open>
       <summary className="flex cursor-pointer items-center justify-between px-4 py-3 text-xs font-semibold tracking-wide uppercase">
@@ -695,7 +801,7 @@ const TransactionLog = React.memo(() => {
             ? 'Idle'
             : logDigest
               ? 'Complete'
-              : `Step ${logProgress} of 4`}
+              : `Step ${effectiveProgress} of ${effectiveStepCount}`}
         </span>
       </summary>
       <div className="border-t border-border/60 px-4 py-4 text-xs">
@@ -712,6 +818,8 @@ const TransactionLog = React.memo(() => {
                   'border-amber-400/60 bg-amber-400/5',
                 step.status === 'done' &&
                   'border-emerald-400/40 bg-emerald-400/5',
+                step.status === 'skipped' &&
+                  'border-muted-foreground/30 bg-muted/20 opacity-60',
               )}
             >
               <span
@@ -720,15 +828,26 @@ const TransactionLog = React.memo(() => {
                   step.status === 'active' && 'bg-amber-400',
                   step.status === 'done' && 'bg-emerald-400',
                   step.status === 'idle' && 'bg-muted-foreground/40',
+                  step.status === 'skipped' && 'bg-muted-foreground/30',
                 )}
               />
               <span className="text-muted-foreground">[{step.id}]</span>
-              <span className="flex-1">{step.label}</span>
+              <span
+                className={cn(
+                  'flex-1',
+                  step.status === 'skipped' && 'line-through',
+                )}
+              >
+                {step.label}
+              </span>
               {step.status === 'active' ? (
                 <span className="text-amber-500">Active</span>
               ) : null}
               {step.status === 'done' ? (
                 <span className="text-emerald-500">Done</span>
+              ) : null}
+              {step.status === 'skipped' ? (
+                <span className="text-muted-foreground">Skipped</span>
               ) : null}
             </button>
           ))}
