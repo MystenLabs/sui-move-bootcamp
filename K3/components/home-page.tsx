@@ -35,7 +35,11 @@ import clientConfig from '@/lib/env-config-client';
 import { TransactionError } from '@/lib/errors';
 import { COUNTER_QUERY_KEYS } from '@/lib/query-keys';
 import { cn } from '@/lib/utils';
-import { ConnectButton, useCurrentAccount } from '@mysten/dapp-kit';
+import {
+  ConnectButton,
+  useCurrentAccount,
+  useSuiClientQuery,
+} from '@mysten/dapp-kit';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import * as React from 'react';
@@ -146,6 +150,13 @@ const DemoPanel = React.memo(() => {
   // Real hook for counter data
   const { data: counterData, isLoading: isCounterLoading } = useCounterById(
     clientConfig.NEXT_PUBLIC_COUNTER_OBJECT_ID,
+  );
+
+  // Fetch SUI balance for connected wallet
+  const { data: balanceData } = useSuiClientQuery(
+    'getBalance',
+    { owner: account?.address ?? '', coinType: '0x2::sui::SUI' },
+    { enabled: Boolean(account?.address) },
   );
 
   // Real mutation hooks
@@ -353,6 +364,22 @@ const DemoPanel = React.memo(() => {
               {isCounterLoading ? '...' : counterValue.toString()}
             </div>
           </div>
+          {account && (
+            <div className="flex justify-end">
+              <div className="inline-flex items-center gap-2 rounded-none border border-border/60 bg-muted/30 px-3 py-1.5 text-xs">
+                {clientConfig.NEXT_PUBLIC_SUI_NETWORK_NAME}
+                <span className="text-muted-foreground">SUI Balance:</span>
+                <span className="font-mono font-medium text-foreground">
+                  {balanceData
+                    ? (Number(balanceData.totalBalance) / 1e9).toLocaleString(
+                        undefined,
+                        { minimumFractionDigits: 2, maximumFractionDigits: 4 },
+                      )
+                    : '—'}
+                </span>
+              </div>
+            </div>
+          )}
           <div className="grid gap-2 sm:grid-cols-2">
             <Button
               variant="outline"

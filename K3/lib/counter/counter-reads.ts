@@ -64,7 +64,8 @@ export async function getCounterById(
 
     return {
       id: objectId,
-      value: typeof fields.value === 'string' ? BigInt(fields.value) : fields.value,
+      value:
+        typeof fields.value === 'string' ? BigInt(fields.value) : fields.value,
     };
   } catch (error) {
     if (
@@ -108,27 +109,39 @@ export async function getCounterEvents(
   packageAddress: string,
   limit: number = 20,
 ): Promise<CounterEvent[]> {
+  // Query all events from the counter module in a single call
+  const moduleEvents = await client.queryEvents({
+    query: {
+      MoveModule: {
+        package: packageAddress,
+        module: 'counter',
+      },
+    },
+    limit,
+    order: 'descending',
+  });
+
   const events: CounterEvent[] = [];
 
-  // Fetch Incremented events
-  const incrementedEvents = await client.queryEvents({
-    query: {
-      MoveEventType: `${packageAddress}::counter::Incremented`,
-    },
-    limit,
-    order: 'descending',
-  });
-
-  for (const event of incrementedEvents.data) {
+  for (const event of moduleEvents.data) {
     const parsedJson = event.parsedJson as {
       by: string;
       note: string;
       new_value: string;
     };
 
+    // Determine event type based on the event type string
+    const isIncrement = event.type.includes('::Incremented');
+    const isDecrement = event.type.includes('::Decremented');
+
+    if (!isIncrement && !isDecrement) {
+      // Skip unknown event types from this module
+      continue;
+    }
+
     events.push({
       id: event.id.txDigest + '-' + event.id.eventSeq,
-      type: 'increment',
+      type: isIncrement ? 'increment' : 'decrement',
       by: parsedJson.by,
       note: parsedJson.note,
       newValue: BigInt(parsedJson.new_value),
@@ -136,40 +149,7 @@ export async function getCounterEvents(
     });
   }
 
-  // Fetch Decremented events
-  const decrementedEvents = await client.queryEvents({
-    query: {
-      MoveEventType: `${packageAddress}::counter::Decremented`,
-    },
-    limit,
-    order: 'descending',
-  });
-
-  for (const event of decrementedEvents.data) {
-    const parsedJson = event.parsedJson as {
-      by: string;
-      note: string;
-      new_value: string;
-    };
-
-    events.push({
-      id: event.id.txDigest + '-' + event.id.eventSeq,
-      type: 'decrement',
-      by: parsedJson.by,
-      note: parsedJson.note,
-      newValue: BigInt(parsedJson.new_value),
-      timestamp: event.timestampMs ?? undefined,
-    });
-  }
-
-  // Sort by timestamp descending
-  events.sort((a, b) => {
-    const timeA = a.timestamp ? Number(a.timestamp) : 0;
-    const timeB = b.timestamp ? Number(b.timestamp) : 0;
-    return timeB - timeA;
-  });
-
-  return events.slice(0, limit);
+  return events;
 }
 
 /**
