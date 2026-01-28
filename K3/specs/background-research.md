@@ -123,13 +123,15 @@ module counter::counter {
 │   │  ┌─────────────────┐  │   │  tx.moveCall({                  │
 │   │  │ Leave a message │  │   │    target: `${PKG}::counter...  │
 │   │  └─────────────────┘  │   │  });                            │
-│   └───────────────────────┘   │                                 │ 
-│                               │  // Key: onlyTransactionKind    │
-│   Recent Activity:            │  const bytes = await tx.build({ │
-│   • alice (+1) "gm!" 0x8f2a.. │    client,                      │
-│   • bob (+1) 0x3c1d..         │    onlyTransactionKind: true ←  │ ← highlighted
+│   │ Transaction Ready     │   │                                 │ 
+│   │ Action: Increment     │   │  // Key: onlyTransactionKind    │
+│   │ Bytes: 0x3a8f...      │   │  const bytes = await tx.build({ │
+│   │ [Cancel] [Sign]       │   │    client,                      │
+│   └───────────────────────┘   │    onlyTransactionKind: true ←  │ ← highlighted
 │                               │  });                            │
-│                               │  ```                            │
+│   Recent Activity:            │  ```                            │
+│   • alice (+1) "gm!" 0x8f2a.. │                                 │
+│   • bob (+1) 0x3c1d..         │                                 │
 │                               │                                 │
 │                               │  [← Prev]  ● ● ● ● ○ ○  [Next →]│
 │                               │                                 │
@@ -168,6 +170,10 @@ The transaction is split into **two user actions** for educational visibility:
 - Wallet popup appears for signing
 - Transaction executes after signature
 - Success confirmation with explorer link
+```
+Note: the "Transaction Ready" UI is a persistent inline panel, not a modal.
+Users can keep navigating tabs and code while the prepared state is visible.
+```
 
 ### Why Two Steps?
 
@@ -199,6 +205,7 @@ The transaction is split into **two user actions** for educational visibility:
    - Shows transaction details before committing
    - Confirms sponsorship is ready
    - User can cancel or proceed to sign
+   - Inline (non-modal) so code exploration remains possible
 
 ---
 
