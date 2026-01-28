@@ -133,22 +133,22 @@ export const CODE_STEPS: CodeStep[] = [
 export const LOG_STEP_DEFS: LogStepDefinition[] = [
   {
     id: 1,
-    label: 'Build transaction (onlyTransactionKind: true)',
+    label: 'Build transaction (onlyTransactionKind: true) [Frontend]',
     codeStepIndex: 3,
   },
   {
     id: 2,
-    label: 'Request sponsorship from Enoki',
+    label: 'Request sponsorship from Enoki [Server]',
     codeStepIndex: 4,
   },
   {
     id: 3,
-    label: 'User signing transaction',
+    label: 'User signing transaction [Frontend]',
     codeStepIndex: 5,
   },
   {
     id: 4,
-    label: 'Execute sponsored transaction',
+    label: 'Execute sponsored transaction [Server]',
     codeStepIndex: 5,
   },
 ];
