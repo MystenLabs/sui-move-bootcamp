@@ -2,7 +2,7 @@ import { atom } from 'jotai';
 
 export type AppTab = 'demo' | 'code';
 
-export const activeTabAtom = atom<AppTab>('demo');
+export const activeTabAtom = atom<AppTab>('code');
 export const activeCodeStepAtom = atom(0);
 export const visitedStepsAtom = atom<Set<number>>(new Set([0]));
 

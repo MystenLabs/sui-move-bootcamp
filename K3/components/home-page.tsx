@@ -110,7 +110,7 @@ const Navbar = React.memo(() => {
           <div className="text-xs font-semibold tracking-[0.2em] text-foreground uppercase">
             Enoki Sponsored Transactions
           </div>
-          <nav className="flex items-center gap-1 rounded-none border border-border bg-muted/60 p-0.5 text-xs tracking-wide uppercase">
+          {/* <nav className="flex items-center gap-1 rounded-none border border-border bg-muted/60 p-0.5 text-xs tracking-wide uppercase">
             {NAV_TABS.map((tab) => {
               const isActive = activeTab === tab.id;
               return (
@@ -131,7 +131,7 @@ const Navbar = React.memo(() => {
                 </button>
               );
             })}
-          </nav>
+          </nav> */}
         </div>
         <div className="flex items-center gap-2">
           <ConnectButton connectText="Connect Wallet" />
