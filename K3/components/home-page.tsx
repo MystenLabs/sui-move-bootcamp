@@ -14,6 +14,8 @@ import {
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import { useDecrement } from '@/hooks/counter/useDecrement';
+import { useIncrement } from '@/hooks/counter/useIncrement';
 import {
   type AppTab,
   activeCodeStepAtom,
@@ -23,48 +25,36 @@ import {
   logProgressAtom,
   visitedStepsAtom,
 } from '@/lib/atoms/ui';
+import { useCounterById, useCounterEvents } from '@/lib/counter/counter-reads';
 import {
-  ACTIVITY_SEED,
-  type ActivityItem,
   CODE_STEPS,
-  DEMO_ADDRESSES,
   type DemoAction,
   LOG_STEP_DEFS,
 } from '@/lib/data/enoki-demo';
+import clientConfig from '@/lib/env-config-client';
+import { COUNTER_QUERY_KEYS } from '@/lib/query-keys';
 import { cn } from '@/lib/utils';
-import { ConnectButton } from '@mysten/dapp-kit';
+import { ConnectButton, useCurrentAccount } from '@mysten/dapp-kit';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import * as React from 'react';
+import { toast } from 'sonner';
 
 const NAV_TABS = [
   { id: 'demo', label: 'Demo' },
   { id: 'code', label: 'Code' },
 ] as const;
 
-const createRandomHex = (length: number) =>
-  Array.from({ length }, () =>
-    Math.floor(Math.random() * 16).toString(16),
-  ).join('');
-
-const createTxBytes = () => `0x${createRandomHex(32)}`;
-const createDigest = () => `0x${createRandomHex(12)}${createRandomHex(12)}`;
-
-const pickRandomAddress = (addresses: string[]) =>
-  addresses[Math.floor(Math.random() * addresses.length)] ?? addresses[0];
-
 const formatAddress = (address: string) => {
   if (address.length <= 10) {
     return address;
   }
-
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 };
 
 interface PreparedTx {
   action: DemoAction;
   message: string;
-  bytes: string;
-  sponsor: string;
 }
 
 const HomePage = () => {
@@ -146,42 +136,32 @@ const Navbar = React.memo(() => {
 Navbar.displayName = 'Navbar';
 
 const DemoPanel = React.memo(() => {
-  const [counter, setCounter] = React.useState(42);
+  const queryClient = useQueryClient();
+  const account = useCurrentAccount();
   const [message, setMessage] = React.useState('');
-  const [activity, setActivity] = React.useState<ActivityItem[]>(
-    () => ACTIVITY_SEED,
-  );
   const [preparedTx, setPreparedTx] = React.useState<PreparedTx | null>(null);
-  const [isPreparing, setIsPreparing] = React.useState(false);
-  const [isExecuting, setIsExecuting] = React.useState(false);
   const [sponsoredAt, setSponsoredAt] = React.useState<number | null>(null);
 
+  // Real hook for counter data
+  const { data: counterData, isLoading: isCounterLoading } = useCounterById(
+    clientConfig.NEXT_PUBLIC_COUNTER_OBJECT_ID,
+  );
+
+  // Real mutation hooks
+  const incrementMutation = useIncrement();
+  const decrementMutation = useDecrement();
+
+  // Log state atoms
   const setLogProgress = useSetAtom(logProgressAtom);
   const setLogActiveStep = useSetAtom(logActiveStepAtom);
   const setLogDigest = useSetAtom(logDigestAtom);
 
-  const timeoutsRef = React.useRef<number[]>([]);
-
-  const clearTimers = React.useCallback(() => {
-    timeoutsRef.current.forEach((timeout) => window.clearTimeout(timeout));
-    timeoutsRef.current = [];
-  }, []);
-
-  React.useEffect(() => () => clearTimers(), [clearTimers]);
-
+  // Clear sponsored badge after timeout
   React.useEffect(() => {
-    if (!sponsoredAt) {
-      return;
-    }
-
+    if (!sponsoredAt) return;
     const timeout = window.setTimeout(() => setSponsoredAt(null), 9000);
     return () => window.clearTimeout(timeout);
   }, [sponsoredAt]);
-
-  const schedule = React.useCallback((fn: () => void, delay: number) => {
-    const timeout = window.setTimeout(fn, delay);
-    timeoutsRef.current.push(timeout);
-  }, []);
 
   const resetLog = React.useCallback(() => {
     setLogActiveStep(null);
@@ -198,120 +178,124 @@ const DemoPanel = React.memo(() => {
 
   const handlePrepare = React.useCallback(
     (action: DemoAction) => {
-      if (isPreparing || isExecuting || preparedTx) {
+      if (!account) {
+        toast.warning('Please connect your wallet first');
         return;
       }
 
-      clearTimers();
+      if (
+        preparedTx ||
+        incrementMutation.isPending ||
+        decrementMutation.isPending
+      ) {
+        return;
+      }
+
       resetLog();
-
       const messageSnapshot = message.trim();
-      const bytes = createTxBytes();
-      const sponsor = 'Enoki';
 
-      setIsPreparing(true);
+      // Step 1: Build transaction
+      setLogActiveStep(1);
+      setLogProgress(1);
 
-      const durations = [350, 350];
-      let elapsed = 0;
-
-      durations.forEach((duration, index) => {
-        const step = index + 1;
-        schedule(() => setLogActiveStep(step), elapsed);
-        schedule(() => {
-          setLogProgress(step);
-          setLogActiveStep(step < 4 ? step + 1 : null);
-
-          if (step === 2) {
-            setIsPreparing(false);
-            setPreparedTx({
-              action,
-              message: messageSnapshot,
-              bytes,
-              sponsor,
-            });
-          }
-        }, elapsed + duration);
-        elapsed += duration;
-      });
+      // Step 2: Request sponsorship (simulated delay for UI feedback)
+      setTimeout(() => {
+        setLogActiveStep(2);
+        setLogProgress(2);
+        setPreparedTx({
+          action,
+          message: messageSnapshot,
+        });
+      }, 300);
     },
     [
-      clearTimers,
-      isPreparing,
-      isExecuting,
+      account,
+      decrementMutation.isPending,
+      incrementMutation.isPending,
       message,
       preparedTx,
       resetLog,
-      schedule,
       setLogActiveStep,
       setLogProgress,
     ],
   );
 
   const handleCancelPrepared = React.useCallback(() => {
-    clearTimers();
     setPreparedTx(null);
-    setIsPreparing(false);
-    setIsExecuting(false);
     resetLog();
-  }, [clearTimers, resetLog]);
+  }, [resetLog]);
 
-  const handleSignAndExecute = React.useCallback(() => {
-    if (!preparedTx || isExecuting) {
-      return;
-    }
+  const handleSignAndExecute = React.useCallback(async () => {
+    if (!preparedTx) return;
 
     const preparedSnapshot = preparedTx;
-    const digest = createDigest();
-    const actor = formatAddress(pickRandomAddress(DEMO_ADDRESSES));
-
-    clearTimers();
     setPreparedTx(null);
-    setIsExecuting(true);
-    setLogProgress(4);
-    setLogDigest(null);
-    setLogActiveStep(5);
 
-    schedule(() => {
-      setLogProgress(5);
-      setLogActiveStep(6);
-    }, 350);
-    schedule(() => {
-      setLogProgress(6);
+    // Update log to show signing step
+    setLogProgress(3);
+    setLogActiveStep(3);
+
+    const mutation =
+      preparedSnapshot.action === 'increment'
+        ? incrementMutation
+        : decrementMutation;
+
+    try {
+      // Step 4: Execute
+      setLogProgress(4);
+      setLogActiveStep(4);
+
+      const result = await mutation.mutateAsync({
+        note: preparedSnapshot.message,
+      });
+
+      // Success
+      setLogProgress(4);
       setLogActiveStep(null);
-      setLogDigest(digest);
-      setIsExecuting(false);
+      setLogDigest(result.digest);
       setSponsoredAt(Date.now());
       setMessage('');
 
-      setCounter((prev) =>
-        preparedSnapshot.action === 'increment' ? prev + 1 : prev - 1,
+      toast.success(
+        `Counter ${preparedSnapshot.action === 'increment' ? 'incremented' : 'decremented'} successfully!`,
       );
 
-      setActivity((prev) => {
-        const delta = preparedSnapshot.action === 'increment' ? 1 : -1;
-        const nextItem: ActivityItem = {
-          id: `tx-${Date.now()}`,
-          actor,
-          action: preparedSnapshot.action,
-          message: preparedSnapshot.message,
-          delta,
-        };
-
-        return [nextItem, ...prev].slice(0, 6);
-      });
-    }, 750);
+      // Refetch data after a short delay
+      setTimeout(() => {
+        queryClient.invalidateQueries({
+          queryKey: COUNTER_QUERY_KEYS.value(
+            clientConfig.NEXT_PUBLIC_COUNTER_OBJECT_ID,
+          ),
+        });
+        queryClient.invalidateQueries({
+          queryKey: COUNTER_QUERY_KEYS.events(),
+        });
+      }, 1000);
+    } catch (error) {
+      console.error('Transaction error:', error);
+      toast.error(
+        error instanceof Error ? error.message : 'Transaction failed',
+      );
+      resetLog();
+    }
   }, [
-    clearTimers,
-    isExecuting,
     preparedTx,
-    schedule,
+    incrementMutation,
+    decrementMutation,
+    queryClient,
     setLogActiveStep,
     setLogDigest,
     setLogProgress,
+    resetLog,
   ]);
 
-  const isBusy = isPreparing || isExecuting || Boolean(preparedTx);
+  const isBusy =
+    incrementMutation.isPending ||
+    decrementMutation.isPending ||
+    Boolean(preparedTx);
   const showSponsoredBadge = Boolean(sponsoredAt);
+
+  const counterValue = counterData?.value ?? BigInt(0);
 
   return (
     <div className="flex flex-col gap-6">
@@ -332,23 +316,30 @@ const DemoPanel = React.memo(() => {
             <div className="text-xs tracking-wide text-muted-foreground uppercase">
               Counter
             </div>
-            <div className="text-3xl font-semibold">{counter}</div>
+            <div className="text-3xl font-semibold">
+              {isCounterLoading ? '...' : counterValue.toString()}
+            </div>
           </div>
           <div className="grid gap-2 sm:grid-cols-2">
             <Button
               variant="outline"
-              disabled={isBusy}
+              disabled={isBusy || !account || counterValue === BigInt(0)}
               onClick={() => handlePrepare('decrement')}
             >
               Prepare -
             </Button>
             <Button
-              disabled={isBusy}
+              disabled={isBusy || !account}
               onClick={() => handlePrepare('increment')}
             >
               Prepare +
             </Button>
           </div>
+          {!account && (
+            <div className="rounded-none border border-dashed border-amber-400/40 bg-amber-400/5 px-3 py-2 text-xs text-amber-600">
+              Connect your wallet to interact with the counter
+            </div>
+          )}
           <div className="space-y-2">
             <div className="text-xs tracking-wide text-muted-foreground uppercase">
               Optional message
@@ -364,9 +355,10 @@ const DemoPanel = React.memo(() => {
               {message.length}/72
             </div>
           </div>
-          {isPreparing ? (
+          {(incrementMutation.isPending || decrementMutation.isPending) &&
+          !preparedTx ? (
             <div className="rounded-none border border-dashed border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-              Preparing transaction...
+              Processing transaction...
             </div>
           ) : null}
           {preparedTx ? (
@@ -376,7 +368,7 @@ const DemoPanel = React.memo(() => {
                   Transaction Ready
                 </div>
                 <div className="text-muted-foreground">
-                  Sponsorship is confirmed. Review details before signing.
+                  Click Sign & Execute to submit the sponsored transaction.
                 </div>
               </div>
               <div className="mt-3 space-y-3 text-muted-foreground">
@@ -393,17 +385,9 @@ const DemoPanel = React.memo(() => {
                 <Separator />
                 <div className="grid gap-1">
                   <div className="tracking-wide text-muted-foreground uppercase">
-                    Transaction bytes
-                  </div>
-                  <div className="font-mono text-[11px] text-foreground">
-                    {preparedTx.bytes}
-                  </div>
-                </div>
-                <div className="grid gap-1">
-                  <div className="tracking-wide text-muted-foreground uppercase">
                     Sponsor
                   </div>
-                  <div>{preparedTx.sponsor}</div>
+                  <div>Enoki</div>
                 </div>
                 <div className="grid gap-1">
                   <div className="tracking-wide text-muted-foreground uppercase">
@@ -431,20 +415,48 @@ const DemoPanel = React.memo(() => {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader className="gap-2 border-b border-border/60">
-          <CardTitle>Recent Activity</CardTitle>
-          <CardDescription>
-            Live updates from sponsored transactions.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-3">
-            {activity.map((item) => {
-              const isIncrement = item.delta > 0;
+      <ActivityCard />
+    </div>
+  );
+});
+
+DemoPanel.displayName = 'DemoPanel';
+
+const ActivityCard = React.memo(() => {
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+  const { data: events, isLoading, dataUpdatedAt } = useCounterEvents(6);
+
+  // Scroll to top when data is refetched
+  React.useEffect(() => {
+    if (dataUpdatedAt && scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [dataUpdatedAt]);
+
+  return (
+    <Card className="gap-0 pb-0">
+      <CardHeader className="gap-2 border-b border-border/60">
+        <CardTitle>Recent Activity</CardTitle>
+        <CardDescription>
+          Live updates from sponsored transactions.
+        </CardDescription>
+      </CardHeader>
+      <CardContent ref={scrollContainerRef} className="h-36 overflow-y-auto">
+        {isLoading ? (
+          <div className="py-4 text-center text-xs text-muted-foreground">
+            Loading activity...
+          </div>
+        ) : !events || events.length === 0 ? (
+          <div className="py-4 text-center text-xs text-muted-foreground">
+            No activity yet. Be the first to interact!
+          </div>
+        ) : (
+          <ul className="space-y-3 py-4">
+            {events.map((event) => {
+              const isIncrement = event.type === 'increment';
               return (
                 <li
-                  key={item.id}
+                  key={event.id}
                   className="flex items-start justify-between gap-3 text-xs"
                 >
                   <div className="flex items-start gap-3">
@@ -459,28 +471,30 @@ const DemoPanel = React.memo(() => {
                       {isIncrement ? '+' : '-'}
                     </span>
                     <div className="space-y-1">
-                      <div className="text-foreground">{item.actor}</div>
-                      {item.message ? (
+                      <div className="text-foreground">
+                        {formatAddress(event.by)}
+                      </div>
+                      {event.note ? (
                         <div className="text-muted-foreground">
-                          &quot;{item.message}&quot;
+                          &quot;{event.note}&quot;
                         </div>
                       ) : null}
                     </div>
                   </div>
                   <span className="text-muted-foreground">
-                    {isIncrement ? `+${item.delta}` : item.delta}
+                    → {event.newValue.toString()}
                   </span>
                 </li>
               );
             })}
           </ul>
-        </CardContent>
-      </Card>
-    </div>
+        )}
+      </CardContent>
+    </Card>
   );
 });
 
-DemoPanel.displayName = 'DemoPanel';
+ActivityCard.displayName = 'ActivityCard';
 
 const CodePanel = React.memo(() => {
   const [activeStep, setActiveStep] = useAtom(activeCodeStepAtom);
@@ -610,7 +624,6 @@ const TransactionLog = React.memo(() => {
     [setActiveStep, setActiveTab],
   );
 
-  const showReady = logProgress === 4 && !logDigest && !logActiveStep;
   const isIdle = logProgress === 0 && !logActiveStep && !logDigest;
 
   return (
@@ -618,7 +631,11 @@ const TransactionLog = React.memo(() => {
       <summary className="flex cursor-pointer items-center justify-between px-4 py-3 text-xs font-semibold tracking-wide uppercase">
         <span>Transaction Log</span>
         <span className="text-muted-foreground">
-          {isIdle ? 'Idle' : `Step ${Math.min(logProgress + 1, 6)} of 6`}
+          {isIdle
+            ? 'Idle'
+            : logDigest
+              ? 'Complete'
+              : `Step ${logProgress} of 4`}
         </span>
       </summary>
       <div className="border-t border-border/60 px-4 py-4 text-xs">
@@ -655,14 +672,9 @@ const TransactionLog = React.memo(() => {
               ) : null}
             </button>
           ))}
-          {showReady ? (
-            <div className="rounded-none border border-dashed border-border bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
-              Transaction Ready (waiting for user)
-            </div>
-          ) : null}
           {logDigest ? (
-            <div className="rounded-none border border-border bg-muted/20 px-3 py-2 text-xs">
-              Success. Digest:{' '}
+            <div className="rounded-none border border-emerald-400/40 bg-emerald-400/5 px-3 py-2 text-xs">
+              Success! Digest:{' '}
               <span className="font-mono text-[11px] text-foreground">
                 {logDigest}
               </span>

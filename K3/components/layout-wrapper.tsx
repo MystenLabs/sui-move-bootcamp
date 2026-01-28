@@ -1,17 +1,12 @@
 'use client';
 
-import {
-  SuiClientProvider,
-  WalletProvider,
-  createNetworkConfig,
-} from '@mysten/dapp-kit';
-import { getFullnodeUrl } from '@mysten/sui/client';
+import clientConfig from '@/lib/env-config-client';
+import { networkConfig } from '@/lib/network-config';
+import { SuiClientProvider, WalletProvider } from '@mysten/dapp-kit';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Provider as JotaiProvider } from 'jotai';
 import * as React from 'react';
-
-const { networkConfig } = createNetworkConfig({
-  testnet: { url: getFullnodeUrl('testnet') },
-});
+import { Toaster } from 'sonner';
 
 const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
   const [queryClient] = React.useState(
@@ -28,11 +23,19 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
   );
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <SuiClientProvider networks={networkConfig} defaultNetwork="testnet">
-        <WalletProvider autoConnect>{children}</WalletProvider>
-      </SuiClientProvider>
-    </QueryClientProvider>
+    <JotaiProvider>
+      <QueryClientProvider client={queryClient}>
+        <SuiClientProvider
+          networks={networkConfig}
+          defaultNetwork={clientConfig.NEXT_PUBLIC_SUI_NETWORK_NAME}
+        >
+          <WalletProvider autoConnect>
+            <Toaster position="bottom-right" />
+            {children}
+          </WalletProvider>
+        </SuiClientProvider>
+      </QueryClientProvider>
+    </JotaiProvider>
   );
 };
 

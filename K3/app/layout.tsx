@@ -1,4 +1,5 @@
 import LayoutWrapper from '@/components/layout-wrapper';
+import '@mysten/dapp-kit/dist/index.css';
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono, JetBrains_Mono } from 'next/font/google';
 
