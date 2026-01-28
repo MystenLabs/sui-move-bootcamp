@@ -32,6 +32,7 @@ import {
   LOG_STEP_DEFS,
 } from '@/lib/data/enoki-demo';
 import clientConfig from '@/lib/env-config-client';
+import { TransactionError } from '@/lib/errors';
 import { COUNTER_QUERY_KEYS } from '@/lib/query-keys';
 import { cn } from '@/lib/utils';
 import { ConnectButton, useCurrentAccount } from '@mysten/dapp-kit';
@@ -273,9 +274,41 @@ const DemoPanel = React.memo(() => {
       }, 1000);
     } catch (error) {
       console.error('Transaction error:', error);
-      toast.error(
-        error instanceof Error ? error.message : 'Transaction failed',
-      );
+
+      if (error instanceof TransactionError) {
+        switch (error.step) {
+          case 'wallet':
+            toast.warning(error.message);
+            break;
+          case 'sign':
+            // User cancelled signing - show info toast, not error
+            if (error.message.includes('cancelled')) {
+              toast.info('Transaction cancelled');
+            } else {
+              toast.error(error.message);
+            }
+            break;
+          case 'sponsor':
+            toast.error('Sponsorship failed. Please try again.');
+            break;
+          case 'execute':
+            toast.error('Transaction execution failed. Please try again.');
+            break;
+          case 'confirm':
+            toast.warning(
+              'Transaction submitted but confirmation timed out. Check your wallet.',
+            );
+            break;
+          case 'build':
+          default:
+            toast.error(error.message);
+        }
+      } else {
+        toast.error(
+          error instanceof Error ? error.message : 'Transaction failed',
+        );
+      }
+
       resetLog();
     }
   }, [
