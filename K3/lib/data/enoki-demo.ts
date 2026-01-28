@@ -104,6 +104,7 @@ export const CODE_STEPS: CodeStep[] = [
     language: 'typescript',
     highlightLines: [2, 3, 4],
     code: [
+      '"use server"',
       'const sponsoredResponse = await enokiClient.createSponsoredTransaction({',
       '  network: "testnet",',
       '  transactionKindBytes: toBase64(txBytes),',
@@ -118,6 +119,7 @@ export const CODE_STEPS: CodeStep[] = [
     language: 'typescript',
     highlightLines: [6, 7, 8],
     code: [
+      '"use server"',
       'const signature = await signTransaction({',
       '  transaction: fromBase64(sponsoredResponse.bytes),',
       '})',
