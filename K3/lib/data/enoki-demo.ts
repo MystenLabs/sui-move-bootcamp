@@ -80,7 +80,7 @@ export const CODE_STEPS: CodeStep[] = [
     title: 'Build Transaction',
     summary: 'Build a transaction kind only, then request sponsorship.',
     language: 'typescript',
-    highlightLines: [10, 11, 12],
+    highlightLines: [],
     code: [
       'import { Transaction } from "@mysten/sui/transactions"',
       '',
@@ -102,9 +102,10 @@ export const CODE_STEPS: CodeStep[] = [
     title: 'Get Sponsored Transaction',
     summary: 'Send transaction kind bytes to Enoki for sponsorship.',
     language: 'typescript',
-    highlightLines: [2, 3, 4],
+    highlightLines: [],
     code: [
       '"use server"',
+      '',
       'const sponsoredResponse = await enokiClient.createSponsoredTransaction({',
       '  network: "testnet",',
       '  transactionKindBytes: toBase64(txBytes),',
@@ -114,19 +115,29 @@ export const CODE_STEPS: CodeStep[] = [
   },
   {
     id: 6,
-    title: 'Sign & Execute',
-    summary: 'User signs, then you execute with both signatures.',
+    title: 'Sign Transaction',
+    summary: 'User signs the sponsored transaction bytes with their wallet.',
     language: 'typescript',
-    highlightLines: [6, 7, 8],
+    highlightLines: [],
+    code: [
+      '// Frontend: User signs the sponsored transaction',
+      'const { signature } = await signTransaction({',
+      '  transaction: sponsoredResponse.bytes,',
+      '})',
+    ].join('\n'),
+  },
+  {
+    id: 7,
+    title: 'Execute Sponsored Transaction',
+    summary: 'Execute the signed transaction via Enoki.',
+    language: 'typescript',
+    highlightLines: [],
     code: [
       '"use server"',
-      'const signature = await signTransaction({',
-      '  transaction: fromBase64(sponsoredResponse.bytes),',
-      '})',
       '',
       'const result = await enokiClient.executeSponsoredTransaction({',
       '  digest: sponsoredResponse.digest,',
-      '  signature: signature.signature,',
+      '  signature: signature,',
       '})',
     ].join('\n'),
   },
@@ -151,7 +162,7 @@ export const LOG_STEP_DEFS: LogStepDefinition[] = [
   {
     id: 4,
     label: 'Execute sponsored transaction [Server]',
-    codeStepIndex: 5,
+    codeStepIndex: 6,
   },
 ];
 
