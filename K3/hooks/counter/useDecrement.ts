@@ -18,6 +18,10 @@ export interface DecrementParams {
 
 /**
  * Hook for decrementing the counter with Enoki-sponsored transactions
+ * 
+ * Works with both traditional wallets AND zkLogin wallets seamlessly.
+ * When zkLogin is registered via registerEnokiWallets(), it appears as
+ * a standard wallet in dapp-kit, so the same hooks work for both.
  */
 export const useDecrement = () => {
   const client = useSuiClient();
@@ -28,7 +32,7 @@ export const useDecrement = () => {
     mutationFn: async (params: DecrementParams) => {
       const { note } = params;
 
-      // 1. Validate wallet connection
+      // 1. Validate wallet connection (works for both regular wallets and zkLogin)
       if (!sender) {
         throw new TransactionError('Wallet not connected', 'wallet');
       }
@@ -70,6 +74,7 @@ export const useDecrement = () => {
       }
 
       // 4. Sign the sponsored transaction bytes with user's wallet
+      // This works for both regular wallets AND zkLogin wallets
       let signature: string;
       try {
         const signResult = await signTransaction({

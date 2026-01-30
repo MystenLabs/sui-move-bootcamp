@@ -1,10 +1,11 @@
-# Enoki Sponsored Transactions Demo
+# Enoki Sponsored Transactions + zkLogin Demo
 
-An educational web app showcasing **Enoki sponsored transactions** on Sui. This project demonstrates how to build gasless user experiences by letting a sponsor pay for transaction fees on behalf of users.
+An educational web app showcasing **Enoki sponsored transactions** and **zkLogin** on Sui. This project demonstrates how to build gasless user experiences with social login authentication—users can sign in with Google and interact with the blockchain without managing private keys or paying gas fees.
 
 ![Sui Network](https://img.shields.io/badge/Sui-Testnet-blue)
 ![Next.js](https://img.shields.io/badge/Next.js-16-black)
 ![Enoki](https://img.shields.io/badge/Enoki-Sponsored%20TX-purple)
+![zkLogin](https://img.shields.io/badge/zkLogin-Google-green)
 
 ---
 
@@ -12,6 +13,7 @@ An educational web app showcasing **Enoki sponsored transactions** on Sui. This 
 
 - [Quick Start](#quick-start)
 - [Getting an Enoki API Key](#getting-an-enoki-api-key)
+- [Setting Up zkLogin (Google OAuth)](#setting-up-zklogin-google-oauth)
 - [Environment Setup](#environment-setup)
 - [Running the Project](#running-the-project)
 - [Project Overview](#project-overview)
@@ -63,15 +65,26 @@ Enoki is Mysten Labs' infrastructure service that enables sponsored transactions
    - **Testnet** (recommended for development)
    - **Mainnet** (for production)
 
-### Step 3: Get Your API Key
+### Step 3: Get Your API Keys
 
 1. Once your project is created, navigate to the **API Keys** section
 2. You'll see two types of keys:
-   - **Public Key** (`enoki_public_...`) - Safe to expose in client code
-   - **Private Key** (`enoki_private_...`) - **KEEP THIS SECRET** - server-side only
-3. Copy the **Private Key** - you'll need this for your `.env.local` file
+   - **Public Key** (`enoki_public_...`) - Used for zkLogin (client-side)
+   - **Private Key** (`enoki_private_...`) - **KEEP THIS SECRET** - server-side only for sponsorship
+3. Copy **both keys** - you'll need them for your `.env.local` file:
+   - Public key → `NEXT_PUBLIC_ENOKI_API_KEY`
+   - Private key → `ENOKI_PRIVATE_KEY`
 
-### Step 4: Configure Sponsorship Settings (Optional)
+### Step 4: Configure Auth Providers (Required for zkLogin)
+
+If you want to use zkLogin (social login):
+
+1. Navigate to the **Auth Providers** section in Enoki Portal
+2. Add your OAuth provider (e.g., Google)
+3. Enter your **Google OAuth Client ID** (see [Setting Up zkLogin](#setting-up-zklogin-google-oauth))
+4. Save the configuration
+
+### Step 5: Configure Sponsorship Settings (Optional)
 
 In the Enoki portal, you can configure:
 
@@ -80,6 +93,52 @@ In the Enoki portal, you can configure:
 - **Allowed Move call targets** - Whitelist specific smart contract functions
 
 > ⚠️ **Security Note**: Never expose your `ENOKI_PRIVATE_KEY` in client-side code. Always use it in server actions or API routes.
+
+---
+
+## Setting Up zkLogin (Google OAuth)
+
+zkLogin allows users to sign in with their Google account and interact with the blockchain without managing private keys. Here's how to set it up:
+
+### Step 1: Create a Google Cloud Project
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select an existing one
+3. Navigate to **APIs & Services** → **Credentials**
+
+### Step 2: Configure OAuth Consent Screen
+
+1. Click **OAuth consent screen** in the sidebar
+2. Select **External** user type (unless you have Google Workspace)
+3. Fill in the required fields:
+   - App name: Your app name
+   - User support email: Your email
+   - Developer contact email: Your email
+4. Click **Save and Continue** through the remaining steps
+
+### Step 3: Create OAuth 2.0 Client ID
+
+1. Go to **Credentials** → **Create Credentials** → **OAuth client ID**
+2. Select **Web application**
+3. Configure the authorized redirect URIs:
+   ```
+   http://localhost:3000/auth/callback    (for development)
+   https://yourdomain.com/auth/callback   (for production)
+   ```
+4. Click **Create**
+5. Copy the **Client ID** - you'll need this for:
+   - `.env.local` as `NEXT_PUBLIC_GOOGLE_CLIENT_ID`
+   - Enoki Portal Auth Providers configuration
+
+### Step 4: Add Client ID to Enoki Portal
+
+1. Go back to the [Enoki Portal](https://portal.enoki.mystenlabs.com/)
+2. Navigate to your project → **Auth Providers**
+3. Add Google as a provider
+4. Paste your Google OAuth Client ID
+5. Save
+
+> 💡 **Important**: The Google Client ID must be configured in **both** your `.env.local` file AND the Enoki Portal Auth Providers section.
 
 ---
 
@@ -101,13 +160,31 @@ NEXT_PUBLIC_PACKAGE_ADDRESS=0x...your_package_address
 # The shared counter object ID
 NEXT_PUBLIC_COUNTER_OBJECT_ID=0x...your_counter_object_id
 
+# Enoki public API key (for zkLogin - safe to expose)
+NEXT_PUBLIC_ENOKI_API_KEY=enoki_public_...your_public_key
+
+# Google OAuth Client ID (for zkLogin)
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=...your_google_client_id.apps.googleusercontent.com
+
 # ===========================================
 # Server-side variables (KEEP SECRET)
 # ===========================================
 
 # Your Enoki private API key - NEVER expose this to the client!
+# Used for sponsored transactions
 ENOKI_PRIVATE_KEY=enoki_private_...your_private_key
 ```
+
+### Environment Variables Summary
+
+| Variable                        | Purpose                | Where to Get                       |
+| ------------------------------- | ---------------------- | ---------------------------------- |
+| `NEXT_PUBLIC_SUI_NETWORK_NAME`  | Sui network            | `testnet`, `mainnet`, or `devnet`  |
+| `NEXT_PUBLIC_PACKAGE_ADDRESS`   | Counter contract       | From `sui client publish` output   |
+| `NEXT_PUBLIC_COUNTER_OBJECT_ID` | Shared counter object  | From contract deployment           |
+| `NEXT_PUBLIC_ENOKI_API_KEY`     | zkLogin client auth    | Enoki Portal → API Keys (Public)   |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID`  | Google OAuth           | Google Cloud Console → Credentials |
+| `ENOKI_PRIVATE_KEY`             | Sponsored transactions | Enoki Portal → API Keys (Private)  |
 
 ### How to Get Package Address and Counter Object ID
 
@@ -187,25 +264,34 @@ This app demonstrates a **two-step sponsored transaction flow**:
 
 ### Features
 
-| Feature                    | Description                                           |
-| -------------------------- | ----------------------------------------------------- |
-| **Global Counter**         | A shared counter anyone can increment/decrement       |
-| **Sponsored Transactions** | All gas fees are paid by the sponsor, not the user    |
-| **Activity Feed**          | Real-time updates showing who modified the counter    |
-| **Transaction Log**        | Step-by-step visibility into the sponsorship flow     |
-| **Code Examples**          | Interactive code snippets showing how each step works |
+| Feature                    | Description                                                    |
+| -------------------------- | -------------------------------------------------------------- |
+| **zkLogin (Google)**       | Sign in with Google—no wallet extension needed                 |
+| **Global Counter**         | A shared counter anyone can increment/decrement                |
+| **Sponsored Transactions** | All gas fees are paid by the sponsor, not the user             |
+| **Dual Login Support**     | Works with both traditional wallets and zkLogin                |
+| **Activity Feed**          | Real-time updates showing who modified the counter             |
+| **Transaction Log**        | Step-by-step visibility into the sponsorship flow              |
+| **Smart Step Skipping**    | Transaction log adapts based on login type (wallet vs zkLogin) |
 
 ### Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│  UI Components (React)                                               │
+│  Authentication Layer                                                │
+│    ├─> Traditional Wallet (Sui Wallet, Suiet, etc.)                  │
+│    └─> zkLogin (Google OAuth → registerEnokiWallets)                 │
+│         └─> Ephemeral key pair + ZK proof                            │
+├─────────────────────────────────────────────────────────────────────┤
+│  Transaction Flow (unified for both wallet types)                    │
 │    └─> React Hook (useMutation)                                      │
 │         └─> Transaction Builder Function                             │
 │              └─> Build TX with `onlyTransactionKind: true`           │
 │                   └─> Server Action: getSponsoredTx()                │
 │                        └─> EnokiClient.createSponsoredTransaction() │
-│                   └─> Sign with Wallet (signTransaction)             │
+│                   └─> Sign with signTransaction (dapp-kit)           │
+│                        ├─> Wallet: User approves in popup            │
+│                        └─> zkLogin: Auto-signs with ephemeral key    │
 │                   └─> Server Action: executeSponsoredTx()            │
 │                        └─> EnokiClient.executeSponsoredTransaction() │
 │                   └─> Wait for Transaction & Parse Results           │
@@ -258,7 +344,50 @@ const sponsored = await enokiClient.createSponsoredTransaction({
 
 ### zkLogin Integration
 
-Beyond sponsorship, Enoki also provides **zkLogin** - a way to authenticate users using familiar OAuth providers (Google, Facebook, etc.) without requiring them to manage private keys. Users sign in with their social account, and Enoki handles the cryptographic proof generation.
+Beyond sponsorship, Enoki also provides **zkLogin** - a way to authenticate users using familiar OAuth providers (Google, Facebook, etc.) without requiring them to manage private keys.
+
+**How zkLogin Works:**
+
+```
+User clicks "Sign in with Google"
+         ↓
+Google OAuth flow (standard)
+         ↓
+Enoki generates ephemeral key pair
+         ↓
+Zero-knowledge proof is created
+         ↓
+User has a Sui address tied to their Google account!
+```
+
+**Key Benefits:**
+
+- Users sign in with Google (familiar flow)
+- No wallet extension required
+- No seed phrases to manage
+- Transactions are signed automatically with ephemeral keys
+- Same Sui address every time (derived from Google identity)
+
+**Implementation (using `registerEnokiWallets`):**
+
+```typescript
+import { registerEnokiWallets } from '@mysten/enoki';
+
+// Register zkLogin as a wallet provider
+registerEnokiWallets({
+  apiKey: 'enoki_public_...',
+  providers: {
+    google: {
+      clientId: 'your-google-client-id',
+      redirectUrl: 'http://localhost:3000/auth/callback',
+    },
+  },
+  client: suiClient,
+  network: 'testnet',
+});
+```
+
+Once registered, zkLogin appears as a wallet option in the standard dapp-kit `ConnectButton`, and all existing code using `useSignTransaction` works seamlessly for both traditional wallets and zkLogin.
 
 ### Other Enoki Features
 
@@ -335,18 +464,27 @@ Beyond sponsorship, Enoki also provides **zkLogin** - a way to authenticate user
 
 ```
 K3/
-├── app/                    # Next.js App Router pages
+├── app/
+│   ├── auth/
+│   │   └── callback/       # OAuth callback handler for zkLogin
+│   └── page.tsx            # Main page
 ├── components/
-│   ├── ui/                 # Reusable UI primitives
-│   └── *.tsx               # Feature components
+│   ├── ui/                 # Reusable UI primitives (shadcn/ui)
+│   ├── layout-wrapper.tsx  # Providers + registerEnokiWallets
+│   ├── home-page.tsx       # Main demo UI
+│   └── zklogin-button.tsx  # zkLogin connect button
 ├── hooks/
-│   └── counter/            # Counter mutation hooks
+│   ├── counter/            # Counter mutation hooks
+│   │   ├── useIncrement.ts # Sponsored increment
+│   │   └── useDecrement.ts # Sponsored decrement
+│   └── useLoginType.ts     # Detect wallet vs zkLogin
 ├── lib/
-│   ├── atoms/              # Jotai atoms for state
+│   ├── atoms/              # Jotai atoms for UI state
 │   ├── counter/            # Counter reads & transactions
-│   ├── data/               # Demo data
+│   ├── data/               # Demo data & code snippets
 │   ├── enoki/              # Enoki server actions
-│   └── *.ts                # Utilities and configs
+│   ├── env-config-client.ts # Client env validation (includes zkLogin vars)
+│   └── env-config-server.ts # Server env validation
 ├── move/
 │   └── enoki_example/      # Move smart contract
 │       ├── sources/        # Contract source code

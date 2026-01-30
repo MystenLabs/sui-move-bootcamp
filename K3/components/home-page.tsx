@@ -13,10 +13,12 @@ import {
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import { ZkLoginButton } from '@/components/zklogin-button';
 import { useDecrement } from '@/hooks/counter/useDecrement';
 import { useDecrementDirect } from '@/hooks/counter/useDecrementDirect';
 import { useIncrement } from '@/hooks/counter/useIncrement';
 import { useIncrementDirect } from '@/hooks/counter/useIncrementDirect';
+import { useLoginType } from '@/hooks/useLoginType';
 import {
   type AppTab,
   activeCodeStepAtom,
@@ -44,6 +46,7 @@ import {
 } from '@mysten/dapp-kit';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { Loader2 } from 'lucide-react';
 import * as React from 'react';
 import { toast } from 'sonner';
 
@@ -134,7 +137,7 @@ const Navbar = React.memo(() => {
           </nav> */}
         </div>
         <div className="flex items-center gap-2">
-          <ConnectButton connectText="Connect Wallet" />
+          <ZkLoginButton />
         </div>
       </div>
     </header>
@@ -148,6 +151,7 @@ const DemoPanel = React.memo(() => {
   const account = useCurrentAccount();
   const [message, setMessage] = React.useState('');
   const [preparedTx, setPreparedTx] = React.useState<PreparedTx | null>(null);
+  const [isExecuting, setIsExecuting] = React.useState(false);
   const [sponsoredAt, setSponsoredAt] = React.useState<number | null>(null);
   const [useEnoki, setUseEnoki] = useAtom(useEnokiAtom);
 
@@ -264,10 +268,21 @@ const DemoPanel = React.memo(() => {
   }, [resetLog]);
 
   const handleSignAndExecute = React.useCallback(async () => {
-    if (!preparedTx) return;
+    if (!preparedTx || isExecuting) return;
 
     const preparedSnapshot = preparedTx;
-    setPreparedTx(null);
+    setIsExecuting(true);
+
+    // Toast ID for progress updates - same ID = updates existing toast
+    const TOAST_ID = 'tx-progress';
+
+    // Start loading toast
+    toast.loading(
+      preparedSnapshot.useEnoki
+        ? 'Requesting sponsorship...'
+        : 'Building transaction...',
+      { id: TOAST_ID },
+    );
 
     // Update log to show signing step
     setLogProgress(3);
@@ -283,9 +298,15 @@ const DemoPanel = React.memo(() => {
         : decrementDirectMutation;
 
     try {
+      // Update toast for signing phase
+      toast.loading('Awaiting signature...', { id: TOAST_ID });
+
       // Step 4: Execute
       setLogProgress(4);
       setLogActiveStep(4);
+
+      // Update toast for execution phase
+      toast.loading('Executing transaction...', { id: TOAST_ID });
 
       const result = await mutation.mutateAsync({
         note: preparedSnapshot.message,
@@ -300,8 +321,10 @@ const DemoPanel = React.memo(() => {
       }
       setMessage('');
 
+      // Success toast replaces loading toast
       toast.success(
-        `Counter ${preparedSnapshot.action === 'increment' ? 'incremented' : 'decremented'} successfully!${preparedSnapshot.useEnoki ? '' : ' (You paid gas)'}`,
+        `Counter ${preparedSnapshot.action === 'increment' ? 'incremented' : 'decremented'}!${preparedSnapshot.useEnoki ? ' (Sponsored)' : ''}`,
+        { id: TOAST_ID },
       );
 
       // Refetch data after a short delay
@@ -318,44 +341,56 @@ const DemoPanel = React.memo(() => {
     } catch (error) {
       console.error('Transaction error:', error);
 
+      // Error toast replaces loading toast
       if (error instanceof TransactionError) {
         switch (error.step) {
           case 'wallet':
-            toast.warning(error.message);
+            toast.warning(error.message, { id: TOAST_ID });
             break;
           case 'sign':
             // User cancelled signing - show info toast, not error
             if (error.message.includes('cancelled')) {
-              toast.info('Transaction cancelled');
+              toast.info('Transaction cancelled', { id: TOAST_ID });
             } else {
-              toast.error(error.message);
+              toast.error(error.message, { id: TOAST_ID });
             }
             break;
           case 'sponsor':
-            toast.error('Sponsorship failed. Please try again.');
+            toast.error('Sponsorship failed. Please try again.', {
+              id: TOAST_ID,
+            });
             break;
           case 'execute':
-            toast.error('Transaction execution failed. Please try again.');
+            toast.error('Transaction execution failed. Please try again.', {
+              id: TOAST_ID,
+            });
             break;
           case 'confirm':
             toast.warning(
               'Transaction submitted but confirmation timed out. Check your wallet.',
+              { id: TOAST_ID },
             );
             break;
           case 'build':
           default:
-            toast.error(error.message);
+            toast.error(error.message, { id: TOAST_ID });
         }
       } else {
         toast.error(
           error instanceof Error ? error.message : 'Transaction failed',
+          { id: TOAST_ID },
         );
       }
 
       resetLog();
+    } finally {
+      // Always clear executing state and prepared tx
+      setIsExecuting(false);
+      setPreparedTx(null);
     }
   }, [
     preparedTx,
+    isExecuting,
     incrementMutation,
     decrementMutation,
     incrementDirectMutation,
@@ -541,11 +576,46 @@ const DemoPanel = React.memo(() => {
                 ) : null}
               </div>
               <div className="mt-4 flex flex-wrap items-center gap-2">
-                <Button variant="outline" onClick={handleCancelPrepared}>
+                <Button
+                  variant="outline"
+                  onClick={handleCancelPrepared}
+                  disabled={isExecuting}
+                >
                   Cancel
                 </Button>
-                <Button onClick={handleSignAndExecute}>Sign & Execute</Button>
+                <Button
+                  onClick={handleSignAndExecute}
+                  disabled={
+                    isExecuting ||
+                    (!preparedTx.useEnoki &&
+                      Number(balanceData?.totalBalance ?? 0) === 0)
+                  }
+                >
+                  {isExecuting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    'Sign & Execute'
+                  )}
+                </Button>
               </div>
+              {!preparedTx.useEnoki &&
+                Number(balanceData?.totalBalance ?? 0) === 0 && (
+                  <div className="mt-2 rounded-none border border-dashed border-rose-400/40 bg-rose-400/5 px-3 py-2 text-xs text-rose-600">
+                    You need SUI to pay for gas. Get testnet SUI from{' '}
+                    <a
+                      href="https://faucet.sui.io/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline hover:text-rose-500"
+                    >
+                      faucet.sui.io
+                    </a>{' '}
+                    or enable Enoki sponsorship.
+                  </div>
+                )}
             </div>
           ) : null}
         </CardContent>
@@ -741,6 +811,9 @@ const TransactionLog = React.memo(() => {
   const setActiveStep = useSetAtom(activeCodeStepAtom);
   const setActiveTab = useSetAtom(activeTabAtom);
 
+  // Detect if current connection is via zkLogin
+  const { isZkLogin } = useLoginType();
+
   const logSteps = React.useMemo(
     () =>
       LOG_STEP_DEFS.map((step) => {
@@ -749,7 +822,15 @@ const TransactionLog = React.memo(() => {
 
         // Step 2 (Request sponsorship) should be "skipped" when not using Enoki
         const isSponsorshipStep = step.id === 2;
-        const shouldSkip = isSponsorshipStep && !useEnoki && logProgress > 0;
+        const shouldSkipSponsorship =
+          isSponsorshipStep && !useEnoki && logProgress > 0;
+
+        // Step 3 (User signing) should be "skipped" when using zkLogin
+        // zkLogin uses ephemeral keys, so signing happens automatically without user interaction
+        const isSigningStep = step.id === 3;
+        const shouldSkipSigning = isSigningStep && isZkLogin && logProgress > 0;
+
+        const shouldSkip = shouldSkipSponsorship || shouldSkipSigning;
 
         let status: LogStepStatus;
         if (shouldSkip) {
@@ -764,7 +845,7 @@ const TransactionLog = React.memo(() => {
 
         return { ...step, status };
       }),
-    [logActiveStep, logProgress, useEnoki],
+    [logActiveStep, logProgress, useEnoki, isZkLogin],
   );
 
   const handleLogStepClick = React.useCallback(
@@ -784,13 +865,24 @@ const TransactionLog = React.memo(() => {
 
   const isIdle = logProgress === 0 && !logActiveStep && !logDigest;
 
-  // Calculate effective step count (3 steps when not using Enoki)
-  const effectiveStepCount = useEnoki ? 4 : 3;
-  const effectiveProgress = useEnoki
-    ? logProgress
-    : logProgress > 1
-      ? logProgress - 1
-      : logProgress;
+  // Calculate effective step count based on skipped steps
+  // - Without Enoki sponsorship: skip step 2 (3 steps)
+  // - With zkLogin: skip step 3 (3 steps)
+  // - Without Enoki AND with zkLogin: skip both steps 2 and 3 (2 steps)
+  // - Default (Enoki + wallet): all 4 steps
+  const skippedSteps = (!useEnoki ? 1 : 0) + (isZkLogin ? 1 : 0);
+  const effectiveStepCount = 4 - skippedSteps;
+
+  // Adjust progress display based on skipped steps
+  const calculateEffectiveProgress = () => {
+    let adjusted = logProgress;
+    // If we've passed step 2 and it's skipped (!useEnoki), subtract 1
+    if (!useEnoki && logProgress > 1) adjusted--;
+    // If we've passed step 3 and it's skipped (isZkLogin), subtract 1
+    if (isZkLogin && logProgress > 2) adjusted--;
+    return adjusted;
+  };
+  const effectiveProgress = calculateEffectiveProgress();
 
   return (
     <details className="rounded-none border border-border bg-card" open>

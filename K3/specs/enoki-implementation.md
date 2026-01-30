@@ -15,25 +15,33 @@ This document details the complete flow of Enoki-sponsored transactions as imple
 7. [Layer 6: UI Components](#layer-6-ui-components)
 8. [Layer 7: Reading On-Chain Data (Queries)](#layer-7-reading-on-chain-data-queries)
 9. [Provider Setup](#provider-setup)
-10. [Environment Configuration](#environment-configuration)
-11. [Key Nuances & Gotchas](#key-nuances--gotchas)
-12. [Complete Transaction Flow Diagram](#complete-transaction-flow-diagram)
+10. [zkLogin Integration](#zklogin-integration)
+11. [Environment Configuration](#environment-configuration)
+12. [Key Nuances & Gotchas](#key-nuances--gotchas)
+13. [Complete Transaction Flow Diagram](#complete-transaction-flow-diagram)
 
 ---
 
 ## Architecture Overview
 
-The Enoki transaction flow follows a layered architecture:
+The Enoki transaction flow follows a layered architecture with support for both traditional wallets and zkLogin:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
+│  Authentication Layer                                                │
+│    ├─> Traditional Wallet (Sui Wallet, Suiet, etc.)                  │
+│    └─> zkLogin via registerEnokiWallets (Google, Facebook, etc.)     │
+│         └─> OAuth flow → Ephemeral key + ZK proof → Sui address      │
+├─────────────────────────────────────────────────────────────────────┤
 │  UI Components (React)                                               │
 │    └─> React Hook (useMutation)                                      │
 │         └─> Transaction Builder Function                             │
 │              └─> Build TX with `onlyTransactionKind: true`           │
 │                   └─> Server Action: getSponsoredTx()                │
 │                        └─> EnokiClient.createSponsoredTransaction() │
-│                   └─> Sign with Wallet (signTransaction)             │
+│                   └─> Sign with signTransaction (unified API)        │
+│                        ├─> Wallet: User approves popup               │
+│                        └─> zkLogin: Auto-signs (no popup)            │
 │                   └─> Server Action: executeSponsoredTx()            │
 │                        └─> EnokiClient.executeSponsoredTransaction() │
 │                   └─> Wait for Transaction & Parse Results           │
@@ -635,19 +643,49 @@ export const POLL_QUERY_KEYS = {
 'use client';
 import clientConfig from '@/lib/env-config-client';
 import { networkConfig } from '@/lib/network-config';
-import { SuiClientProvider, WalletProvider } from '@mysten/dapp-kit';
+import {
+  SuiClientProvider,
+  WalletProvider,
+  useSuiClientContext,
+} from '@mysten/dapp-kit';
+import { isEnokiNetwork, registerEnokiWallets } from '@mysten/enoki';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import * as React from 'react';
+
+// Register zkLogin as a wallet provider
+function RegisterEnokiWallets() {
+  const { client, network } = useSuiClientContext();
+  React.useEffect(() => {
+    if (!isEnokiNetwork(network)) return;
+    const { unregister } = registerEnokiWallets({
+      apiKey: clientConfig.NEXT_PUBLIC_ENOKI_API_KEY,
+      providers: {
+        google: {
+          clientId: clientConfig.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+          redirectUrl: `${window.location.origin}/auth/callback`,
+        },
+      },
+      client,
+      network,
+    });
+    return unregister;
+  }, [client, network]);
+  return null;
+}
 
 const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        refetchOnMount: false,
-        refetchOnWindowFocus: false,
-        staleTime: 5 * 60 * 1000, // 5 minutes
-      },
-    },
-  });
+  const [queryClient] = React.useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            refetchOnMount: false,
+            refetchOnWindowFocus: false,
+            staleTime: 5 * 60 * 1000, // 5 minutes
+          },
+        },
+      }),
+  );
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -655,6 +693,7 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
         networks={networkConfig}
         defaultNetwork={clientConfig.NEXT_PUBLIC_SUI_NETWORK_NAME}
       >
+        <RegisterEnokiWallets /> {/* Must be inside SuiClientProvider */}
         <WalletProvider autoConnect>
           {children}
         </WalletProvider>
@@ -682,6 +721,125 @@ export { networkConfig, useNetworkVariable, useNetworkVariables };
 
 ---
 
+## zkLogin Integration
+
+zkLogin allows users to authenticate using OAuth providers (Google, Facebook, etc.) without managing private keys. The `registerEnokiWallets` function from `@mysten/enoki` integrates zkLogin as a standard wallet in dapp-kit.
+
+### How It Works
+
+1. User clicks "Sign in with Google" in the wallet connect modal
+2. Standard OAuth flow redirects to Google
+3. After authentication, redirects back to `/auth/callback`
+4. Enoki creates an ephemeral key pair and ZK proof
+5. User now has a Sui address derived from their Google identity
+
+### OAuth Callback Handler
+
+**File:** `app/auth/callback/page.tsx`
+
+```tsx
+'use client';
+
+// The callback page just needs to exist - registerEnokiWallets handles the logic
+export default function AuthCallback() {
+  return <div>Completing sign in...</div>;
+}
+```
+
+### Detecting Login Type (Wallet vs zkLogin)
+
+**File:** `hooks/useLoginType.ts`
+
+```ts
+'use client';
+
+import { useCurrentWallet } from '@mysten/dapp-kit';
+import { useMemo } from 'react';
+
+export type LoginType = 'wallet' | 'zklogin' | null;
+
+/**
+ * Detects whether the current connection is via a traditional wallet or zkLogin.
+ * Enoki zkLogin wallets are named after OAuth providers (e.g., "Google").
+ */
+export function useLoginType(): {
+  loginType: LoginType;
+  isZkLogin: boolean;
+  isWallet: boolean;
+  walletName: string | null;
+} {
+  const { currentWallet } = useCurrentWallet();
+
+  return useMemo(() => {
+    if (!currentWallet) {
+      return {
+        loginType: null,
+        isZkLogin: false,
+        isWallet: false,
+        walletName: null,
+      };
+    }
+
+    const walletName = currentWallet.name.toLowerCase();
+
+    // Enoki zkLogin wallets are named after OAuth providers
+    const zkLoginProviders = ['google', 'facebook', 'twitch', 'apple'];
+    const isZkLogin = zkLoginProviders.some(
+      (provider) =>
+        walletName.includes(provider) || walletName.includes('enoki'),
+    );
+
+    return {
+      loginType: isZkLogin ? 'zklogin' : 'wallet',
+      isZkLogin,
+      isWallet: !isZkLogin,
+      walletName: currentWallet.name,
+    };
+  }, [currentWallet]);
+}
+```
+
+### Unified Signing (Works for Both)
+
+The beauty of `registerEnokiWallets` is that zkLogin appears as a standard wallet. All existing code using `useSignTransaction` works seamlessly:
+
+```ts
+// This works for BOTH traditional wallets AND zkLogin
+const { mutateAsync: signTransaction } = useSignTransaction();
+
+// For wallets: Shows approval popup
+// For zkLogin: Auto-signs with ephemeral key (no popup)
+const { signature } = await signTransaction({
+  transaction: sponsoredTxn.bytes,
+});
+```
+
+### zkLogin Setup Requirements
+
+1. **Google Cloud Console:**
+   - Create OAuth 2.0 Client ID
+   - Add redirect URI: `http://localhost:3000/auth/callback`
+
+2. **Enoki Portal:**
+   - Add Google OAuth Client ID to Auth Providers section
+
+3. **Environment Variables:**
+   ```env
+   NEXT_PUBLIC_ENOKI_API_KEY=enoki_public_...
+   NEXT_PUBLIC_GOOGLE_CLIENT_ID=...apps.googleusercontent.com
+   ```
+
+### Key Differences: Wallet vs zkLogin
+
+| Aspect         | Traditional Wallet       | zkLogin                     |
+| -------------- | ------------------------ | --------------------------- |
+| Setup          | Install extension        | None (just Google account)  |
+| Signing        | User approves popup      | Auto-signs (ephemeral key)  |
+| Key Management | User manages seed phrase | Handled by Enoki            |
+| Address        | From wallet              | Derived from OAuth identity |
+
+---
+
 ## Environment Configuration
 
 ### Client-Side Config (`lib/env-config-client.ts`)
@@ -691,12 +849,19 @@ import { z } from 'zod';
 
 const clientConfigSchema = z.object({
   NEXT_PUBLIC_SUI_NETWORK_NAME: z.enum(['mainnet', 'testnet', 'devnet']),
-  NEXT_PUBLIC_POLL_PACKAGE_ADDRESS: z.string(),
+  NEXT_PUBLIC_PACKAGE_ADDRESS: z.string(),
+  NEXT_PUBLIC_COUNTER_OBJECT_ID: z.string(),
+  // zkLogin configuration
+  NEXT_PUBLIC_ENOKI_API_KEY: z.string(),
+  NEXT_PUBLIC_GOOGLE_CLIENT_ID: z.string(),
 });
 
 const clientConfig = clientConfigSchema.safeParse({
   NEXT_PUBLIC_SUI_NETWORK_NAME: process.env.NEXT_PUBLIC_SUI_NETWORK_NAME,
-  NEXT_PUBLIC_POLL_PACKAGE_ADDRESS: process.env.NEXT_PUBLIC_POLL_PACKAGE_ADDRESS,
+  NEXT_PUBLIC_PACKAGE_ADDRESS: process.env.NEXT_PUBLIC_PACKAGE_ADDRESS,
+  NEXT_PUBLIC_COUNTER_OBJECT_ID: process.env.NEXT_PUBLIC_COUNTER_OBJECT_ID,
+  NEXT_PUBLIC_ENOKI_API_KEY: process.env.NEXT_PUBLIC_ENOKI_API_KEY,
+  NEXT_PUBLIC_GOOGLE_CLIENT_ID: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
 });
 
 if (!clientConfig.success) {
@@ -732,9 +897,18 @@ export default serverConfig.data;
 
 ```env
 # .env.local
+
+# Network configuration
 NEXT_PUBLIC_SUI_NETWORK_NAME=testnet
-NEXT_PUBLIC_POLL_PACKAGE_ADDRESS=0x...
-ENOKI_PRIVATE_KEY=enoki_private_...  # From Enoki dashboard
+NEXT_PUBLIC_PACKAGE_ADDRESS=0x...
+NEXT_PUBLIC_COUNTER_OBJECT_ID=0x...
+
+# zkLogin (client-side)
+NEXT_PUBLIC_ENOKI_API_KEY=enoki_public_...   # From Enoki Portal
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=...apps.googleusercontent.com  # From Google Cloud Console
+
+# Sponsored Transactions (server-side - KEEP SECRET)
+ENOKI_PRIVATE_KEY=enoki_private_...  # From Enoki Portal
 ```
 
 ---
@@ -824,6 +998,33 @@ const packageAddress = typeParts[0];
 - **Never import server config in client components**
 - Use Next.js Server Actions to call Enoki
 
+### 9. zkLogin: Google Client ID Must Be in Both Places
+
+For zkLogin to work, the Google OAuth Client ID must be configured in:
+
+1. **`.env.local`** as `NEXT_PUBLIC_GOOGLE_CLIENT_ID`
+2. **Enoki Portal** → Auth Providers → Google
+
+If either is missing, you'll get an "invalid client id" error from Enoki.
+
+### 10. zkLogin: Redirect URI Must Match Exactly
+
+The redirect URI must be identical in three places:
+
+1. Google Cloud Console → OAuth Client → Authorized redirect URIs
+2. `registerEnokiWallets` → `providers.google.redirectUrl`
+3. Your actual callback route (e.g., `/auth/callback`)
+
+Common mistake: Using `http` vs `https`, or missing trailing slash.
+
+### 11. zkLogin Auto-Signing Behavior
+
+With zkLogin, `signTransaction` doesn't show a popup—it auto-signs using the ephemeral key. This means:
+
+- Transaction log should skip/auto-complete the "User signing" step
+- Use `useLoginType()` hook to detect and adjust UI accordingly
+- UX should indicate that signing is automatic for social login users
+
 ---
 
 ## Complete Transaction Flow Diagram
@@ -909,15 +1110,38 @@ const packageAddress = typeParts[0];
 
 ## Implementation Checklist
 
+### Core Setup
+
 - [ ] Set up environment variables (client + server)
 - [ ] Configure network config with `createNetworkConfig`
 - [ ] Set up providers (QueryClientProvider, SuiClientProvider, WalletProvider)
+
+### zkLogin Setup
+
+- [ ] Create Google OAuth Client ID (Google Cloud Console)
+- [ ] Add redirect URI to Google OAuth: `http://localhost:3000/auth/callback`
+- [ ] Add Google Client ID to Enoki Portal → Auth Providers
+- [ ] Add `NEXT_PUBLIC_ENOKI_API_KEY` and `NEXT_PUBLIC_GOOGLE_CLIENT_ID` to env
+- [ ] Implement `RegisterEnokiWallets` component with `registerEnokiWallets`
+- [ ] Create OAuth callback page (`/auth/callback`)
+- [ ] (Optional) Create `useLoginType` hook to detect wallet vs zkLogin
+
+### Sponsored Transactions
+
 - [ ] Create server actions for Enoki (`getSponsoredTx`, `executeSponsoredTx`)
 - [ ] Define helper function `getMoveTarget` for allowedMoveCallTargets
 - [ ] Create transaction builder functions
 - [ ] Create mutation hooks with full sponsored flow
+
+### Data Layer
+
 - [ ] Create query functions + hooks for reading data
 - [ ] Set up query keys for cache management
+- [ ] Add query invalidation after mutations
+
+### UI
+
 - [ ] Implement UI components with mutation/query hooks
 - [ ] Add toast notifications for success/error states
-- [ ] Add query invalidation after mutations
+- [ ] Add loading states with spinners
+- [ ] Adapt UI based on login type (wallet vs zkLogin)
