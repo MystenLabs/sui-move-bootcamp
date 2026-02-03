@@ -2,6 +2,9 @@ module abilities_events_params::abilities_events_params;
 use std::string::String;
 use sui::event;
 
+// Test address (was previously in Move.toml [addresses])
+const USER: address = @0x1;
+
 //Error Codes
 const EMedalOfHonorNotAvailable: u64 = 111;
 
@@ -50,9 +53,9 @@ use std::unit_test::assert_eq;
 //--------------------------------------------------------------
 #[test]
 fun test_hero_creation() {
-    let mut test = ts::begin(@USER);
+    let mut test = ts::begin(USER);
     init(test.ctx());
-    test.next_tx(@USER);
+    test.next_tx(USER);
 
     //Get hero Registry
 
@@ -72,7 +75,7 @@ fun test_hero_creation() {
 //      2. Emit the `HeroMinted` event within the `mint_hero` function after creating the Hero.
 //      3. In this test, capture emitted events using `event::events_by_type<HeroMinted>()`.
 //      4. Assert that the number of emitted `HeroMinted` events is 1.
-//      5. Assert that the `owner` field of the emitted event matches the expected address (e.g., @USER).
+//      5. Assert that the `owner` field of the emitted event matches the expected address (e.g., USER).
 //--------------------------------------------------------------
 #[test]
 fun test_event_thrown() { assert_eq!(1, 1); }
