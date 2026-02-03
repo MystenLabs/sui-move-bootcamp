@@ -36,10 +36,6 @@ public fun mint_hero(version: &Version, ctx: &mut TxContext): Hero {
     }
 }
 
-// Task: Implement mint_hero_v2 that accepts payment
-// public fun mint_hero_v2(version: &Version, payment: Coin<SUI>, ctx: &mut TxContext): Hero {
-// }
-
 /// Hero can equip a single sword.
 public fun equip_sword(self: &mut Hero, version: &Version, sword: Sword) {
     version.check_is_valid();
@@ -67,15 +63,15 @@ public fun stamina(self: &Hero): u64 {
 }
 
 /// Returns the sword the hero has equipped.
-/// Aborts if it does not exists
+/// Aborts if it does not exist.
 public fun sword(self: &Hero): &Sword {
-    dof::borrow(&self.id, b"sword")
+    dof::borrow(&self.id, b"sword".to_string())
 }
 
 /// Returns the shield the hero has equipped.
-/// Aborts if it does not exists
+/// Aborts if it does not exist.
 public fun shield(self: &Hero): &Shield {
-    dof::borrow(&self.id, b"shield")
+    dof::borrow(&self.id, b"shield".to_string())
 }
 
 /// Generic add dynamic object field to the hero.

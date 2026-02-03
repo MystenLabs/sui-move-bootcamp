@@ -9,7 +9,6 @@ public struct Version has key {
 
 const EInvalidPackageVersion: u64 = 0;
 
-// Task: Update version to 2
 const VERSION: u64 = 1;
 
 fun init(ctx: &mut TxContext) {

@@ -14,5 +14,8 @@
 .history
 build
 node_modules
-target 
-Move.lock
+target
+
+# claude
+CLAUDE.md
+.claude/

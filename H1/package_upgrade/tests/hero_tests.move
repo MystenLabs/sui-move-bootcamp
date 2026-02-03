@@ -1,29 +1,76 @@
 #[test_only]
 module package_upgrade::hero_tests;
 
-use sui::dynamic_object_field as dof;
-
-use sui::coin;
-use sui::package::Publisher;
-use sui::sui::SUI;
 use sui::test_scenario;
 
 use package_upgrade::blacksmith;
 use package_upgrade::hero;
 use package_upgrade::version::{Self, Version};
 
-const EShouldHaveFailed: u64 = 0x100;
+const SENDER: address = @0x01;
 
 #[test]
-#[expected_failure(abort_code=hero::EUseMintHeroV2Instead)]
-fun hero_mint_should_fail() {
-    let sender = @0x11111;
-    let mut scenario = test_scenario::begin(sender);
+fun mint_hero_succeeds() {
+    let mut scenario = test_scenario::begin(SENDER);
     hero::init_for_testing(scenario.ctx());
     version::init_for_testing(scenario.ctx());
 
-    scenario.next_tx(sender);
+    scenario.next_tx(SENDER);
     let version = scenario.take_shared<Version>();
-    let _hero = hero::mint_hero(&version, scenario.ctx());
-    abort(EShouldHaveFailed)
+    let hero = hero::mint_hero(&version, scenario.ctx());
+
+    assert!(hero.health() == 100);
+    assert!(hero.stamina() == 10);
+
+    sui::test_utils::destroy(hero);
+    test_scenario::return_shared(version);
+    scenario.end();
+}
+
+#[test]
+fun hero_equips_sword() {
+    let mut scenario = test_scenario::begin(SENDER);
+    hero::init_for_testing(scenario.ctx());
+    version::init_for_testing(scenario.ctx());
+
+    scenario.next_tx(SENDER);
+    let version = scenario.take_shared<Version>();
+    let publisher = scenario.take_from_sender<sui::package::Publisher>();
+
+    let mut hero = hero::mint_hero(&version, scenario.ctx());
+    let blacksmith = blacksmith::new_blacksmith(&publisher, 50, scenario.ctx());
+    let sword = blacksmith.new_sword(30, scenario.ctx());
+
+    hero.equip_sword(&version, sword);
+    assert!(hero.sword().attack() == 30);
+
+    sui::test_utils::destroy(blacksmith);
+    sui::test_utils::destroy(hero);
+    test_scenario::return_to_sender(&scenario, publisher);
+    test_scenario::return_shared(version);
+    scenario.end();
+}
+
+#[test]
+fun hero_equips_shield() {
+    let mut scenario = test_scenario::begin(SENDER);
+    hero::init_for_testing(scenario.ctx());
+    version::init_for_testing(scenario.ctx());
+
+    scenario.next_tx(SENDER);
+    let version = scenario.take_shared<Version>();
+    let publisher = scenario.take_from_sender<sui::package::Publisher>();
+
+    let mut hero = hero::mint_hero(&version, scenario.ctx());
+    let blacksmith = blacksmith::new_blacksmith(&publisher, 50, scenario.ctx());
+    let shield = blacksmith.new_shield(40, scenario.ctx());
+
+    hero.equip_shield(&version, shield);
+    assert!(hero.shield().defence() == 40);
+
+    sui::test_utils::destroy(blacksmith);
+    sui::test_utils::destroy(hero);
+    test_scenario::return_to_sender(&scenario, publisher);
+    test_scenario::return_shared(version);
+    scenario.end();
 }
