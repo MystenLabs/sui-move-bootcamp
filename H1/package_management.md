@@ -74,13 +74,20 @@ my_dep = { r.mvr = "@org/package" }
 
 ### System Packages
 
-`std` (0x1) and `sui` (0x2) are implicit dependencies -- they're available in every package without being declared. Other system packages like `deepbook` must still be declared explicitly.
+`std` (0x1) and `sui` (0x2) are implicit dependencies -- they're available in every package without being declared. Other built-in system packages (like `deepbook`) must be declared explicitly using the system dependency syntax:
+
+```toml
+[dependencies]
+deepbook = { system = "deepbook" }
+```
+
+> **Note:** The `deepbook` system package refers to the deprecated DeepBook v2. New applications should use DeepBook v3 via MVR instead: `deepbook = { r.mvr = "@deepbook/core" }`.
 
 ## Advanced Features
 
 ### Overriding Dependencies
 
-When two dependencies pull in conflicting versions of the same transitive dependency, use `override = true` to force a specific version:
+When two dependencies pull in conflicting versions of the same transitive dependency, use `override = true` to force a specific version. Note that overrides only allow upgrading to newer versions:
 
 ```toml
 [dependencies]
@@ -121,5 +128,5 @@ test_helper = { local = "../test_helper", modes = ["test"] }
 
 - [Sui Packages Documentation](https://docs.sui.io/concepts/sui-move-concepts/packages)
 - [Move.toml Reference](https://docs.sui.io/references/move/move-toml)
-- [Move Registry (MVR)](https://docs.sui.io/concepts/sui-move-concepts/packages/mvr)
+- [Move Registry (MVR)](https://docs.sui.io/guides/developer/packages/move-package-management#move-registry-mvr)
 - [Package Manager Migration Guide](https://docs.sui.io/references/package-managers/package-manager-migration)

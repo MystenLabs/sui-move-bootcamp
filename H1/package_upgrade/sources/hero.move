@@ -9,8 +9,8 @@ use sui::package;
 use package_upgrade::blacksmith::{Shield, Sword};
 use package_upgrade::version::Version;
 
-const EAlreadyEquipedShield: u64 = 0;
-const EAlreadyEquipedSword: u64 = 1;
+const EAlreadyEquippedShield: u64 = 0;
+const EAlreadyEquippedSword: u64 = 1;
 
 public struct HERO() has drop;
 
@@ -26,7 +26,7 @@ fun init(otw: HERO, ctx: &mut TxContext) {
 }
 
 /// Anyone can mint a hero.
-/// Hero starts with 100 heath and 10 stamina.
+/// Hero starts with 100 health and 10 stamina.
 public fun mint_hero(version: &Version, ctx: &mut TxContext): Hero {
     version.check_is_valid();
     Hero {
@@ -40,7 +40,7 @@ public fun mint_hero(version: &Version, ctx: &mut TxContext): Hero {
 public fun equip_sword(self: &mut Hero, version: &Version, sword: Sword) {
     version.check_is_valid();
     if (df::exists_(&self.id, b"sword".to_string())) {
-        abort(EAlreadyEquipedSword)
+        abort(EAlreadyEquippedSword)
     };
     self.add_dof(b"sword".to_string(), sword)
 }
@@ -49,7 +49,7 @@ public fun equip_sword(self: &mut Hero, version: &Version, sword: Sword) {
 public fun equip_shield(self: &mut Hero, version: &Version, shield: Shield) {
     version.check_is_valid();
     if (df::exists_(&self.id, b"shield".to_string())) {
-        abort(EAlreadyEquipedShield)
+        abort(EAlreadyEquippedShield)
     };
     self.add_dof(b"shield".to_string(), shield)
 }

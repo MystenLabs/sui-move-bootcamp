@@ -2,7 +2,6 @@ module package_upgrade::blacksmith;
 
 use sui::package::Publisher;
 
-// DEMO: Change constant name, add constant.
 const ENotEnoughExpertise: u64 = 0;
 
 /// Blacksmith; can create items.
@@ -29,7 +28,7 @@ public fun new_blacksmith(publisher: &Publisher, expertise: u64, ctx: &mut TxCon
 
 /// Blacksmith can create swords with attack no more than their expertise.
 public fun new_sword(self: &Blacksmith, attack: u64, ctx: &mut TxContext): Sword {
-    assert!(self.expertise >= attack, ENotEnoughExpertise) ;
+    assert!(self.expertise >= attack, ENotEnoughExpertise);
     Sword {
         id: object::new(ctx),
         attack

@@ -19,10 +19,10 @@ fun mint_hero_succeeds() {
     let version = scenario.take_shared<Version>();
     let hero = hero::mint_hero(&version, scenario.ctx());
 
-    assert!(hero.health() == 100);
-    assert!(hero.stamina() == 10);
+    std::unit_test::assert_eq!(hero.health(), 100);
+    std::unit_test::assert_eq!(hero.stamina(), 10);
 
-    sui::test_utils::destroy(hero);
+    std::unit_test::destroy(hero);
     test_scenario::return_shared(version);
     scenario.end();
 }
@@ -42,10 +42,10 @@ fun hero_equips_sword() {
     let sword = blacksmith.new_sword(30, scenario.ctx());
 
     hero.equip_sword(&version, sword);
-    assert!(hero.sword().attack() == 30);
+    std::unit_test::assert_eq!(hero.sword().attack(), 30);
 
-    sui::test_utils::destroy(blacksmith);
-    sui::test_utils::destroy(hero);
+    std::unit_test::destroy(blacksmith);
+    std::unit_test::destroy(hero);
     test_scenario::return_to_sender(&scenario, publisher);
     test_scenario::return_shared(version);
     scenario.end();
@@ -66,10 +66,10 @@ fun hero_equips_shield() {
     let shield = blacksmith.new_shield(40, scenario.ctx());
 
     hero.equip_shield(&version, shield);
-    assert!(hero.shield().defence() == 40);
+    std::unit_test::assert_eq!(hero.shield().defence(), 40);
 
-    sui::test_utils::destroy(blacksmith);
-    sui::test_utils::destroy(hero);
+    std::unit_test::destroy(blacksmith);
+    std::unit_test::destroy(hero);
     test_scenario::return_to_sender(&scenario, publisher);
     test_scenario::return_shared(version);
     scenario.end();

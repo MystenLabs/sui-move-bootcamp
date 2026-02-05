@@ -602,6 +602,7 @@ When you publish a package, Sui creates an **`UpgradeCap`** and sends it to the 
 - Add new structs
 - Change private / `public(package)` bodies
 - Add new error constants
+- Remove generic type constraints
 
 </div>
 <div class="col">
@@ -629,23 +630,39 @@ When you publish a package, Sui creates an **`UpgradeCap`** and sends it to the 
 
 ---
 
-<!-- _class: cols-2-center -->
+<!-- _class: cols-4 -->
 
 # Upgrade Policies
+
+The `UpgradeCap` controls allowed upgrade types. Policies can only become **more restrictive**.
 
 <div class="grid">
 <div class="col">
 
-### Make Immutable
+### compatible
 
-Call `upgrade_cap.make_immutable()` to permanently prevent any future upgrades.
+Default. Any upgrade satisfying the compatibility rules.
 
 </div>
 <div class="col">
 
-### Custom Policies
+### additive
 
-Wrap the `UpgradeCap` in a module that enforces timelocks, governance votes, or multisig.
+Only add new functionality. Cannot change existing function bodies.
+
+</div>
+<div class="col">
+
+### dependency-only
+
+Only change dependencies. Cannot modify any module code.
+
+</div>
+<div class="col">
+
+### immutable
+
+No upgrades ever. Package permanently frozen.
 
 </div>
 </div>
@@ -677,7 +694,7 @@ public fun check_is_valid(self: &Version) {
 
 # Version Migration
 
-Every public function takes `&Version` and calls `check_is_valid()`.
+Public functions that mutate shared state take `&Version` and call `check_is_valid()`.
 
 On upgrade, a `migrate` function flips the switch.
 

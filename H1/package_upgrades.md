@@ -25,6 +25,7 @@ Upgrades must maintain backward compatibility:
 | Add new structs | Change existing struct layouts (fields, abilities) |
 | Change function bodies (private, `public(package)`) | Change `public` function parameter/return types |
 | Add new error constants | Remove `public` functions |
+| Remove generic type constraints from existing functions | |
 
 Key points:
 - **`init` does NOT re-run** on upgrade. Any new initialization logic must be handled separately.
@@ -33,9 +34,22 @@ Key points:
 
 ## Upgrade Policies
 
-By default, anyone holding the `UpgradeCap` can upgrade the package. You can restrict this:
+The `UpgradeCap` controls what kinds of upgrades are allowed. Sui provides four built-in policies, ordered from most to least permissive:
 
-- **Make immutable**: Call `upgrade_cap.make_immutable()` to permanently prevent upgrades. The package becomes frozen.
+| Policy | What It Allows |
+|---|---|
+| **compatible** (default) | Any upgrade that satisfies the compatibility rules above |
+| **additive** | Only add new functionality; cannot change existing function bodies |
+| **dependency-only** | Only change dependencies; cannot modify any module code |
+| **immutable** | No upgrades ever; package is permanently frozen |
+
+Policies can only become **more restrictive** over time -- you can move down this list but never back up.
+
+To restrict:
+
+- **Make immutable**: Call `upgrade_cap.make_immutable()` to permanently prevent upgrades.
+- **Restrict to additive**: Call `upgrade_cap.only_additive_upgrades()`.
+- **Restrict to dep-only**: Call `upgrade_cap.only_dep_upgrades()`.
 - **Custom policies**: Wrap the `UpgradeCap` in a custom module that enforces additional rules (e.g., timelock, governance vote, multisig).
 
 ## Versioned Shared Objects Pattern
@@ -67,7 +81,7 @@ public fun check_is_valid(self: &Version) {
 }
 ```
 
-Every public function takes `&Version` and calls `check_is_valid()`. When you upgrade:
+Public functions that mutate shared state should take `&Version` and call `check_is_valid()`. When you upgrade:
 
 1. Bump the `VERSION` constant in the new code
 2. Add a `migrate` function that updates the shared `Version` object's `version` field
@@ -194,7 +208,7 @@ public fun mint_hero_v2(
 ): Hero {
     version.check_is_valid();
     assert!(payment.value() >= HERO_PRICE, EInsufficientPayment);
-    transfer::public_transfer(payment, ctx.sender());
+    transfer::public_transfer(payment, ctx.sender()); // simplified; in production, send to a treasury address
     Hero {
         id: object::new(ctx),
         health: 100,
