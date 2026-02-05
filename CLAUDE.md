@@ -58,18 +58,14 @@ There are ~40 independent Move packages. They do not depend on each other. Each 
 
 ### Move Package Configuration
 
-All packages use Move 2024 edition with the Sui testnet framework:
+All packages use Move 2024 edition. The Sui framework dependency is auto-resolved by the package manager (v1.63+):
 
 ```toml
 [package]
 name = "package_name"
-edition = "2024.beta"
+edition = "2024"
 
 [dependencies]
-Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet", override = true }
-
-[addresses]
-package_name = "0x0"
 ```
 
 ### Scaffolding Pattern
