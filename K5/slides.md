@@ -855,12 +855,15 @@ entry fun seal_approve(
 
 # Key Servers & Threshold Encryption
 
-A **key server** is a stateless service in open mode: IBE master secret key + Sui full node connection. Two endpoints:
+A **key server** holds an IBE master secret key and connects to a Sui full node. Two endpoints:
 
 - `/v1/service` — Server info (object ID, public key, URL)
 - `/v1/fetch_key` — Key derivation (evaluates policy, returns derived key)
 
-> *Independent notaries — you need any 2 of 3 to sign off. No single notary can forge alone; if one is on vacation, the other two suffice.*
+Threshold works at **two independent levels**:
+
+1. **Across servers** — Multiple independent key servers; the SDK combines responses. *Like needing 2 of 3 independent notaries to sign off.*
+2. **Within a server (committee)** — A single logical server backed by an MPC committee; an aggregator combines partial shares via Lagrange interpolation. *Like a single notary office run by a committee that must internally agree.*
 
 </div>
 
@@ -877,7 +880,7 @@ A **key server** is a stateless service in open mode: IBE master secret key + Su
 *Privacy* = compromised servers tolerated
 *Liveness* = unavailable servers tolerated
 
-**2-of-3** is the recommended default.
+**2-of-3** is the recommended default. *Applies at both levels independently.*
 
 </div>
 
@@ -1366,15 +1369,16 @@ Write a `seal_approve*` function in Move. Build with `sui move build`. Publish w
 <div class="grid">
 <div class="col">
 
-### Open vs Permissioned Modes
+### Three Operational Modes
 
-| Aspect | Open Mode | Permissioned Mode |
-|--------|------|-------------|
-| **Access** | Any package | Allowlisted only |
-| **Master key** | Single key | Per-client derived from a master seed |
-| **Isolation** | None — shared key across all policies | Full — each client gets a dedicated key |
-| **Use case** | Public or general-purpose service, testing | B2B deployments, commercial offerings |
-| **Key export** | Not applicable | Supports export/import for key server rotation |
+| Aspect | Open | Permissioned | Committee |
+|--------|------|-------------|-----------|
+| **Access** | Any package | Allowlisted | Via aggregator |
+| **Key model** | Single key | Per-client derived | DKG shares (no full key) |
+| **Isolation** | None | Full | Distributed trust |
+| **Use case** | Testing, public | B2B, commercial | High-security |
+
+**Committee mode** adds an **aggregator** (client gateway) and requires a **DKG ceremony**. Membership is rotatable.
 
 </div>
 <div class="col">

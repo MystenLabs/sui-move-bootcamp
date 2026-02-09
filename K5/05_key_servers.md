@@ -19,17 +19,18 @@ For a `/v1/fetch_key` request to succeed, it must:
 
 The server evaluates the PTB via `dry_run_transaction_block` on its full node. No gas is consumed, and no state changes occur.
 
-## Open vs Permissioned Modes
+## Operational Modes
 
-Key servers operate in one of two modes:
+Key servers operate in one of three modes: **Open**, **Permissioned**, and **Committee**.
 
-| Aspect | Open | Permissioned |
-|--------|------|-------------|
-| **Access** | Any on-chain package can request keys | Only explicitly allowlisted packages |
-| **Master key** | Single key for all requests | Per-client derived keys from a master seed |
-| **Use case** | Public or general-purpose service, testing | B2B deployments, commercial offerings |
-| **Client isolation** | None — shared key across all policies | Full — each client gets a dedicated key |
-| **Key export** | Not applicable | Supports export/import for key server rotation |
+| Aspect | Open | Permissioned | Committee |
+|--------|------|-------------|-----------|
+| **Access** | Any on-chain package | Only allowlisted packages | Determined by aggregator/policy config |
+| **Master key** | Single key for all requests | Per-client derived keys from a master seed | Distributed shares from DKG — no single party holds the full key |
+| **Use case** | Public/general-purpose, testing | B2B deployments, commercial offerings | High-security deployments requiring distributed trust |
+| **Client isolation** | None — shared key | Full — per-client key | N/A — committee holds shared distributed key |
+| **Key export** | Not applicable | Supports export/import | Not applicable — shares are non-exportable |
+| **Operator model** | Single operator | Single operator | Coordinator + committee members + aggregator |
 
 ### Open Mode
 
@@ -44,6 +45,24 @@ The server is initialized with a master *seed* from which per-client keys are de
 - A dedicated on-chain `KeyServer` object
 
 This means different clients are cryptographically isolated — compromising one client's key doesn't affect others. Clients can also export their key and migrate to a different key server provider.
+
+### Committee Mode
+
+In committee mode, no single party holds the full IBE master secret key. Instead, a group of **committee members** each hold a *share* generated through a **Distributed Key Generation (DKG)** ceremony. An **aggregator server** sits in front of the committee as the client-facing gateway.
+
+When a client sends a `/v1/fetch_key` request, the aggregator fans it out to committee members, collects enough partial responses to meet the threshold, and combines them into a single decryption key using **Lagrange interpolation**. To the client, this looks identical to querying a single key server.
+
+**DKG Ceremony** — Setting up a committee follows three phases:
+
+1. **Registration** — Members generate encryption keys and register them on-chain
+2. **Message Creation** — Members create and exchange DKG messages off-chain
+3. **Finalization** — Members process messages and propose the committee configuration on-chain
+
+A coordinator orchestrates timing between phases. After finalization, each member has a `MASTER_SHARE_V0` and runs their key server with `server_mode: !Committee` and `committee_state: !Active`.
+
+**Key Rotation** — Committee membership can change without losing access to previously encrypted data. During rotation, continuing members must meet the current threshold. The process follows the same three phases as a fresh DKG, producing a new share version (`MASTER_SHARE_VX+1`). The key server transitions through `!Rotation` back to `!Active` state.
+
+> No committee-mode providers appear in the verified provider list yet. See the Further Reading section for the full operational runbooks.
 
 ## On-Chain Registration
 
@@ -95,4 +114,6 @@ Contact providers directly for Mainnet access: Ruby Nodes, NodeInfra, Overclock,
 ## Further Reading
 
 - [Key Server Operations](./docs/KeyServerOps.md) — Full operational guide for running a standalone key server
+- [Committee Mode Operations](./docs/KeyServerCommitteeOps.md) — DKG ceremony, committee setup, and key rotation
+- [Aggregator Server](./docs/Aggregator.md) — Configuration and operation of the committee aggregator
 - [Pricing & Verified Servers](./docs/Pricing.md) — Complete provider list with URLs and Object IDs

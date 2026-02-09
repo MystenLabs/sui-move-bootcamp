@@ -303,14 +303,16 @@
 <header>Key Servers &amp; Threshold</header>
 <div class="content">
 <h1 id="key-servers--threshold-encryption">Key Servers &amp; Threshold Encryption</h1>
-<p>A <strong>key server</strong> is a stateless service in open mode: IBE master secret key + Sui full node connection. Two endpoints:</p>
+<p>A <strong>key server</strong> holds an IBE master secret key and connects to a Sui full node. Two endpoints:</p>
 <ul>
 <li><code>/v1/service</code> — Server info (object ID, public key, URL)</li>
 <li><code>/v1/fetch_key</code> — Key derivation (evaluates policy, returns derived key)</li>
 </ul>
-<blockquote>
-<p><em>Independent notaries — you need any 2 of 3 to sign off. No single notary can forge alone; if one is on vacation, the other two suffice.</em></p>
-</blockquote>
+<p>Threshold works at <strong>two independent levels</strong>:</p>
+<ol>
+<li><strong>Across servers</strong> — Multiple independent key servers; the SDK combines responses. <em>Like needing 2 of 3 independent notaries to sign off.</em></li>
+<li><strong>Within a server (committee)</strong> — A single logical server backed by an MPC committee; an aggregator combines partial shares via Lagrange interpolation. <em>Like a single notary office run by a committee that must internally agree.</em></li>
+</ol>
 </div>
 <div class="illustration">
 <h3 id="threshold-trade-offs">Threshold Trade-offs</h3>
@@ -342,7 +344,7 @@
 </table>
 <p><em>Privacy</em> = compromised servers tolerated<br />
 <em>Liveness</em> = unavailable servers tolerated</p>
-<p><strong>2-of-3</strong> is the recommended default.</p>
+<p><strong>2-of-3</strong> is the recommended default. <em>Applies at both levels independently.</em></p>
 </div>
 <footer>Seal Theory</footer>
 </section>
@@ -689,43 +691,44 @@ tx.<span class="hljs-title function_">moveCall</span>({
 <h1 id="key-server-operations--providers">Key Server Operations &amp; Providers</h1>
 <div class="grid">
 <div class="col">
-<h3 id="open-vs-permissioned-modes">Open vs Permissioned Modes</h3>
+<h3 id="three-operational-modes">Three Operational Modes</h3>
 <table>
 <thead>
 <tr>
 <th>Aspect</th>
-<th>Open Mode</th>
-<th>Permissioned Mode</th>
+<th>Open</th>
+<th>Permissioned</th>
+<th>Committee</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><strong>Access</strong></td>
 <td>Any package</td>
-<td>Allowlisted only</td>
+<td>Allowlisted</td>
+<td>Via aggregator</td>
 </tr>
 <tr>
-<td><strong>Master key</strong></td>
+<td><strong>Key model</strong></td>
 <td>Single key</td>
-<td>Per-client derived from a master seed</td>
+<td>Per-client derived</td>
+<td>DKG shares (no full key)</td>
 </tr>
 <tr>
 <td><strong>Isolation</strong></td>
-<td>None — shared key across all policies</td>
-<td>Full — each client gets a dedicated key</td>
+<td>None</td>
+<td>Full</td>
+<td>Distributed trust</td>
 </tr>
 <tr>
 <td><strong>Use case</strong></td>
-<td>Public or general-purpose service, testing</td>
-<td>B2B deployments, commercial offerings</td>
-</tr>
-<tr>
-<td><strong>Key export</strong></td>
-<td>Not applicable</td>
-<td>Supports export/import for key server rotation</td>
+<td>Testing, public</td>
+<td>B2B, commercial</td>
+<td>High-security</td>
 </tr>
 </tbody>
 </table>
+<p><strong>Committee mode</strong> adds an <strong>aggregator</strong> (client gateway) and requires a <strong>DKG ceremony</strong>. Membership is rotatable.</p>
 </div>
 <div class="col">
 <h3 id="verified-testnet-providers">Verified Testnet Providers</h3>
