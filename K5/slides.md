@@ -683,30 +683,6 @@ Setup(λ) → (mpk, msk)&emsp;│&emsp;Encrypt(mpk, id, msg) → ciphertext&emsp
 ---
 
 <!-- ============================================================
-     SLIDE 7 — Cryptographic Building Blocks
-     ============================================================ -->
-
-<!-- _header: "Identity-Based Encryption" -->
-
-# Cryptographic Building Blocks
-
-| Component | Primitive | Role |
-|-----------|-----------|------|
-| **KEM** | Boneh-Franklin IBE over BLS12-381 | Threshold key encapsulation — encrypts symmetric key shares |
-| **DEM (fast)** | AES-256-GCM | Client-side data encryption — recommended for most use cases |
-| **DEM (on-chain)** | HMAC-based CTR mode | Symmetric encryption that can be decrypted in Move |
-| **Key transport** | ElGamal-encrypted BLS | Protects derived keys in transit from key server to client |
-| **Threshold** | Shamir's Secret Sharing | Splits symmetric key so any `t`-of-`n` servers can reconstruct |
-
-<div class="highlight-box">
-
-**Key insight:** The KEM/DEM structure means threshold operations only touch small key material. Bulk data encryption uses efficient symmetric crypto — the expensive IBE math is limited to a tiny key, not your data.
-
-</div>
-
----
-
-<!-- ============================================================
      SLIDE 8 — Seal's Architecture: Two Pillars
      ============================================================ -->
 
