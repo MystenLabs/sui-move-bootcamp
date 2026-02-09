@@ -855,7 +855,7 @@ entry fun seal_approve(
 
 # Key Servers & Threshold Encryption
 
-A **key server** is a stateless service: IBE master secret key + Sui full node connection. Two endpoints:
+A **key server** is a stateless service in open mode: IBE master secret key + Sui full node connection. Two endpoints:
 
 - `/v1/service` — Server info (object ID, public key, URL)
 - `/v1/fetch_key` — Key derivation (evaluates policy, returns derived key)
@@ -1366,15 +1366,15 @@ Write a `seal_approve*` function in Move. Build with `sui move build`. Publish w
 <div class="grid">
 <div class="col">
 
-### Open vs Permissioned
+### Open vs Permissioned Modes
 
-| Aspect | Open | Permissioned |
+| Aspect | Open Mode | Permissioned Mode |
 |--------|------|-------------|
 | **Access** | Any package | Allowlisted only |
-| **Master key** | Single key | Per-client derived |
-| **Isolation** | Shared | Full per-client |
-| **Use case** | Public / testing | B2B / commercial |
-| **Key export** | N/A | Supported |
+| **Master key** | Single key | Per-client derived from a master seed |
+| **Isolation** | None — shared key across all policies | Full — each client gets a dedicated key |
+| **Use case** | Public or general-purpose service, testing | B2B deployments, commercial offerings |
+| **Key export** | Not applicable | Supports export/import for key server rotation |
 
 </div>
 <div class="col">
