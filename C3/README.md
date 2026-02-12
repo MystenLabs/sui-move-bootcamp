@@ -2,8 +2,6 @@
 
 ## Programmable Transaction Blocks (PTBs)
 
-##### What you will learn in this module:
-
 This section introduces Programmable Transaction Blocks (PTBs) in Sui, demonstrating how they enable atomic multi-step transactions and flexible smart contract composition.
 
 ## What are PTBs?
@@ -101,12 +99,4 @@ By completing this section, you will understand:
 2. Study the `execute_ptb.sh` script to see complex PTB composition
 3. Explore the smart contracts to understand their individual functionalities
 4. Try modifying the PTB script to create different greeting formats
-
----
-### Useful Links
-
- - [Programmable Transaction Blocks
-](https://docs.sui.io/concepts/transactions/prog-txn-blocks)
- - [Sui Client PTB CLI](https://docs.sui.io/references/cli/ptb#strings)
- - [Building Programmable Transaction Blocks - Sui TS SDK](https://docs.sui.io/guides/developer/sui-101/building-ptb)
 

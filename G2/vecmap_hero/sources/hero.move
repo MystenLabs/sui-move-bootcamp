@@ -42,7 +42,9 @@ public fun create_hero(
     attributes: VecMap<String, u64>,
     ctx: &mut TxContext,
 ): Hero {
-    // create the attributes vector
+    let hero_attributes = attributes
+        .keys()
+        .map!(|attribute| Attribute { name: attribute, level: *attributes.get(&attribute) });
 
     let hero = Hero {
         id: object::new(ctx),
@@ -50,7 +52,8 @@ public fun create_hero(
         attributes: hero_attributes,
     };
 
-    // update the registry
+    let hero_id = object::id(&hero);
+    r.heroes.insert(hero_id, true);
 
     hero
 }
@@ -72,7 +75,9 @@ public fun transfer_hero(hero: Hero, to: address) {
 /// @param hero The hero to kill.
 public fun kill_hero(r: &mut HeroRegistry, hero: Hero) {
     let Hero { id, name: _, attributes: _ } = hero;
-    // update the registry
+    let hero_id = object::uid_to_inner(&id);
+    let hero_alive = r.heroes.get_mut(&hero_id);
+    *hero_alive = false;
     id.delete();
 }
 

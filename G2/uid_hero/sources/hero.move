@@ -21,7 +21,15 @@ public struct Hero has key {
 /// @param ctx The transaction context.
 /// @return The hero.
 public fun create_hero(name: String, attributes: vector<String>, ctx: &mut TxContext): Hero {
-    // create a hero
+    let hero_attributes = attributes.map!(|attribute| Attribute { name: attribute, level: 0 });
+
+    let hero = Hero {
+        id: object::new(ctx),
+        name,
+        attributes: hero_attributes,
+    };
+
+    hero
 }
 
 public fun create_attribute(name: String, level: u64): Attribute {
@@ -40,7 +48,8 @@ public fun transfer_hero(hero: Hero, to: address) {
 ///         it does not have the drop ability.
 /// @param hero The hero to kill.
 public fun kill_hero(hero: Hero) {
-    // destroy the hero
+    let Hero { id, name: _, attributes: _ } = hero;
+    id.delete();
 }
 
 // Test Only

@@ -28,16 +28,80 @@ public fun create_hero(name: String, ctx: &mut TxContext): Hero {
 }
 
 public fun increase_fire_attribute(hero: &mut Hero, amount: u16) {
-    // increase the fire attribute, create it if it doesn't exist
+    let fire = if (hero.attributes.contains_with_type<Fire, u16>(Fire())) {
+        hero.attributes.borrow_mut<Fire, u16>(Fire())
+    } else {
+        hero.attributes.add(Fire(), 0u16);
+        hero.attributes.borrow_mut<Fire, u16>(Fire())
+    };
+    *fire = *fire + amount;
 }
 
-// create the other increase functions
+public fun increase_water_attribute(hero: &mut Hero, amount: u16) {
+    let water = if (hero.attributes.contains_with_type<Water, u16>(Water())) {
+        hero.attributes.borrow_mut<Water, u16>(Water())
+    } else {
+        hero.attributes.add(Water(), 0u16);
+        hero.attributes.borrow_mut<Water, u16>(Water())
+    };
+    *water = *water + amount;
+}
+
+public fun increase_earth_attribute(hero: &mut Hero, amount: u16) {
+    let earth = if (hero.attributes.contains_with_type<Earth, u16>(Earth())) {
+        hero.attributes.borrow_mut<Earth, u16>(Earth())
+    } else {
+        hero.attributes.add(Earth(), 0u16);
+        hero.attributes.borrow_mut<Earth, u16>(Earth())
+    };
+    *earth = *earth + amount;
+}
+
+public fun increase_air_attribute(hero: &mut Hero, amount: u16) {
+    let air = if (hero.attributes.contains_with_type<Air, u16>(Air())) {
+        hero.attributes.borrow_mut<Air, u16>(Air())
+    } else {
+        hero.attributes.add(Air(), 0u16);
+        hero.attributes.borrow_mut<Air, u16>(Air())
+    };
+    *air = *air + amount;
+}
 
 public fun get_fire_attribute(hero: &Hero): Option<u16> {
-    // get the fire attribute value, if present
+    let fire = if (hero.attributes.contains_with_type<Fire, u16>(Fire())) {
+        some(*hero.attributes.borrow<Fire, u16>(Fire()))
+    } else {
+        none()
+    };
+    fire
 }
 
-// create the other get functions
+public fun get_water_attribute(hero: &Hero): Option<u16> {
+    let water = if (hero.attributes.contains_with_type<Water, u16>(Water())) {
+        some(*hero.attributes.borrow<Water, u16>(Water()))
+    } else {
+        none()
+    };
+    water
+}
+
+public fun get_earth_attribute(hero: &Hero): Option<u16> {
+    let earth = if (hero.attributes.contains_with_type<Earth, u16>(Earth())) {
+        some(*hero.attributes.borrow<Earth, u16>(Earth()))
+    } else {
+        none()
+    };
+    earth
+}
+
+public fun get_air_attribute(hero: &Hero): Option<u16> {
+    let air = if (hero.attributes.contains_with_type<Air, u16>(Air())) {
+        some(*hero.attributes.borrow<Air, u16>(Air()))
+    } else {
+        none()
+    };
+    air
+}
 
 public fun transfer_hero(hero: Hero, to: address) {
     transfer::transfer(hero, to);

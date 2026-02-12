@@ -1,0 +1,3 @@
+# External endpoints that the enclave is allowed to access.
+endpoints:
+  - api.weatherapi.com # replace with your own endpoints

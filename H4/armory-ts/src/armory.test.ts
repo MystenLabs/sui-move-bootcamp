@@ -33,7 +33,7 @@ export async function mintSwordsInArmory({ client, signer, nSwords, attack }: {
     });
 
     if (resp.effects?.status.status !== 'success') {
-        throw new Error(`Failure during mass mint transaction:\n${JSON.stringify(resp.effects?.status, null, 2)}`);
+        throw new Error(`Failure during mass mint transaction:\n${JSON.stringify(resp, null, 2)}`);
     }
     await client.waitForTransaction({ digest: resp.digest });
     return resp;
@@ -47,14 +47,14 @@ describe("Armory", () => {
     beforeAll(async () => {
         client = new SuiClient({ url: getFullnodeUrl('localnet') });
         await PublishSingleton.publish(client, admin);
-    }, 20000);
+    }, 10000);
 
     it(`Mint ${swordsToMint} or more Swords`, async () => {
 
         // Task 1: Resolve max-new-objects per tx limit
         // Task 2: Resolve max-object-size for Armory
         // Task 3: Resolve max cache objects (max dynamic field creations)
-        const swordsPerMint = swordsToMint;
+        const swordsPerMint = 1000;
         for (let i = 0; i < swordsToMint / swordsPerMint + (swordsToMint % swordsPerMint === 0 ? 0 : 1); i++) {
             const swordResp = await mintSwordsInArmory({
                 client,
@@ -64,13 +64,13 @@ describe("Armory", () => {
                 attack: 10,
             });
             if (swordResp.effects?.status.status !== 'success') {
-                throw new Error(`Something went wrong creating sword:\n${JSON.stringify(swordResp.effects?.status, null, 2)}`)
+                throw new Error(`Something went wrong creating sword:\n${JSON.stringify(swordResp, null, 2)}`)
             }
             // console.log(`Minted ${swordsPerMint} swords`);
         }
     }, 60000);
 
-    /* // Task 4: Claim storage rebate before dropping table.
+    // Task 4: Claim storage rebate before dropping table.
     it(`Destroy Armory`, async () => {
         type MoveObjectParsedData = Extract<SuiParsedData, { dataType: 'moveObject' }>;
         type ArmoryObjectParsedData = MoveObjectParsedData & {
@@ -118,7 +118,7 @@ describe("Armory", () => {
                 }
             });
             if (rebateResp.effects?.status.status !== 'success') {
-                throw new Error(`Something went wrong removing sword entries:\n${JSON.stringify(rebateResp.effects?.status, null, 2)}`)
+                throw new Error(`Something went wrong removing sword entries:\n${JSON.stringify(rebateResp, null, 2)}`)
             }
             await client.waitForTransaction({ digest: rebateResp.digest });
 
@@ -150,8 +150,7 @@ describe("Armory", () => {
             }
         });
         if (destroyResp.effects?.status.status !== 'success') {
-            throw new Error(`Something went destroying Armory:\n${JSON.stringify(destroyResp.effects?.status, null, 2)}`)
+            throw new Error(`Something went wrong removing sword entries:\n${JSON.stringify(destroyResp, null, 2)}`)
         }
     }, 60000);
-    */
 });

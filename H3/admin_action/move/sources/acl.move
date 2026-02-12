@@ -5,6 +5,8 @@ module admin_action::acl;
 
 use sui::package;
 
+const ENotAuthorizedToMint: u64 = 0;
+
 /// A one-time witness type used for module initialization.
 public struct ACL() has drop;
 
@@ -38,12 +40,13 @@ fun init(otw: ACL, ctx: &mut TxContext) {
 /// This function should be called by authorized admins only.
 /// Creates a new Hero with specified health and stamina attributes and transfers it to the recipient.
 public fun mint(
+    acl: &AccessControlList,
     health: u64,
     stamina: u64,
     recipient: address,
     ctx: &mut TxContext
 ) {
-    // Task: Authorize using `AccessControlList`
+    assert!(acl.admins.contains(&ctx.sender()), ENotAuthorizedToMint);
     transfer::transfer(Hero {
         id: object::new(ctx),
         health,

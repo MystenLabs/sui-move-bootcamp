@@ -1,5 +1,4 @@
 module capability_hero::hero;
-
 use capability_hero::store::{HeroStore, Weapon, Armor};
 use std::string::String;
 use sui::coin::Coin;
@@ -21,9 +20,15 @@ public fun mint_hero(name: String, ctx: &mut TxContext): Hero {
     }
 }
 
-// TODO: add a function to buy a weapon from a store
+public fun buy_weapon(hero: &mut Hero, store: &mut HeroStore<Weapon>, coin: Coin<SUI>) {
+    let weapon = store.buy_item<Weapon>(coin);
+    hero.weapon = option::some(weapon);
+}
 
-// TODO: add a function to buy a armor from a store
+public fun buy_armor(hero: &mut Hero, store: &mut HeroStore<Armor>, coin: Coin<SUI>) {
+    let armor = store.buy_item<Armor>(coin);
+    hero.armor = option::some(armor);
+}
 
 // Test Only
 
@@ -32,7 +37,9 @@ use capability_hero::store::{Self, ENotAuthorized, StoreAdminCap};
 #[test_only]
 use sui::coin;
 #[test_only]
-use sui::{test_scenario as ts, test_utils::assert_eq};
+use sui::{test_scenario as ts};
+#[test_only]
+use std::unit_test::assert_eq;
 
 #[test_only]
 const WEAPON_STORE_OWNER: address = @0xAA;
@@ -117,20 +124,20 @@ fun test_can_buy_from_non_empty_stores() {
     {
         let mut hero = ts.take_from_sender<Hero>();
 
-        assert_eq(hero.weapon.is_none(), true);
-        assert_eq(hero.armor.is_none(), true);
+        assert_eq!(hero.weapon.is_none(), true);
+        assert_eq!(hero.armor.is_none(), true);
 
         let mut weapon_store = ts.take_shared<HeroStore<Weapon>>();
         let mut armor_store = ts.take_shared<HeroStore<Armor>>();
-        
+
         let weapon_coin = coin::mint_for_testing(weapon_store.item_price(), ts.ctx());
         let armor_coin = coin::mint_for_testing(armor_store.item_price(), ts.ctx());
 
         buy_weapon(&mut hero, &mut weapon_store, weapon_coin);
         buy_armor(&mut hero, &mut armor_store, armor_coin);
 
-        assert_eq(hero.weapon.is_some(), true);
-        assert_eq(hero.armor.is_some(), true);
+        assert_eq!(hero.weapon.is_some(), true);
+        assert_eq!(hero.armor.is_some(), true);
 
         ts.return_to_sender(hero);
         ts::return_shared(weapon_store);

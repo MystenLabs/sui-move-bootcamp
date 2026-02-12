@@ -6,9 +6,6 @@ use sui::token;
 use sui::url;
 
 use king_credits::crown_council_rule::{Self, CrownCouncilRule};
-
-const ETodo: u64 = 0x100;
-
 const DECIMALS: u8 = 9;
 const NAME: vector<u8> = b"King's Credits";
 const SYMBOL: vector<u8> = b"KING_CREDITS";
@@ -28,9 +25,20 @@ fun init(otw: KING_CREDITS, ctx: &mut TxContext) {
         ctx
     );
 
-    // Task: Create policy, allow transfer with CrownCouncilRule and setup its
-    // config.
-    abort(ETodo)
+    let (mut policy, policy_cap) = token::new_policy(&tcap, ctx);
+
+    token::add_rule_for_action<KING_CREDITS, CrownCouncilRule>(
+        &mut policy,
+        &policy_cap,
+        token::transfer_action(),
+        ctx
+    );
+    crown_council_rule::add_rule_config(&mut policy, &policy_cap, vector[], ctx);
+
+    token::share_policy(policy);
+    transfer::public_transfer(policy_cap, ctx.sender());
+    transfer::public_transfer(tcap, ctx.sender());
+    transfer::public_transfer(metadata, ctx.sender());
 }
 
 #[test_only]

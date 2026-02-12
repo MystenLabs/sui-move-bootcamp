@@ -1,8 +1,4 @@
-# Sui & Move Bootcamp 
-
-## Dynamic Fields
-
-##### What you will learn in this module:
+# G3: Advanced Data Structures in Sui
 
 This section explores three powerful data structures in Sui: Tables, Dynamic Fields, and Dynamic Object Fields.
 
@@ -52,12 +48,4 @@ Dynamic Object Fields provide more flexibility than simple dynamic fields:
 2. **Orphaned Objects**:
    - Table: Ensures that the table cannot be deleted if it contains attached fields
    - DF/DOF: Can become orphaned if parent is deleted
----
-### Useful Links
 
-
- - [Dynamic (Object) Fields - Sui Docs](https://docs.sui.io/concepts/dynamic-fields)
- - [Table & Bag - Sui Docs](https://docs.sui.io/concepts/dynamic-fields/tables-bags#interacting-with-collections)
- - [Dynamic Fields - The Move Book](https://move-book.com/programmability/dynamic-fields.html#dynamic-fields)
- - [Dynamic Object Fields - The Move Book](https://move-book.com/programmability/dynamic-object-fields.html)
- - [Dynamic Collections - The Move Book](https://move-book.com/programmability/dynamic-collections.html)

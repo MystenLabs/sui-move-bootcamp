@@ -1,8 +1,4 @@
-# Sui & Move Bootcamp 
-
-## Collection Patterns
-
-##### What you will learn in this module:
+## Sui & Move Bootcamp - Collection Patterns
 
 This section explores different collection patterns in Sui Move, demonstrating various approaches to data storage and management. Each module builds upon previous concepts while introducing new patterns and best practices.
 
@@ -91,16 +87,5 @@ Demonstrates null-safety and optional value patterns:
   - When to use Option types
   - Proper error handling patterns
   - Safe extraction and manipulation of optional values
----
+
 Each module in this section is designed to demonstrate specific patterns and best practices in Sui Move development. The progression from basic vector operations to complex optional value handling provides a comprehensive overview of collection management in Sui Move. The corresponding TypeScript examples in each module show how these patterns can be effectively utilized in full-stack applications.
-
----
-### Useful Links
-
- - [Vector](https://move-book.com/move-basics/vector.html)
- - [UID and ID](https://move-book.com/storage/uid-and-id.html)
- - [Collections](https://move-book.com/programmability/collections.html)
- - [Dynamic Collections](https://move-book.com/programmability/dynamic-collections.html)
- - [Table & Bag](https://docs.sui.io/concepts/dynamic-fields/tables-bags#interacting-with-collections)
- - [Option](https://move-book.com/move-basics/option.html)
-

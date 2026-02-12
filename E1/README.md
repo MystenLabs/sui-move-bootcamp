@@ -33,7 +33,6 @@ npm run test
   - `Created Hero And Sword`: Validates that a Hero NFT and a Sword NFT are created.
   - `Hero is equiped with a Sword`: Validates that our Hero is equiped with a Sword.
 
-
 ### 1. Mint the Hero, the Sword, and equip it
 
 - Modify the [src/helpers/mintHeroWithSword.ts](./mint-hero/src/helpers/mintHeroWithSword.ts) function, by adding the implementation:

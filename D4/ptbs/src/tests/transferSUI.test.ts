@@ -19,12 +19,12 @@ describe("Transfer SUI amount", () => {
     console.log("Executed transaction with txDigest:", txResponse.digest);
   });
 
-  test("Transaction Status", () => {
+  test("Transaction Status", async () => {
     expect(txResponse.effects).toBeDefined();
     expect(txResponse.effects!.status.status).toBe("success");
   });
 
-  test("SUI Balance Changes", () => {
+  test("SUI Balance Changes", async () => {
     expect(txResponse.balanceChanges).toBeDefined();
     const balanceChanges = parseBalanceChanges({
       balanceChanges: txResponse.balanceChanges!,

@@ -3,8 +3,12 @@ module table_hero::hero;
 use std::string::String;
 use sui::table::{Self, Table};
 
-// create the keys
-
+public enum AttributeKey has copy, drop, store {
+    Earth,
+    Fire,
+    Water,
+    Air,
+}
 
 public struct Hero has key {
     id: UID,
@@ -23,17 +27,22 @@ public fun create_hero(name: String, ctx: &mut TxContext): Hero {
         attributes: table::new(ctx),
     };
 
-    // add the attributes to the hero with default values
+    hero.attributes.add(AttributeKey::Fire, 0u16);
+    hero.attributes.add(AttributeKey::Water, 0u16);
+    hero.attributes.add(AttributeKey::Earth, 0u16);
+    hero.attributes.add(AttributeKey::Air, 0u16);
 
     hero
 }
 
 public fun increase_attribute(hero: &mut Hero, key: AttributeKey, amount: u16) {
-    // increase the attribute by the amount
+    let attribute = hero.attributes.borrow_mut(key);
+    *attribute = *attribute + amount;
 }
 
 public fun get_attribute(hero: &Hero, key: AttributeKey): u16 {
-    // get the attribute value
+    let attribute = hero.attributes.borrow(key);
+    *attribute
 }
 
 public fun transfer_hero(hero: Hero, to: address) {

@@ -1,16 +1,10 @@
 module hero::hero;
-
+use hero::blacksmith::Sword;
 use std::string::String;
-
 use sui::dynamic_field as df;
 use sui::dynamic_object_field as dof;
-use sui::package;
-
-use hero::blacksmith::{Sword};
 
 const EAlreadyEquipedSword: u64 = 1;
-
-public struct HERO() has drop;
 
 /// Hero NFT
 public struct Hero has key, store {
@@ -19,17 +13,13 @@ public struct Hero has key, store {
     stamina: u64,
 }
 
-fun init(otw: HERO, ctx: &mut TxContext) {
-    package::claim_and_keep(otw, ctx);
-}
-
 /// Anyone can mint a hero.
 /// Hero starts with 100 heath and 10 stamina.
 public fun mint_hero(ctx: &mut TxContext): Hero {
     Hero {
         id: object::new(ctx),
         health: 100,
-        stamina: 10
+        stamina: 10,
     }
 }
 
@@ -37,7 +27,7 @@ public fun mint_hero(ctx: &mut TxContext): Hero {
 /// Equiping a sword increases the `Hero`'s power by its attack.
 public fun equip_sword(self: &mut Hero, sword: Sword) {
     if (df::exists_(&self.id, b"sword".to_string())) {
-        abort(EAlreadyEquipedSword)
+        abort (EAlreadyEquipedSword)
     };
     self.add_dof(b"sword".to_string(), sword)
 }
@@ -59,11 +49,6 @@ public fun sword(self: &Hero): &Sword {
 /// Generic add dynamic object field to the hero.
 fun add_dof<T: key + store>(self: &mut Hero, name: String, value: T) {
     dof::add(&mut self.id, name, value)
-}
-
-#[test_only]
-public fun init_for_testing(ctx: &mut TxContext) {
-    init(HERO(), ctx);
 }
 
 #[test_only]

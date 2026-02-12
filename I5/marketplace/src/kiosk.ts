@@ -8,18 +8,18 @@ import { PublishSingleton } from './publish';
 type KioskListingFields = {
     id: {
         id: string;
-    },
+    };
     name: {
         type: "0x2::kiosk::Listing";
         fields: {
             id: string;
             is_exclusive: boolean;
         };
-    },
+    };
     value: string;
 };
 type KioskOwnerCapFields = {
-    for: string,
+    for: string;
     id: {
         id: string;
     };
@@ -27,8 +27,8 @@ type KioskOwnerCapFields = {
 type PersonalKioskCapFields = {
     id: {
         id: string;
-    },
-    cap: { type: '0x2::kiosk::KioskOwnerCap', fields: KioskOwnerCapFields };
+    };
+    cap: { type: '0x2::kiosk::KioskOwnerCap'; fields: KioskOwnerCapFields; };
 };
 type RoyaltyRuleConfigDFFields = {
     id: {
@@ -42,9 +42,9 @@ type RoyaltyRuleConfigDFFields = {
         type: `${string}::royalty_rule::Config`;
         fields: {
             amount_bp: number;
-            min_amount: string
-        }
-    }
+            min_amount: string;
+        };
+    };
 };
 type KioskListingParsedData = Extract<SuiParsedData, { dataType: 'moveObject' }> & { fields: KioskListingFields };
 type KioskOwnerCapParsedData = Extract<SuiParsedData, { dataType: 'moveObject' }> & { fields: KioskOwnerCapFields };
@@ -94,6 +94,22 @@ export async function createPersonalKiosk(client: SuiClient, signer: Keypair): P
     });
 
     // Task: Make `kiosk` personal.
+    const [pcap] = transaction.moveCall({
+        target: `${PublishSingleton.rulesPackageId()}::personal_kiosk::new`,
+        arguments: [kiosk, cap]
+    });
+
+    transaction.moveCall({
+        target: `${PublishSingleton.rulesPackageId()}::personal_kiosk::transfer_to_sender`,
+        arguments: [pcap]
+    });
+
+    transaction.moveCall({
+        target: `0x2::transfer::public_share_object`,
+        arguments: [kiosk],
+        typeArguments: ["0x2::kiosk::Kiosk"],
+    });
+
 
     const resp = await client.signAndExecuteTransaction({
         transaction,
@@ -216,7 +232,7 @@ export async function purchase({ client, signer, fromKioskObjectId, swordId }: {
 
     const transaction = new Transaction();
 
-    const payment = transaction.splitCoins(transaction.gas, [price.toString()]);
+    const [payment, royaltiesPayment] = transaction.splitCoins(transaction.gas, [price.toString(), royaltiesAmount]);
     const [sword, request] = transaction.moveCall({
         target: '0x2::kiosk::purchase',
         arguments: [
@@ -231,6 +247,66 @@ export async function purchase({ client, signer, fromKioskObjectId, swordId }: {
     // 1. Putting the sword in your PersonalKiosk (personal_kiosk_rule)
     // 2. Locking the sword in there (kiosk_lock_rule)
     // 3. Paying royalties (royalty_rule)
+
+    // Lock the sword in our personal kiosk
+    const personalCapArg = transaction.object(buyerKiosk.capId);
+    const [cap, potato] = transaction.moveCall({
+        target: `${PublishSingleton.rulesPackageId()}::personal_kiosk::borrow_val`,
+        arguments: [personalCapArg]
+    });
+
+    const buyerKioskArg = transaction.object(buyerKiosk.id);
+    transaction.moveCall({
+        target: '0x2::kiosk::lock',
+        arguments: [
+            buyerKioskArg,
+            cap,
+            transaction.object(PublishSingleton.policyId()),
+            sword
+        ],
+        typeArguments: [`${PublishSingleton.packageId()}::sword::Sword`]
+    });
+
+    transaction.moveCall({
+        target: `${PublishSingleton.rulesPackageId()}::personal_kiosk::return_val`,
+        arguments: [
+            personalCapArg,
+            cap,
+            potato
+        ],
+    });
+
+    // Prove lock rule
+    transaction.moveCall({
+        target: `${PublishSingleton.rulesPackageId()}::kiosk_lock_rule::prove`,
+        arguments: [
+            request,
+            buyerKioskArg,
+        ],
+        typeArguments: [`${PublishSingleton.packageId()}::sword::Sword`]
+    });
+
+    // Prove personal kiosk rule
+    transaction.moveCall({
+        target: `${PublishSingleton.rulesPackageId()}::personal_kiosk_rule::prove`,
+        arguments: [
+            buyerKioskArg,
+            request
+        ],
+        typeArguments: [`${PublishSingleton.packageId()}::sword::Sword`]
+    });
+
+    // Pay royalties
+    transaction.moveCall({
+        target: `${PublishSingleton.rulesPackageId()}::royalty_rule::pay`,
+        arguments: [
+            transaction.object(PublishSingleton.policyId()),
+            request,
+            royaltiesPayment
+        ],
+        typeArguments: [`${PublishSingleton.packageId()}::sword::Sword`]
+    });
+
 
     // Resolve TransferRequest
     transaction.moveCall({

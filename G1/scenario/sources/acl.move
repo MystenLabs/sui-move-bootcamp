@@ -1,9 +1,13 @@
 module scenario::acl;
 
 use sui::package;
-use sui::vec_set::{Self, VecSet};
 
-const ENotAuthorized: u64 = 0;
+/// Tried to add an admin address already there.
+const EAdminAlreadyExists: u64 = 0;
+/// Tried to remove an admin address not included.
+const EAdminDoesNotExist: u64 = 1;
+/// Transaction sender is not an admin.
+const ENotAuthorized: u64 = 2;
 
 public struct ACL() has drop;
 
@@ -15,7 +19,7 @@ public struct AdminCap has key, store {
 /// Admins can mint Heroes and XPTomes
 public struct Admins has key {
     id: UID,
-    inner: VecSet<address>
+    inner: vector<address>
 }
 
 /// Init function for claiming `Publisher`, creating shared `Admins` object and
@@ -25,18 +29,21 @@ fun init(otw: ACL, ctx: &mut TxContext) {
     transfer::public_transfer(AdminCap { id: object::new(ctx) }, ctx.sender());
     transfer::share_object(Admins {
         id: object::new(ctx),
-        inner: vec_set::singleton(ctx.sender())
+        inner: vector[ctx.sender()]
     });
 }
 
 /// `AdminCap` holder can add address to `Admins`.
 public fun add_admin(self: &mut Admins, _cap: &AdminCap, new_admin: address) {
-    self.inner.insert(new_admin);
+    assert!(!self.inner.contains(&new_admin), EAdminAlreadyExists);
+    self.inner.push_back(new_admin);
 }
 
 /// `AdminCap` holder can remove address from `Admins`.
 public fun remove_admin(self: &mut Admins, _cap: &AdminCap, old_admin: address) {
-    self.inner.remove(&old_admin);
+    let (found, i) = self.inner.index_of(&old_admin);
+    assert!(found, EAdminDoesNotExist);
+    self.inner.remove(i);
 }
 
 /// Use this function to authorize an admin.
@@ -52,7 +59,7 @@ fun test_add_admin() {
     let cap = AdminCap { id: object::new(&mut ctx) };
     let mut admins = Admins {
         id: object::new(&mut ctx),
-        inner: vec_set::empty()
+        inner: vector::empty()
     };
 
     admins.add_admin(&cap, new_admin);
@@ -69,9 +76,12 @@ fun test_add_admin() {
 public fun new_admins_for_testing(admin: address): Admins {
     Admins {
         id: object::new(&mut tx_context::dummy()),
-        inner: vec_set::singleton(admin)
+        inner: vector::singleton(admin)
     }
 }
 
-// Task: Call init from tests: `init_for_testing`
+#[test_only]
+public fun init_for_testing(ctx: &mut TxContext) {
+    init(ACL(), ctx);
+}
 

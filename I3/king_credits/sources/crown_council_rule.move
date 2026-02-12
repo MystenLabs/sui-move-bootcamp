@@ -8,7 +8,6 @@ const EMaxCouncilMembers: u64 = 0;
 /// Only Crown Council members can prove this rule.
 const ENotACouncilMember: u64 = 1;
 
-const ETodo: u64 = 0x100;
 
 const MAX_CROWN_COUNCIL_MEMBERS: u64 = 100;
 
@@ -24,9 +23,16 @@ public fun add_rule_config<T>(
     initial_members: vector<address>,
     ctx: &mut TxContext,
 ) {
-    // Task: Setup rule config for CrownCouncilRule. It will initialize with `initial_members`.
     assert!(initial_members.length() <= MAX_CROWN_COUNCIL_MEMBERS, EMaxCouncilMembers);
-    todo!()
+    let mut members = vec_set::empty();
+    initial_members.destroy!(|addr| members.insert(addr));
+    token::add_rule_config(
+        CrownCouncilRule(),
+        policy,
+        cap,
+        Config { members },
+        ctx,
+    );
 }
 
 public fun add_council_member<T>(
@@ -34,8 +40,13 @@ public fun add_council_member<T>(
     cap: &TokenPolicyCap<T>,
     member_addr: address,
 ) {
-    // Task: Add `member_addr` as council-member inside rule_config
-    todo!()
+    let config: &mut Config = token::rule_config_mut(
+        CrownCouncilRule(),
+        policy,
+        cap
+    );
+    assert!(config.members.size() < MAX_CROWN_COUNCIL_MEMBERS, EMaxCouncilMembers);
+    config.members.insert(member_addr);
 }
 
 public fun remove_council_member<T>(
@@ -43,21 +54,21 @@ public fun remove_council_member<T>(
     cap: &TokenPolicyCap<T>,
     member_addr: address,
 ) {
-    // Task: Remove `member_addr` from rule_config
-    todo!()
+    let config: &mut Config = token::rule_config_mut(
+        CrownCouncilRule(),
+        policy,
+        cap
+    );
+    config.members.remove(&member_addr);
 }
 
-public fun prove<T>(
-    request: &mut ActionRequest<T>,
-    policy: &TokenPolicy<T>,
-    ctx: &mut TxContext
-) {
-    // Task: If the action-request sender is a council member add approval for this rule
-    todo!()
-}
-
-macro fun todo<$T>(): $T {
-    abort(ETodo)
+public fun prove<T>(request: &mut ActionRequest<T>, policy: &TokenPolicy<T>, ctx: &mut TxContext) {
+    let config: &Config = token::rule_config(
+        CrownCouncilRule(),
+        policy,
+    );
+    assert!(config.members.contains(&request.sender()), ENotACouncilMember);
+    token::add_approval(CrownCouncilRule(), request, ctx);
 }
 
 #[test_only]

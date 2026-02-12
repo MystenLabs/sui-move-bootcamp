@@ -29,8 +29,17 @@ type KioskListingParsedData = Extract<SuiParsedData, { dataType: 'moveObject' }>
 
 export async function createKiosk(client: SuiClient, signer: Keypair): Promise<SuiTransactionBlockResponse> {
     const transaction = new Transaction();
+    const [kiosk, cap] = transaction.moveCall({
+        target: `0x2::kiosk::new`,
+    });
 
-    // Task: Create a Kiosk
+    transaction.moveCall({
+        target: `0x2::transfer::public_share_object`,
+        arguments: [kiosk],
+        typeArguments: ["0x2::kiosk::Kiosk"],
+    });
+
+    transaction.transferObjects([cap], signer.toSuiAddress());
 
     const resp = await client.signAndExecuteTransaction({
         transaction,
@@ -83,7 +92,16 @@ export async function placeAndListInKiosk({ client, signer, kiosk, swordId, pric
 
     const transaction = new Transaction();
 
-    // Task: Place and list item in kiosk
+    transaction.moveCall({
+        target: `0x2::kiosk::place_and_list`,
+        arguments: [
+            transaction.object(kiosk.id),
+            transaction.object(kiosk.capId),
+            transaction.object(swordId),
+            transaction.pure.u64(price)
+        ],
+        typeArguments: [`${PublishSingleton.packageId()}::sword::Sword`]
+    });
 
     const resp = await client.signAndExecuteTransaction({
         transaction,
@@ -133,7 +151,29 @@ export async function purchase({ client, signer, fromKioskObjectId, swordId, pri
 
     const transaction = new Transaction();
 
-    // Task: implement the necessary move-calls to purchase the sword
+    const payment = transaction.splitCoins(transaction.gas, [price.toString()]);
+    const [sword, request] = transaction.moveCall({
+        target: '0x2::kiosk::purchase',
+        arguments: [
+            transaction.object(fromKioskObjectId),
+            transaction.pure.address(swordId),
+            payment
+        ],
+        typeArguments: [`${PublishSingleton.packageId()}::sword::Sword`]
+    });
+
+    // Transfer sword to signer
+    transaction.transferObjects([sword], signer.toSuiAddress());
+
+    // Resolve TransferRequest
+    transaction.moveCall({
+        target: '0x2::transfer_policy::confirm_request',
+        arguments: [
+            transaction.object(PublishSingleton.policyId()),
+            request
+        ],
+        typeArguments: [`${PublishSingleton.packageId()}::sword::Sword`]
+    });
 
     const resp = await client.signAndExecuteTransaction({
         transaction,

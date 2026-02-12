@@ -45,15 +45,41 @@ public fun create_arena(_admin_cap: &AdminCap, ctx: &mut TxContext) {
 }
 
 public fun add_hero_to_arena(arena: &mut FightArena, owner: address, hero: Hero) {
-    // Detach the heroes from the arena and determine the winner 
-    // and transfer the winner to the winner address
-    // delete the loser hero and the arena
+    if (arena.hero1.is_none()) {
+        arena.hero1 = option::some(owner);
+    } else if (arena.hero2.is_none()) {
+        arena.hero2 = option::some(owner);
+    } else {
+        abort ENotEmptyArena
+    };
+    dof::add(&mut arena.id, owner, hero)
 }
 
 public fun fight(_admin_cap: &AdminCap, arena: FightArena) {
-    // Detach the heroes from the arena and determine the winner 
-    // and transfer the winner to the winner address
-    // delete the loser hero and the arena
+    let FightArena { id: mut arena_id, hero1: hero_addr1, hero2: hero_addr2 } = arena;
+    if (hero_addr1.is_none() || hero_addr2.is_none()) {
+        abort ENotReadyArena
+    };
+
+    let hero1 = hero_addr1.map!(|addr| {
+        dof::remove<address, Hero>(&mut arena_id, addr)
+    }).destroy_some();
+    let hero2 = hero_addr2.map!(|addr| {
+        dof::remove<address, Hero>(&mut arena_id, addr)
+    }).destroy_some();
+
+    arena_id.delete();
+
+    let (winner_address, winner_hero, loser_hero) = if (hero1.power > hero2.power) {
+        (hero_addr1.destroy_some(), hero1, hero2)
+    } else {
+        (hero_addr2.destroy_some(), hero2, hero1)
+    };
+
+    let Hero { id: loser_id, power: _, name: _ } = loser_hero;
+    loser_id.delete();
+
+    transfer::transfer(winner_hero, winner_address);
 }
 
 /// This introduces the risk of leaving orphaned heroes in the system.

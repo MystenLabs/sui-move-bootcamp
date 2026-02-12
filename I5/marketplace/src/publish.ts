@@ -163,10 +163,10 @@ async function publishPackage(client: SuiClient, signer: Keypair, packagePath: s
     return resp;
 }
 
-async function createPolicy({ client, signer, packageId, publisherChng }: {
-    client: SuiClient,
-    signer: Keypair,
-    packageId: string,
+async function createPolicy({ client, signer, packageId, publisherChng, rulesPackageId, royalties }: {
+    client: SuiClient;
+    signer: Keypair;
+    packageId: string;
     publisherChng: SuiObjectChangeCreated;
     rulesPackageId: string;
     royalties: {
@@ -186,6 +186,28 @@ async function createPolicy({ client, signer, packageId, publisherChng }: {
     // 1. Personal kiosk rule
     // 2. Royalty rule
     // 3. Lock rule
+    transaction.moveCall({
+        target: `${rulesPackageId}::personal_kiosk_rule::add`,
+        arguments: [policy, cap],
+        typeArguments: [`${packageId}::sword::Sword`],
+    });
+
+    transaction.moveCall({
+        target: `${rulesPackageId}::kiosk_lock_rule::add`,
+        arguments: [policy, cap],
+        typeArguments: [`${packageId}::sword::Sword`],
+    });
+
+    transaction.moveCall({
+        target: `${rulesPackageId}::royalty_rule::add`,
+        arguments: [
+            policy,
+            cap,
+            transaction.pure.u16(royalties.basisPoints),
+            transaction.pure.u64(royalties.minRoyaltiesAmount)
+        ],
+        typeArguments: [`${packageId}::sword::Sword`],
+    });
 
     transaction.transferObjects([cap], signer.toSuiAddress());
 

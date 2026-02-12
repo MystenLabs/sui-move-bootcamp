@@ -41,7 +41,18 @@ public fun create_hero(
     attributes: vector<String>,
     ctx: &mut TxContext,
 ): Hero {
-    // create a hero and update the registry
+    let hero_attributes = attributes.map!(|attribute| Attribute { name: attribute, level: 1 });
+
+    let hero = Hero {
+        id: object::new(ctx),
+        name,
+        attributes: hero_attributes,
+    };
+
+    let hero_id = object::id(&hero);
+    r.heroes.push_back(hero_id);
+
+    hero
 }
 
 public fun create_attribute(name: String, level: u64): Attribute {
@@ -56,11 +67,14 @@ public fun transfer_hero(hero: Hero, to: address) {
 /// @dev It accepts a hero and deletes the hero's uid.
 /// @notice The hero object needs to be destuctured to access its fields.
 ///         The String and Attributes fields will be destroyed automatically as they will be dropped when the function
-///         exits its scope due their drop ability, while the UID field will be deleted using the delete function as
+///         is exist its scope due their drop ability, while the UID field will be deleted using the delete function as
 ///         it does not have the drop ability.
 /// @param hero The hero to kill.
 public fun kill_hero(r: &mut HeroRegistry, hero: Hero) {
-    // destroy hero and update the registry
+    let Hero { id, name: _, attributes: _ } = hero;
+    let hero_id = object::uid_to_inner(&id);
+    r.killed_heroes.push_back(hero_id);
+    id.delete();
 }
 
 // Test Only

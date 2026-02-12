@@ -1,5 +1,5 @@
 import { SuiTransactionBlockResponse } from "@mysten/sui/client";
-import { Transaction } from "@mysten/sui/transactions";
+import { coinWithBalance, Transaction } from "@mysten/sui/transactions";
 import { suiClient } from "../suiClient";
 import { getSigner } from "./getSigner";
 
@@ -19,8 +19,18 @@ export const transferSUI = async ({
   recipientAddress,
 }: Args): Promise<SuiTransactionBlockResponse> => {
   const tx = new Transaction();
-  
-  // TODO: Add the commands to the transaction
+
+  // const coin = tx.splitCoins(tx.gas, [amount]);
+  tx.transferObjects(
+    [
+      coinWithBalance({
+        type: "0x2::sui::SUI",
+        balance: amount,
+        useGasCoin: true,
+      }),
+    ],
+    recipientAddress
+  );
 
   return suiClient.signAndExecuteTransaction({
     transaction: tx,

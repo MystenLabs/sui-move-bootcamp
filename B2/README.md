@@ -2,14 +2,10 @@
 
 ### Move Basic Types
 
-##### What you will learn in this module:
-
-
-- Integers, Booleans
+- Integers, Booleans, Strings
 - Vectors
   - Inserting, removing, looping over elements
 - Strings
-  - Creation and basic operations
 
 
 ### Further Reading

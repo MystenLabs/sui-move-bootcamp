@@ -3,16 +3,17 @@
 /// This module uses Ed25519 signatures to verify and authorize privileged operations.
 module admin_action::signature;
 
+use std::bcs;
 use sui::{ed25519, hash, package};
 
 /// Error code indicating the first mint attempt failed.
 const ECouldNotMintFirst: u64 = 0;
 /// Error code indicating the second mint attempt failed (replay attack).
 const ECouldNotMintSecond: u64 = 1;
-/// Error code indicating that the test was expected to fail earlier.
+/// Error code indicating that the test expected to fail.
 const EExpectedFailure: u64 = 2;
 
-// Setup Task 1: Change with your public key
+// TODO: Change with your public key
 /// The public key used to verify signatures for minting operations.
 const BE_PUBLIC_KEY: vector<u8> = x"ccfce9e209216138d29318da27f6c1b42ec863962ab7d9b56d9f6e22ccb31b86";
 
@@ -49,25 +50,30 @@ fun init(otw: SIGNATURE, ctx: &mut TxContext) {
 /// Verifies the provided signature against a message containing:
 /// - The sender's address
 /// - The health and stamina values
+/// - The current counter value
 /// Returns true if the mint was successful, false if the signature verification failed.
+/// The counter is incremented after each successful mint to prevent replay attacks.
 #[allow(implicit_const_copy)]
 public fun mint(
     sig: vector<u8>,
+    counter: &mut Counter,
     health: u64,
     stamina: u64,
     ctx: &mut TxContext
 ): bool {
-    // Task 2: Disable replay attacks by using `Counter`.
     let mut msg = b"Mint Hero for: 0x".to_string();
         msg.append(ctx.sender().to_string());
         msg.append_utf8(b";health=");
         msg.append(health.to_string());
         msg.append_utf8(b";stamina=");
         msg.append(stamina.to_string());
-    let bytes = msg.into_bytes();
+        msg.append_utf8(b";counter_bcs=");
+    let mut bytes = msg.into_bytes();
+    bytes.append(bcs::to_bytes(counter));
+    counter.increment();
     let digest = hash::blake2b256(&bytes);
     // std::debug::print(&digest);
-    // Here we could abort but for testing purposes we just return false.
+    // Here we would abort but for testing purposes we do not.
     if (!ed25519::ed25519_verify(&sig, &BE_PUBLIC_KEY, &digest)) {
         return false
     };
@@ -80,6 +86,12 @@ public fun mint(
     return true
 }
 
+/// Increments the counter value by 1.
+/// This is used to prevent replay attacks in the mint function.
+fun increment(self: &mut Counter) {
+    self.value = self.value + 1
+}
+
 /// Tests the replay attack prevention mechanism.
 /// Attempts to mint a Hero twice with the same signature.
 /// The first mint should succeed, but the second should fail due to the counter increment.
@@ -87,11 +99,9 @@ public fun mint(
 #[expected_failure(abort_code=ECouldNotMintSecond)]
 fun test_replay() {
     let mut ctx = tx_context::new_from_hint(@0x11111, 0, 0, 0, 0);
-    // Setup Task 1: Change with your signature generated with create-signature/sign.ts
-    let sig = x"5dadee914391b3be7c9587952005c079f33bd26d6a4a1fbe208ed05929b828c468cfdd7e68226168a15143b91e63189614d95e621f3d2388aa523b866e3bdc0c";
-
-    // Task 2: Create a Counter and update below function calls to match the new function signature.
-    // let counter = Counter {
+    // Setup-Task 1: Change with your signature
+    let sig = x"d42edd53c4b89ca770cea5135be326febdbc885b4d37136119c7b8bad2cef34582feef2a63065b3a40f00ab92e9b1a4cc85b3ffb8a71ae07602d47cad227290f";
+    let mut counter = Counter { id: object::new(&mut ctx), value: 0 };
 
     // Since `ctx` is deterministically derived from a fixed hint, the generated
     // `id` will be identical across all runs.
@@ -99,6 +109,7 @@ fun test_replay() {
 
     assert!(mint(
         sig,
+        &mut counter,
         10,
         10,
         &mut ctx
@@ -106,6 +117,7 @@ fun test_replay() {
 
     assert!(mint(
         sig,
+        &mut counter,
         10,
         10,
         &mut ctx

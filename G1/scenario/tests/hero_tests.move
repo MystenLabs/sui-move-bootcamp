@@ -18,9 +18,12 @@ fun test_mint() {
     let mut scenario = test_scenario::begin(admin);
     acl::init_for_testing(scenario.ctx());
 
-    // Task: Mint `Hero`
+    // Mint `Hero`
+    scenario.next_tx(admin);
     {
-
+        let admins = scenario.take_shared<Admins>();
+        hero::mint(&admins, health, stamina, hero_owner, scenario.ctx());
+        test_scenario::return_shared(admins);
     };
 
     let mint_effects = scenario.next_tx(hero_owner);
@@ -28,9 +31,13 @@ fun test_mint() {
     assert!(transferred.size() == 1);
     let (hero_id, transferred_to) = transferred.pop();
     assert!(transferred_to == hero_owner);
-    // Task: Check `Hero`'s fields
+    // Check `Hero`'s fields
     {
-
+        let hero = scenario.take_from_sender<Hero>();
+        assert!(hero_id == object::id(&hero));
+        assert!(hero.health() == health);
+        assert!(hero.stamina() == stamina);
+        scenario.return_to_sender(hero);
     };
 
     scenario.end();
@@ -49,17 +56,30 @@ fun test_level_up() {
     let mut scenario = test_scenario::begin(admin);
     acl::init_for_testing(scenario.ctx());
 
-    // Task: Mint `Hero` and `XPTome`
+    // Mint `Hero` and `XPTome`
+    scenario.next_tx(admin);
     {
-
+        let admins = scenario.take_shared<Admins>();
+        hero::mint(&admins, health, stamina, hero_owner, scenario.ctx());
+        xp_tome::new(&admins, xp_health, xp_stamina, hero_owner, scenario.ctx());
+        test_scenario::return_shared(admins);
     };
 
     let mint_effects = scenario.next_tx(hero_owner);
     let transferred = mint_effects.transferred_to_account();
     assert!(transferred.size() == 2);
-    // Task: Apply `XPTome` to `Hero` and check updated stats.
+    // Apply `XPTome` to `Hero` and check updated stats.
     {
-
+        let mut hero = scenario.take_from_sender<Hero>();
+        let xp_tome = scenario.take_from_sender<XPTome>();
+        assert!(transferred.get(&object::id(&hero)) == hero_owner);
+        assert!(transferred.get(&object::id(&xp_tome)) == hero_owner);
+        assert!(hero.health() == health);
+        assert!(hero.stamina() == stamina);
+        hero.level_up(xp_tome);
+        assert!(hero.health() == health + xp_health);
+        assert!(hero.stamina() == stamina + xp_stamina);
+        scenario.return_to_sender(hero);
     };
 
     scenario.end();

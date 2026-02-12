@@ -6,11 +6,19 @@ use sui::dynamic_field as df;
 use sui::dynamic_object_field as dof;
 use sui::package;
 
+use sui::coin::{Coin};
+use sui::sui::SUI;
+
 use package_upgrade::blacksmith::{Shield, Sword};
 use package_upgrade::version::Version;
 
+const HERO_PRICE: u64 = 5_000_000_000;
+const PAYMENT_RECEIVER: address = @0x1;
+
 const EAlreadyEquipedShield: u64 = 0;
 const EAlreadyEquipedSword: u64 = 1;
+const EInvalidPrice: u64 = 2;
+const EUseMintHeroV2Instead: u64 = 3;
 
 public struct HERO() has drop;
 
@@ -18,46 +26,43 @@ public struct HERO() has drop;
 public struct Hero has key, store {
     id: UID,
     health: u64,
-    stamina: u64,
-    // Task: Add power field
+    stamina: u64
 }
 
 fun init(otw: HERO, ctx: &mut TxContext) {
     package::claim_and_keep(otw, ctx);
 }
 
-/// Anyone can mint a hero.
-/// Hero starts with 100 heath and 10 stamina.
-public fun mint_hero(version: &Version, ctx: &mut TxContext): Hero {
-    version.check_is_valid();
-    Hero {
-        id: object::new(ctx),
-        health: 100,
-        stamina: 10
-    }
+/// @deprecated: `mint_hero` is deprecated. Use `mint_hero_v2` instead.
+public fun mint_hero(_version: &Version, _ctx: &mut TxContext): Hero {
+    abort(EUseMintHeroV2Instead)
 }
 
-// Task: Implement mint_hero_v2 that accepts payment
+/// Anyone can mint a hero, as long as they pay `HERO_PRICE` SUI.
+/// New hero will have 100 health and 10 stamina.
 public fun mint_hero_v2(version: &Version, payment: Coin<SUI>, ctx: &mut TxContext): Hero {
     version.check_is_valid();
-    // Task: Check payment amount is 5 SUI
-    // Task: Burn payment
-    Hero {
+    let hero = Hero {
         id: object::new(ctx),
         health: 100,
         stamina: 10
-    }
+    };
+
+    assert!(payment.value() == HERO_PRICE, EInvalidPrice);
+    transfer::public_transfer(payment, PAYMENT_RECEIVER);
+
+    hero
 }
 
 /// Hero can equip a single sword.
 /// Equiping a sword increases the `Hero`'s power by its attack.
 public fun equip_sword(self: &mut Hero, version: &Version, sword: Sword) {
     version.check_is_valid();
-    // Task: Use SwordKey instead of string
+
     if (df::exists_(&self.id, b"sword".to_string())) {
         abort(EAlreadyEquipedSword)
     };
-    // Task: Update power
+
     self.add_dof(b"sword".to_string(), sword)
 }
 
@@ -65,11 +70,11 @@ public fun equip_sword(self: &mut Hero, version: &Version, sword: Sword) {
 /// Equiping a shield increases the `Hero`'s power by its defence.
 public fun equip_shield(self: &mut Hero, version: &Version, shield: Shield) {
     version.check_is_valid();
-    // Task: Use ShieldKey instead of string
+
     if (df::exists_(&self.id, b"shield".to_string())) {
         abort(EAlreadyEquipedShield)
     };
-    // Task: Update power
+
     self.add_dof(b"shield".to_string(), shield)
 }
 
@@ -81,22 +86,15 @@ public fun stamina(self: &Hero): u64 {
     self.stamina
 }
 
-// Task: Add power getter
-public fun power(self: &Hero): u64 {
-    0
-}
-
 /// Returns the sword the hero has equipped.
 /// Aborts if it does not exists
 public fun sword(self: &Hero): &Sword {
-    // Task: Use SwordKey instead of string
     dof::borrow(&self.id, b"sword")
 }
 
 /// Returns the shield the hero has equipped.
 /// Aborts if it does not exists
 public fun shield(self: &Hero): &Shield {
-    // Task: Use ShieldKey instead of string
     dof::borrow(&self.id, b"shield")
 }
 
@@ -114,4 +112,3 @@ public fun init_for_testing(ctx: &mut TxContext) {
 public fun uid_mut_for_testing(self: &mut Hero): &mut UID {
     &mut self.id
 }
-

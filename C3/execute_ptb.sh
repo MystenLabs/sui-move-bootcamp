@@ -13,4 +13,20 @@ STD_PACKAGE_ID="0x1"
 CLOCK_ID="0x6"
 
 sui client ptb \
-    # TODO: Add your PTB commands here
+    --move-call "$STD_PACKAGE_ID::string::utf8" "'Hello World! Have a nice '" \
+    --assign greeting \
+    --move-call "$WEATHER_PACKAGE_ID::weather_oracle::get_weather" @$CLOCK_ID \
+    --assign weather \
+    --move-call "$STD_PACKAGE_ID::string::append" greeting weather \
+    --move-call "$STD_PACKAGE_ID::string::append" greeting "' day! My name is '" \
+    --move-call "$NAME_PACKAGE_INDEXER_ID::names_indexer::borrow_name" @$NAME_INDEXER_ID \"$name\" \
+    --assign name \
+    --move-call "$STD_PACKAGE_ID::string::append" greeting name \
+    --move-call "$STD_PACKAGE_ID::string::append" greeting "' and I am '" \
+    --move-call "$AGE_CALCULATOR_PACKAGE_ID::age_calculator::calculate_age" @$CLOCK_ID $birth_date_timestamp \
+    --assign age \
+    --move-call "$STD_PACKAGE_ID::u64::to_string" age \
+    --assign age \
+    --move-call "$STD_PACKAGE_ID::string::append" greeting age \
+    --move-call "$STD_PACKAGE_ID::string::append" greeting "' years old.'" \
+    --move-call "$PACKAGE_ID::my_event_emitter_ptb::emit_greeting_event" greeting

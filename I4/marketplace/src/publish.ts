@@ -135,8 +135,15 @@ async function createPolicy({ client, signer, packageId, publisherChng }: {
     publisherChng: SuiObjectChangeCreated
 }): Promise<SuiTransactionBlockResponse> {
     const transaction = new Transaction();
-    // Task: Create an empty TransferPolicy
-
+    transaction.moveCall({
+        target: `0x2::transfer_policy::default`,
+        arguments: [
+            transaction.objectRef(publisherChng)
+        ],
+        typeArguments: [
+            `${packageId}::sword::Sword`
+        ]
+    });
     const resp = await client.signAndExecuteTransaction({
         transaction,
         signer,

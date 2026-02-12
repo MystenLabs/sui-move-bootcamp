@@ -11,10 +11,7 @@ describe("Mint a Hero NFT and equip a Sword", () => {
 
   beforeAll(async () => {
     txResponse = await mintHeroWithSword();
-    await suiClient.waitForTransaction({
-      digest: txResponse.digest,
-      timeout: 5_000,
-    });
+    await suiClient.waitForTransaction({ digest: txResponse.digest });
     console.log("Executed transaction with txDigest:", txResponse.digest);
   });
 

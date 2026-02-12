@@ -24,7 +24,7 @@ fun create_silver_currency(
     otw: SILVER,
     ctx: &mut TxContext
 ): (TreasuryCap<SILVER>, CoinMetadata<SILVER>) {
-    // Task: Use coin::create_currency
+    // Use coin::create_currency
     todo!()
 }
 
@@ -57,7 +57,7 @@ fun mint() {
         &mut ctx
     );
 
-    // Task: Mint coin of amount
+    // Mint coin of amount
     let coin: Coin<SILVER> = todo!();
 
     assert!(coin.value() == amount);
@@ -80,7 +80,7 @@ fun burn() {
     // Mint coin of amount
     let coin: Coin<SILVER> = todo!();
 
-    // Task: Burn coin
+    // Burn coin
     todo!<()>();
 
     test_utils::destroy(tcap);

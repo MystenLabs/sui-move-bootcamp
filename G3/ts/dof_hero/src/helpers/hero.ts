@@ -8,7 +8,21 @@ export const adminCreateHero = async (name: string) => {
   const userSigner = getSigner({ secretKey: ENV.USER_SECRET_KEY });
   const tx = new Transaction();
 
-  // mint and transfer the hero to the user
+  const hero = tx.moveCall({
+    target: `${ENV.PACKAGE_ID}::dof_hero::create_hero`,
+    arguments: [
+      tx.object(ENV.ADMIN_CAP_ID),
+      tx.pure.string(name),
+      tx.pure.u64(100),
+    ],
+  });
+
+  tx.moveCall({
+    target: `0x2::transfer::public_transfer`,
+    arguments: [hero, tx.pure.address(userSigner.toSuiAddress())],
+    typeArguments: [`${ENV.PACKAGE_ID}::dof_hero::Hero`],
+  });
+
   const result = await suiClient.signAndExecuteTransaction({
     transaction: tx,
     options: {
@@ -29,7 +43,10 @@ export const adminCreateArena = async () => {
   const adminSigner = getSigner({ secretKey: ENV.ADMIN_SECRET_KEY });
   const tx = new Transaction();
 
-  // create the arena
+  tx.moveCall({
+    target: `${ENV.PACKAGE_ID}::dof_hero::create_arena`,
+    arguments: [tx.object(ENV.ADMIN_CAP_ID)],
+  });
 
   const result = await suiClient.signAndExecuteTransaction({
     transaction: tx,
@@ -54,7 +71,14 @@ export const userAddHeroToTheArena = async (
   const userSigner = getSigner({ secretKey: ENV.USER_SECRET_KEY });
   const tx = new Transaction();
 
-  // add the hero to the arena
+  tx.moveCall({
+    target: `${ENV.PACKAGE_ID}::dof_hero::add_hero_to_arena`,
+    arguments: [
+      tx.object(arenaId),
+      tx.pure.address(userSigner.toSuiAddress()),
+      tx.object(heroId),
+    ],
+  });
 
   const result = await suiClient.signAndExecuteTransaction({
     transaction: tx,
@@ -76,7 +100,10 @@ export const adminDeleteArena = async (arenaId: string) => {
   const adminSigner = getSigner({ secretKey: ENV.ADMIN_SECRET_KEY });
   const tx = new Transaction();
 
-  // delete the arena
+  tx.moveCall({
+    target: `${ENV.PACKAGE_ID}::dof_hero::delete_arena`,
+    arguments: [tx.object(ENV.ADMIN_CAP_ID), tx.object(arenaId)],
+  });
 
   const result = await suiClient.signAndExecuteTransaction({
     transaction: tx,
@@ -95,12 +122,21 @@ export const adminDeleteArena = async (arenaId: string) => {
 };
 
 export const getHero = async (heroId: string) => {
-  // fetch the hero data
-
+  const hero = await suiClient.getObject({
+    id: heroId,
+    options: {
+      showContent: true,
+    },
+  });
   return hero;
 };
 
 export const getArena = async (arenaId: string) => {
-  // fetch the arena data
+  const arena = await suiClient.getObject({
+    id: arenaId,
+    options: {
+      showContent: true,
+    },
+  });
   return arena;
 };

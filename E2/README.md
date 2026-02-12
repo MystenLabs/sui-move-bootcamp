@@ -24,7 +24,7 @@ To bootstrap our application, we will be using the CLI tool [@mysten/create-dapp
 
 Notice how @mysten/dapp-kit exports the following elements:
 
-- `<ConnectWallet />` component for handling connecting wallets in `App.tsx`
+- `<ConnectButton />` component for handling connecting wallets in `App.tsx`
 - `useCurrentAccount()` hook for getting the current account in `WalletStatus.tsx`
 - `useSuiClientQuery()` hook for executing read queries in `OwnedObjects.tsx`
 

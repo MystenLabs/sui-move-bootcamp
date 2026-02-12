@@ -20,21 +20,55 @@ public struct Hero has key {
 /// @param ctx The transaction context.
 /// @return A new hero with a given name and default attributes.
 public fun create_hero(name: String, ctx: &mut TxContext): Hero {
-    // create a hero with a bag of attributes with default values
+    let mut hero = Hero {
+        id: object::new(ctx),
+        name,
+        attributes: bag::new(ctx),
+    };
 
+    hero.attributes.add(Fire(), 0u16);
+    hero.attributes.add(Water(), 0u16);
+    hero.attributes.add(Earth(), 0u16);
+    hero.attributes.add(Air(), 0u16);
+
+    hero
 }
 
 public fun increase_fire_attribute(hero: &mut Hero, amount: u16) {
-    // update the fire attribute
+    let fire = hero.attributes.borrow_mut<Fire, u16>(Fire());
+    *fire = *fire + amount;
 }
 
-// create the other increase functions
+public fun increase_water_attribute(hero: &mut Hero, amount: u16) {
+    let water = hero.attributes.borrow_mut<Water, u16>(Water());
+    *water = *water + amount;
+}
+
+public fun increase_earth_attribute(hero: &mut Hero, amount: u16) {
+    let earth = hero.attributes.borrow_mut<Earth, u16>(Earth());
+    *earth = *earth + amount;
+}
+
+public fun increase_air_attribute(hero: &mut Hero, amount: u16) {
+    let air = hero.attributes.borrow_mut<Air, u16>(Air());
+    *air = *air + amount;
+}
 
 public fun get_fire_attribute(hero: &Hero): u16 {
-    // get the fire attribute value
+    *hero.attributes.borrow<Fire, u16>(Fire())
 }
 
-// create the other get functions
+public fun get_water_attribute(hero: &Hero): u16 {
+    *hero.attributes.borrow<Water, u16>(Water())
+}
+
+public fun get_earth_attribute(hero: &Hero): u16 {
+    *hero.attributes.borrow<Earth, u16>(Earth())
+}
+
+public fun get_air_attribute(hero: &Hero): u16 {
+    *hero.attributes.borrow<Air, u16>(Air())
+}
 
 public fun transfer_hero(hero: Hero, to: address) {
     transfer::transfer(hero, to);

@@ -79,3 +79,4 @@ fun test_level_up() {
     let Hero { id, health: _, stamina: _ } = hero;
     id.delete();
 }
+

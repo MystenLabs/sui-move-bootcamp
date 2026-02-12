@@ -53,3 +53,8 @@ public fun defence(self: &Shield): u64 {
     self.defence
 }
 
+// sample internal function after upgrade
+public fun expertise(self: &Blacksmith): u64 {
+    self.expertise
+}
+

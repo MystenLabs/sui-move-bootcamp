@@ -7,7 +7,7 @@ In this section, you will learn how to safely upgrade published Move packages on
 - The concept of package immutability in Sui and why upgrades are necessary for iterative development.
 - How to perform package upgrades while maintaining the benefits of immutable code.
 - The use of versioned shared objects to manage state and restrict access to only the latest package version.
-- Safe migration patterns, including the use of `AdminCap` and migration functions to transition users and objects to upgraded logic.
+- Safe migration patterns, including the use of `Publisher` and migration functions to transition users and objects to upgraded logic.
 - Best practices for maintaining compatibility and deprecating old functionality.
 
 By the end of this section, you will be able to design and implement upgradeable Move packages, ensuring your smart contracts remain secure, maintainable, and up-to-date as requirements evolve.
@@ -24,8 +24,8 @@ Module `blacksmith` involves the `Blacksmith` capability object which can create
 ### hero
 A `Hero` is a freely mintable NFT which can equip `Sword` and `Shield` under the dynamic field keys `"sword"` and `"shield"`.
 
-### admin
-Includes the `AdminCap` used to create `Blacksmith` capability objects.
+### version
+Includes the `Version` object and the constant `VERSION` used to enforce the usage of latest contract version methods.
 
 ### package_version
 Uses the [Versioned Shared Objects](https://docs.sui.io/concepts/sui-move-concepts/packages/upgrade#versioned-shared-objects) pattern to enable deprecation of functions defined in previous package version.
@@ -56,6 +56,7 @@ In `hero.move`, modify the hero creation to:
 - Set the price to 5 SUI
 - Create a new `mint_hero_v2` function that accepts payment
 
+# The below Tasks are deprecated, to be removed after the Istanbul bootcamp
 ### 3. Add Type-Safe Equipment Keys
 In `hero.move`, implement:
 - New structs for sword and shield equipment keys
@@ -69,3 +70,4 @@ In `hero.move`, add:
 ## Useful Links
 
 - [Package Upgrades Documentation](https://docs.sui.io/concepts/sui-move-concepts/packages/upgrade)
+- [Package Upgrade Requirements](https://docs.sui.io/concepts/sui-move-concepts/packages/upgrade#upgrade-requirements)

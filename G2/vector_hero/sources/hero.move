@@ -22,7 +22,11 @@ public struct Hero has key {
 /// @param ctx The transaction context.
 /// @return The hero.
 public fun create_hero_1(name: String, mut attributes: vector<String>, ctx: &mut TxContext): Hero {
-    // iterate over the attributes vector in a while loop and convert each attribute name to an attribute object
+    let mut hero_attributes = vector[];
+    while (!attributes.is_empty()) {
+        let attribute = attributes.pop_back();
+        hero_attributes.push_back(Attribute { name: attribute, level: 1 });
+    };
 
     let hero = Hero {
         id: object::new(ctx),
@@ -41,8 +45,8 @@ public fun create_hero_1(name: String, mut attributes: vector<String>, ctx: &mut
 /// @param ctx The transaction context.
 /// @return The hero.
 public fun create_hero_2(name: String, attributes: vector<String>, ctx: &mut TxContext): Hero {
-    // use a built-in vector macro to convert the attributes vector to a vector of attribute objects
-    
+    let hero_attributes = attributes.map!(|attribute| Attribute { name: attribute, level: 1 });
+
     let hero = Hero {
         id: object::new(ctx),
         name,

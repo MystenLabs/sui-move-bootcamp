@@ -7,7 +7,22 @@ export const createHero = async (name: string, attributes: any[]) => {
   const signer = getSigner({ secretKey: ENV.SECRET_KEY });
   const tx = new Transaction();
 
-  // initiallise and populate the attributes map
+  let attributesMap = tx.moveCall({
+    target: `0x2::vec_map::empty`,
+    typeArguments: [`0x1::string::String`, "u64"],
+  });
+
+  attributes.forEach((attr) => {
+    tx.moveCall({
+      target: `0x2::vec_map::insert`,
+      arguments: [
+        attributesMap,
+        tx.pure.string(attr.name),
+        tx.pure.u64(attr.level),
+      ],
+      typeArguments: [`0x1::string::String`, "u64"],
+    });
+  });
 
   const hero = tx.moveCall({
     target: `${ENV.PACKAGE_ID}::vecmap_hero::create_hero`,

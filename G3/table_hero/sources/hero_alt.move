@@ -4,7 +4,10 @@ use std::string::String;
 use std::type_name::{Self, TypeName};
 use sui::table::{Self, Table};
 
-// create the key types
+public struct Fire {}
+public struct Water {}
+public struct Earth {}
+public struct Air {}
 
 public struct Hero has key {
     id: UID,
@@ -23,17 +26,22 @@ public fun create_hero(name: String, ctx: &mut TxContext): Hero {
         attributes: table::new(ctx),
     };
 
-    // add the attributes to the hero with default values
+    hero.attributes.add(type_name::get<Fire>(), 0u16);
+    hero.attributes.add(type_name::get<Water>(), 0u16);
+    hero.attributes.add(type_name::get<Earth>(), 0u16);
+    hero.attributes.add(type_name::get<Air>(), 0u16);
 
     hero
 }
 
 public fun increase_attribute<T>(hero: &mut Hero, amount: u16) {
-    // increase the attribute by the amount
+    let attribute = hero.attributes.borrow_mut(type_name::get<T>());
+    *attribute = *attribute + amount;
 }
 
 public fun get_attribute<T>(hero: &Hero): u16 {
-    // get the attribute value
+    let attribute = hero.attributes.borrow(type_name::get<T>());
+    *attribute
 }
 
 public fun transfer_hero(hero: Hero, to: address) {

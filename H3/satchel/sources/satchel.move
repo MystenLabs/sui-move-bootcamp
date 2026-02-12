@@ -33,47 +33,47 @@ public struct SharedSatchel has key {
 /// Only holders of this capability can add or remove scrolls from the satchel.
 public struct SatchelCap has key, store {
     id: UID,
+    satchel_id: ID,
 }
 
 /// A marker type used to track borrowed scrolls.
 /// This ensures that borrowed scrolls are properly returned to the satchel.
-public struct Borrow()
+public struct Borrow {
+    satchel_id: ID,
+    scroll_id: ID
+}
 
-// Task 1: The `SatchelCap` should be linked with the `SharedSatchel` created.
-// Else, anyone can edit any `SharedSatchel`.
 /// Creates a new shared satchel and returns a capability token to manage it.
 /// The satchel is initialized empty and is shared with all users.
 public fun new(ctx: &mut TxContext): (SharedSatchel, SatchelCap) {
-    (
-        SharedSatchel { id: object::new(ctx), scrolls: vector[] },
-        SatchelCap { id: object::new(ctx) }
-    )
+    let satchel = SharedSatchel { id: object::new(ctx), scrolls: vector[] };
+    let cap = SatchelCap { id: object::new(ctx), satchel_id: object::id(&satchel) };
+
+    (satchel, cap)
 }
 
 public fun share(self: SharedSatchel) {
     transfer::share_object(self)
 }
 
-// Task 2: Editing the `SharedSatchel` should be authorized for specific `SatchelCap`.
 /// Adds a new scroll to the shared satchel.
 /// Requires the satchel capability to ensure only authorized users can add scrolls.
 public fun add_scroll(self: &mut SharedSatchel, cap: &SatchelCap, scroll: Scroll) {
+    assert!(object::id(self) == cap.satchel_id, ENotYourSatchel);
     self.scrolls.push_back(scroll);
 }
 
-// Task 2: Editing the `SharedSatchel` should be authorized for specific `SatchelCap`.
 /// Removes a scroll from the shared satchel by its ID.
 /// Requires the satchel capability and returns the removed scroll.
 /// Aborts if no scroll with the given ID exists.
 public fun remove_scroll(self: &mut SharedSatchel, cap: &SatchelCap, scroll_id: ID): Scroll {
+    assert!(object::id(self) == cap.satchel_id, ENotYourSatchel);
     let mut idx = self.scrolls.find_index!(|scroll| object::id(scroll) == scroll_id);
     assert!(idx.is_some(), ENoScrollWithThisID);
     let idx = idx.extract();
     self.scrolls.remove(idx)
 }
 
-// Task 3: `Borrow` hot-potato should only refer to the specific `SharedSatchel`.
-// Else, anyone can take a scroll out of one satchel and put it into another.
 /// Borrows a scroll from the shared satchel by its ID.
 /// Returns both the scroll and a borrow token that must be used to return the scroll.
 /// Aborts if no scroll with the given ID exists.
@@ -81,19 +81,26 @@ public fun borrow_scroll(self: &mut SharedSatchel, scroll_id: ID): (Scroll, Borr
     let mut idx = self.scrolls.find_index!(|scroll| object::id(scroll) == scroll_id);
     assert!(idx.is_some(), ENoScrollWithThisID);
     let idx = idx.extract();
+    let borrow = Borrow {
+        satchel_id: object::id(self),
+        scroll_id
+    };
     (
         self.scrolls.remove(idx),
-        Borrow()
+        borrow
     )
 }
 
-// Task 3: `Borrow` hot-potato should only refer to the specific `SharedSatchel`.
-// Else, anyone can take a scroll out of one satchel and put it into another.
 /// Returns a borrowed scroll to the shared satchel.
 /// Requires both the scroll and its corresponding borrow token to ensure proper return.
 public fun return_scroll(self: &mut SharedSatchel, scroll: Scroll, borrow: Borrow) {
+    let Borrow {
+        satchel_id,
+        scroll_id
+    } = borrow;
+    assert!(object::id(self) == satchel_id, EInvalidReturn);
+    assert!(object::id(&scroll) == scroll_id, EInvalidReturn);
     self.scrolls.push_back(scroll);
-    let Borrow() = borrow;
 }
 
 #[test]

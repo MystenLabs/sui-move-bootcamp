@@ -1,6 +1,6 @@
 import { SuiClient, SuiObjectChangeMutated, getFullnodeUrl } from "@mysten/sui/client";
 import { PublishSingleton } from "./publish";
-import { createKiosk, placeAndListInKiosk, purchase } from "./kiosk";
+import { createKiosk, createPersonalKiosk, placeAndListInKiosk, purchase } from "./kiosk";
 import { ADMIN_KEYPAIR, BUYER_KEYPAIR } from "./consts";
 import { createSword } from "./create-sword";
 
@@ -12,9 +12,10 @@ describe("Kiosk operations", () => {
 
     beforeAll(async () => {
         client = new SuiClient({ url: getFullnodeUrl('localnet') });
-        await PublishSingleton.publish(client, admin);
+        await PublishSingleton.publish({client, signer: admin});
         await createKiosk(client, admin);
-    }, 10000);
+        await createPersonalKiosk(client, buyer);// TODO personal
+    }, 20000);
 
 
     it("Lists and purchases from Kiosk", async () => {
@@ -55,10 +56,9 @@ describe("Kiosk operations", () => {
             signer: buyer,
             fromKioskObjectId: kioskChange.objectId,
             swordId,
-            price: 5000
         });
         if (purchaseResp.effects?.status.status !== 'success') {
             throw new Error(`Something went wrong purchasing sword:\n${JSON.stringify(purchaseResp, null, 2)}`)
         }
-    }, 10000);
+    }, 20000);
 });

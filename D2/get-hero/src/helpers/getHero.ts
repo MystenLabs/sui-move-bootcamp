@@ -6,6 +6,11 @@ import { suiClient } from "../suiClient";
  * Uses the required SDK options to include the content and the type of the object in the response.
  */
 export const getHero = async (id: string): Promise<SuiObjectResponse> => {
-  // TODO: Implement the function
-  return new Promise((resolve) => resolve({} as unknown as SuiObjectResponse));
+  return suiClient.getObject({
+    id,
+    options: {
+      showType: true,
+      showContent: true,
+    }
+  });
 };

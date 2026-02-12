@@ -1,0 +1,9 @@
+[package]
+name = "Kiosk"
+version = "0.0.2"
+
+[dependencies]
+Sui = { git = "https://github.com/MystenLabs/sui.git", rev = "framework/testnet", subdir = "crates/sui-framework/packages/sui-framework" }
+
+[addresses]
+kiosk = "0x0"
