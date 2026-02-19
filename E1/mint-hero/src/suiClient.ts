@@ -1,5 +1,6 @@
-import { SuiClient } from "@mysten/sui/client";
+import { SuiGrpcClient } from "@mysten/sui/grpc";
 import { ENV } from "./env";
-export const suiClient = new SuiClient({
-  url: ENV.SUI_NETWORK,
+export const suiClient = new SuiGrpcClient({
+  baseUrl: `https://fullnode.${ENV.SUI_NETWORK}.sui.io:443`,
+  network: ENV.SUI_NETWORK,
 });
