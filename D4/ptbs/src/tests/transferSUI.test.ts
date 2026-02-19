@@ -3,28 +3,31 @@ import { ENV } from "../env";
 import { transferSUI } from "../helpers/transferSUI";
 import { parseBalanceChanges } from "../helpers/parseBalanceChanges";
 import { getAddress } from "../helpers/getAddress";
-import { SuiTransactionBlockResponse } from "@mysten/sui/client";
+import { SuiClientTypes } from "@mysten/sui/client";
 
 const AMOUNT = 0.01 * Number(MIST_PER_SUI);
 
 describe("Transfer SUI amount", () => {
-  let txResponse: SuiTransactionBlockResponse;
+  let txResult: SuiClientTypes.TransactionResult;
+  let txResponse: SuiClientTypes.Transaction;
 
   beforeAll(async () => {
-    txResponse = await transferSUI({
+    txResult = await transferSUI({
       amount: AMOUNT,
       senderSecretKey: ENV.USER_SECRET_KEY,
       recipientAddress: ENV.RECIPIENT_ADDRESS,
     });
+    if(!txResult.Transaction) throw new Error("Transaction failed");
+    txResponse = txResult.Transaction;
     console.log("Executed transaction with txDigest:", txResponse.digest);
   });
 
-  test("Transaction Status", () => {
-    expect(txResponse.effects).toBeDefined();
-    expect(txResponse.effects!.status.status).toBe("success");
+  test("Transaction Status", async () => {
+    expect(txResponse.digest).toBeDefined();
+    expect(txResponse.status.success).toBe(true);
   });
 
-  test("SUI Balance Changes", () => {
+  test("SUI Balance Changes", async () => {
     expect(txResponse.balanceChanges).toBeDefined();
     const balanceChanges = parseBalanceChanges({
       balanceChanges: txResponse.balanceChanges!,

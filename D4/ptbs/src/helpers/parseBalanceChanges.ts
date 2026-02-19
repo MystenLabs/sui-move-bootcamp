@@ -1,7 +1,8 @@
-import { BalanceChange } from "@mysten/sui/client";
+import { SuiClientTypes } from "@mysten/sui/client";
+import { normalizeSuiAddress, SUI_TYPE_ARG } from "@mysten/sui/utils";
 
 interface Args {
-  balanceChanges: BalanceChange[];
+  balanceChanges: SuiClientTypes.BalanceChange[];
   senderAddress: string;
   recipientAddress: string;
 }
