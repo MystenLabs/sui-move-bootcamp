@@ -18,3 +18,8 @@ node_modules
 .pnpm-store
 target 
 Move.lock
+target
+
+# claude
+CLAUDE.md
+.claude/

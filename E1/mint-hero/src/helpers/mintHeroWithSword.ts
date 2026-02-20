@@ -1,9 +1,9 @@
-import { SuiTransactionBlockResponse } from "@mysten/sui/client";
 import { Transaction } from "@mysten/sui/transactions";
 import { suiClient } from "../suiClient";
 import { getSigner } from "./getSigner";
 import { ENV } from "../env";
 import { getAddress } from "./getAddress";
+import { SuiClientTypes } from "@mysten/sui/client";
 
 /**
  * Builds, signs, and executes a transaction for:
@@ -13,7 +13,7 @@ import { getAddress } from "./getAddress";
  * * transferring the Hero to the signer
  */
 export const mintHeroWithSword =
-  async (): Promise<SuiTransactionBlockResponse> => {
+  async (): Promise<SuiClientTypes.TransactionResult<{effects: true}>> => {
     const tx = new Transaction();
 
     const hero = tx.moveCall({
@@ -32,12 +32,12 @@ export const mintHeroWithSword =
     });
     tx.transferObjects([hero], getAddress({ secretKey: ENV.USER_SECRET_KEY }));
 
-    return suiClient.signAndExecuteTransaction({
+    return await suiClient.signAndExecuteTransaction({
       transaction: tx,
       signer: getSigner({ secretKey: ENV.USER_SECRET_KEY }),
-      options: {
-        showEffects: true,
-        showObjectChanges: true,
+      include: {
+        effects: true,
+        objectTypes: true
       },
-    });
+    }) as SuiClientTypes.TransactionResult<{effects: true, objectTypes: true}>;
   };
