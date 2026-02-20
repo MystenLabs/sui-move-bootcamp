@@ -15,5 +15,6 @@
 build
 dist
 node_modules
+.pnpm-store
 target 
 Move.lock
