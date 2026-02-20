@@ -1,8 +1,8 @@
-import { useCurrentAccount } from "@mysten/dapp-kit";
+import { useCurrentAccount } from "@mysten/dapp-kit-react";
 import { Container, Flex, Heading, Text } from "@radix-ui/themes";
 import { OwnedObjects } from "./OwnedObjects";
 
-export function WalletStatus() {
+export function WalletStatus({ refreshKey }: { refreshKey: number }) {
   const account = useCurrentAccount();
 
   return (
@@ -17,7 +17,7 @@ export function WalletStatus() {
       ) : (
         <Text>Wallet not connected</Text>
       )}
-      <OwnedObjects />
+      <OwnedObjects refreshKey={refreshKey} />
     </Container>
   );
 }

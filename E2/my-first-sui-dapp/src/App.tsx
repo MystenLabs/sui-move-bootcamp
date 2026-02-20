@@ -1,9 +1,12 @@
-import { ConnectButton } from "@mysten/dapp-kit";
+import { ConnectButton } from "@mysten/dapp-kit-react";
 import { Box, Container, Flex, Heading } from "@radix-ui/themes";
 import { WalletStatus } from "./WalletStatus";
 import { MintNFTForm } from "./MintNFTForm";
+import { useState } from "react";
 
 function App() {
+  const [refreshKey, setRefreshKey] = useState(0);
+
   return (
     <>
       <Flex
@@ -30,7 +33,7 @@ function App() {
           px="4"
           style={{ background: "var(--gray-a2)", minHeight: 500 }}
         >
-          <WalletStatus />
+          <WalletStatus refreshKey={refreshKey} />
         </Container>
       </Container>
       <Container>
@@ -40,7 +43,7 @@ function App() {
           px="4"
           style={{ background: "var(--gray-a2)", minHeight: 500 }}
         >
-          <MintNFTForm />
+          <MintNFTForm onMinted={() => setRefreshKey((k) => k + 1)} />
         </Container>
       </Container>
     </>

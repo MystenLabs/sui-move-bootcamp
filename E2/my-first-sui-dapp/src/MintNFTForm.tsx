@@ -1,17 +1,11 @@
-import {
-  useCurrentAccount,
-  useSignAndExecuteTransaction,
-  useSuiClient,
-} from "@mysten/dapp-kit";
+import { useCurrentAccount, useCurrentClient, useDAppKit } from "@mysten/dapp-kit-react";
 import { Transaction } from "@mysten/sui/transactions";
 import { Button } from "@radix-ui/themes";
-import { useQueryClient } from "@tanstack/react-query";
 
-export const MintNFTForm = () => {
-  const suiClient = useSuiClient();
+export const MintNFTForm = ({ onMinted }: { onMinted: () => void }) => {
+  const client = useCurrentClient();
   const account = useCurrentAccount();
-  const queryClient = useQueryClient();
-  const { mutateAsync } = useSignAndExecuteTransaction();
+  const dAppKit = useDAppKit();
 
   const handleMint = () => {
     if (!account?.address) {
@@ -27,17 +21,14 @@ export const MintNFTForm = () => {
     });
     tx.transferObjects([hero], account?.address);
 
-    mutateAsync({
-      transaction: tx,
-    })
+    dAppKit
+      .signAndExecuteTransaction({
+        transaction: tx,
+      })
       .then(async (resp) => {
-        console.log(resp.digest);
-        await suiClient.waitForTransaction({ digest: resp.digest });
-        queryClient.invalidateQueries({
-          predicate: (query) =>
-            query.queryKey[0] === "testnet" &&
-            query.queryKey[1] === "getOwnedObjects",
-        });
+        console.log(resp.Transaction?.digest);
+        await client.waitForTransaction({ result: resp });
+        onMinted();
       })
       .catch((err) => {
         console.log(err);
