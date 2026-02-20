@@ -1,2 +1,0 @@
-import { GraphQLDocument, GraphQLQueryOptions, GraphQLQueryResult, GraphQLResponseErrors, SuiGraphQLClient, SuiGraphQLClientOptions, SuiGraphQLRequestError, isSuiGraphQLClient } from "./client.mjs";
-export { type GraphQLDocument, type GraphQLQueryOptions, type GraphQLQueryResult, type GraphQLResponseErrors, SuiGraphQLClient, type SuiGraphQLClientOptions, SuiGraphQLRequestError, isSuiGraphQLClient };

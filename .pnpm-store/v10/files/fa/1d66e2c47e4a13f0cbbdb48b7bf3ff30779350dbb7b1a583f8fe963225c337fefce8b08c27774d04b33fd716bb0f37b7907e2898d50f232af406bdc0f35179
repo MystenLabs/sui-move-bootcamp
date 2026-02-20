@@ -1,1 +1,0 @@
-{"version":3,"file":"gql-tada-cli.js","sources":["../src/cli/index.ts"],"sourcesContent":["#!/usr/bin/env node\n\nimport cli from '@gql.tada/cli-utils';\n\n('default' in cli ? (cli.default as typeof cli) : cli)();\n"],"names":["cli","default"],"mappings":";;;CAIC,aAAaA,IAAOA,EAAIC,UAAyBD"}

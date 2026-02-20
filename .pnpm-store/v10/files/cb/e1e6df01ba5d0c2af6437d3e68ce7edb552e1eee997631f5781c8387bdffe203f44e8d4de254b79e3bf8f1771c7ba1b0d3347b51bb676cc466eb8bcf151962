@@ -1,1 +1,0 @@
-# `@wallet-standard/ui-registry`

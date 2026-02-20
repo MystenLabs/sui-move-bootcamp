@@ -1,5 +1,0 @@
-import type { accentColors } from '../props/color.prop.js';
-type ThemeAccentColor = (typeof accentColors)[number];
-export declare function getMatchingGrayColor(accentColor: ThemeAccentColor): "gray" | "mauve" | "slate" | "sage" | "olive" | "sand";
-export {};
-//# sourceMappingURL=get-matching-gray-color.d.ts.map
