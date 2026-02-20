@@ -2,6 +2,8 @@
 
 import clientConfig from '@/lib/env-config-client';
 import { networkConfig } from '@/lib/network-config';
+import { createSuiClientForNetwork } from '@/lib/sui-client-wrapper';
+import type { SuiNetworkName } from '@/lib/sui-grpc-client';
 import {
   SuiClientProvider,
   WalletProvider,
@@ -54,6 +56,9 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
         <SuiClientProvider
           networks={networkConfig}
           defaultNetwork={clientConfig.NEXT_PUBLIC_SUI_NETWORK_NAME}
+          createClient={(network) =>
+            createSuiClientForNetwork(network as SuiNetworkName)
+          }
         >
           <RegisterEnokiWallets />
           <WalletProvider autoConnect>

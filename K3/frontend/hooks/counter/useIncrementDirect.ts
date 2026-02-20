@@ -1,10 +1,13 @@
+import { createGrpcExecuteForNetwork } from '@/lib/grpc-execute';
 import { incrementTransaction } from '@/lib/counter/counter-transactions';
 import clientConfig from '@/lib/env-config-client';
 import { TransactionError, isUserRejection } from '@/lib/errors';
+import { createSuiGrpcClient } from '@/lib/sui-grpc-client';
+import type { SuiNetworkName } from '@/lib/sui-grpc-client';
 import {
   useCurrentAccount,
   useSignAndExecuteTransaction,
-  useSuiClient,
+  useSuiClientContext,
 } from '@mysten/dapp-kit';
 import { useMutation } from '@tanstack/react-query';
 
@@ -14,13 +17,15 @@ export interface IncrementDirectParams {
 
 /**
  * Hook for incrementing the counter with direct (non-sponsored) transactions.
- * User pays their own gas fees.
+ * User pays their own gas fees. Execute and wait use Sui gRPC (F1-style).
  */
 export const useIncrementDirect = () => {
-  const client = useSuiClient();
+  const { network } = useSuiClientContext();
   const sender = useCurrentAccount();
   const { mutateAsync: signAndExecuteTransaction } =
-    useSignAndExecuteTransaction();
+    useSignAndExecuteTransaction({
+      execute: createGrpcExecuteForNetwork(network as SuiNetworkName),
+    });
 
   return useMutation({
     mutationFn: async (params: IncrementDirectParams) => {
@@ -38,7 +43,7 @@ export const useIncrementDirect = () => {
         clientConfig.NEXT_PUBLIC_PACKAGE_ADDRESS,
       );
 
-      // 3. Sign and execute the transaction (user pays gas)
+      // 3. Sign and execute via gRPC (F1-style write path)
       let result: Awaited<ReturnType<typeof signAndExecuteTransaction>>;
       try {
         result = await signAndExecuteTransaction({
@@ -59,13 +64,11 @@ export const useIncrementDirect = () => {
         );
       }
 
-      // 4. Wait for transaction confirmation
+      // 4. Wait for transaction confirmation via gRPC
       try {
-        const waitedResult = await client.waitForTransaction({
+        const grpcClient = createSuiGrpcClient(network as SuiNetworkName);
+        const waitedResult = await grpcClient.core.waitForTransaction({
           digest: result.digest,
-          options: {
-            showEffects: true,
-          },
         });
 
         return {

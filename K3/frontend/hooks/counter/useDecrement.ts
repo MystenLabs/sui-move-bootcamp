@@ -5,10 +5,12 @@ import {
 } from '@/lib/enoki/get-sponsored-tx';
 import clientConfig from '@/lib/env-config-client';
 import { TransactionError, isUserRejection } from '@/lib/errors';
+import { createSuiGrpcClient } from '@/lib/sui-grpc-client';
+import type { SuiNetworkName } from '@/lib/sui-grpc-client';
 import {
   useCurrentAccount,
   useSignTransaction,
-  useSuiClient,
+  useSuiClientContext,
 } from '@mysten/dapp-kit';
 import { useMutation } from '@tanstack/react-query';
 
@@ -24,7 +26,7 @@ export interface DecrementParams {
  * a standard wallet in dapp-kit, so the same hooks work for both.
  */
 export const useDecrement = () => {
-  const client = useSuiClient();
+  const { network } = useSuiClientContext();
   const sender = useCurrentAccount();
   const { mutateAsync: signTransaction } = useSignTransaction();
 
@@ -40,6 +42,7 @@ export const useDecrement = () => {
       // 2. Build the transaction
       let txBytes: Uint8Array;
       try {
+        const grpcClient = createSuiGrpcClient(network as SuiNetworkName);
         const transaction = decrementTransaction(
           clientConfig.NEXT_PUBLIC_COUNTER_OBJECT_ID,
           note,
@@ -47,7 +50,7 @@ export const useDecrement = () => {
         );
 
         txBytes = await transaction.build({
-          client: client,
+          client: grpcClient,
           onlyTransactionKind: true,
         });
       } catch (error) {
@@ -107,13 +110,11 @@ export const useDecrement = () => {
         );
       }
 
-      // 6. Wait for transaction confirmation
+      // 6. Wait for transaction confirmation via gRPC (F1-style)
       try {
-        const waitedResult = await client.waitForTransaction({
+        const grpcClient = createSuiGrpcClient(network as SuiNetworkName);
+        const waitedResult = await grpcClient.core.waitForTransaction({
           digest: result.digest,
-          options: {
-            showEffects: true,
-          },
         });
 
         return {
