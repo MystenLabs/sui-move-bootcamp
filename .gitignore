@@ -13,6 +13,7 @@
 
 .history
 build
+dist
 node_modules
 target 
 Move.lock
