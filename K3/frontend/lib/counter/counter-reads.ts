@@ -1,7 +1,7 @@
 import clientConfig from '@/lib/env-config-client';
 import { COUNTER_QUERY_KEYS } from '@/lib/query-keys';
 import { useSuiClient } from '@mysten/dapp-kit';
-import { SuiClient } from '@mysten/sui/client';
+import type { SuiJsonRpcClient } from '@mysten/sui/jsonRpc';
 import { useQuery } from '@tanstack/react-query';
 
 /**
@@ -31,7 +31,7 @@ export interface CounterEvent {
  * @returns The deserialized counter data
  */
 export async function getCounterById(
-  client: SuiClient,
+  client: SuiJsonRpcClient,
   objectId: string,
 ): Promise<CounterData | null> {
   try {
@@ -105,7 +105,7 @@ export const useCounterById = (objectId: string) => {
  * @returns Array of counter events
  */
 export async function getCounterEvents(
-  client: SuiClient,
+  client: SuiJsonRpcClient,
   packageAddress: string,
   limit: number = 20,
 ): Promise<CounterEvent[]> {
