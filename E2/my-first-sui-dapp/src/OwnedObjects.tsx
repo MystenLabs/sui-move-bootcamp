@@ -1,6 +1,11 @@
 import { useCurrentAccount, useCurrentClient } from "@mysten/dapp-kit-react";
-import { Flex, Heading, Text } from "@radix-ui/themes";
 import { useState, useEffect, useCallback } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "./components/ui/card";
 
 export function OwnedObjects({ refreshKey }: { refreshKey: number }) {
   const account = useCurrentAccount();
@@ -36,25 +41,31 @@ export function OwnedObjects({ refreshKey }: { refreshKey: number }) {
   }
 
   if (error) {
-    return <Flex>Error: {error}</Flex>;
+    return <div className="text-destructive-foreground">Error: {error}</div>;
   }
 
   if (isPending || !data) {
-    return <Flex>Loading...</Flex>;
+    return <div className="text-muted-foreground">Loading...</div>;
   }
 
   return (
-    <Flex direction="column" my="2">
-      {data.objects.length === 0 ? (
-        <Text>No objects owned by the connected wallet</Text>
-      ) : (
-        <Heading size="4">Objects owned by the connected wallet</Heading>
-      )}
-      {data.objects.map((object) => (
-        <Flex key={object.objectId}>
-          <Text>Object ID: {object.objectId}</Text>
-        </Flex>
-      ))}
-    </Flex>
+    <Card>
+      <CardHeader>
+        <CardTitle>
+          {data.objects.length === 0
+            ? "No objects owned by the connected wallet"
+            : "Objects owned by the connected wallet"}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          {data.objects.map((object) => (
+            <p key={object.objectId} className="font-mono text-sm break-all">
+              Object ID: {object.objectId}
+            </p>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

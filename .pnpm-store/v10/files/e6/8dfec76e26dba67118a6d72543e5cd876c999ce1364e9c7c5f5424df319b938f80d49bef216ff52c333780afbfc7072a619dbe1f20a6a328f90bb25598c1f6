@@ -1,0 +1,2 @@
+"use strict";var e=Object.defineProperty;var a=Object.getOwnPropertyDescriptor;var c=Object.getOwnPropertyNames;var R=Object.prototype.hasOwnProperty;var A=(o,t)=>{for(var p in t)e(o,p,{get:t[p],enumerable:!0})},m=(o,t,p,s)=>{if(t&&typeof t=="object"||typeof t=="function")for(let i of c(t))!R.call(o,i)&&i!==p&&e(o,i,{get:()=>t[i],enumerable:!(s=a(t,i))||s.enumerable});return o};var P=o=>m(e({},"__esModule",{value:!0}),o);var x={};A(x,{AspectRatio:()=>v});module.exports=P(x);var r=require("radix-ui");const v=r.AspectRatio.Root;
+//# sourceMappingURL=aspect-ratio.js.map

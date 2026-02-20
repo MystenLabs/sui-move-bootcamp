@@ -1,0 +1,2 @@
+import*as o from"react";import i from"classnames";import{Slot as f}from"radix-ui";import{insetPropDefs as a}from"./inset.props.js";import{extractProps as P}from"../helpers/extract-props.js";import{marginPropDefs as c}from"../props/margin.props.js";const e=o.forwardRef((r,t)=>{const{asChild:p,className:s,...n}=P(r,a,c),m=p?f.Root:"div";return o.createElement(m,{...n,ref:t,className:i("rt-Inset",s)})});e.displayName="Inset";export{e as Inset};
+//# sourceMappingURL=inset.js.map

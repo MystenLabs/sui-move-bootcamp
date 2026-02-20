@@ -1,0 +1,4 @@
+/** A util to check whether the object has a key, while inferring the correct key type */
+declare function hasOwnProperty<K extends string | number | symbol>(obj: Record<K, unknown>, key: string | number | symbol): key is K;
+export { hasOwnProperty };
+//# sourceMappingURL=has-own-property.d.ts.map

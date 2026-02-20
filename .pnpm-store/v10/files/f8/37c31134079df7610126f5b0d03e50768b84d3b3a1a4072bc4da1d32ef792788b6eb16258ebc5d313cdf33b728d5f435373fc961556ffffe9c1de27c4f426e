@@ -1,0 +1,17 @@
+declare const emPropDefs: {
+    wrap: {
+        type: "enum";
+        className: string;
+        values: readonly ["wrap", "nowrap", "pretty", "balance"];
+        responsive: true;
+    };
+    truncate: {
+        type: "boolean";
+        className: string;
+    };
+    asChild: {
+        type: "boolean";
+    };
+};
+export { emPropDefs };
+//# sourceMappingURL=em.props.d.ts.map

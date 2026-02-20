@@ -1,0 +1,15 @@
+declare const spinnerPropDefs: {
+    size: {
+        type: "enum";
+        className: string;
+        values: readonly ["1", "2", "3"];
+        default: "2";
+        responsive: true;
+    };
+    loading: {
+        type: "boolean";
+        default: true;
+    };
+};
+export { spinnerPropDefs };
+//# sourceMappingURL=spinner.props.d.ts.map

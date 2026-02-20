@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../src/components/checkbox.props.tsx"],
+  "sourcesContent": ["export { baseCheckboxPropDefs as checkboxPropDefs } from './_internal/base-checkbox.props.js';\n"],
+  "mappings": "AAAA,OAAiC,wBAAxBA,MAAgD",
+  "names": ["baseCheckboxPropDefs"]
+}

@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../src/components/visually-hidden.tsx"],
+  "sourcesContent": ["import { VisuallyHidden as VisuallyHiddenPrimitive } from 'radix-ui';\nexport const VisuallyHidden = VisuallyHiddenPrimitive.Root;\nexport const Root = VisuallyHiddenPrimitive.Root;\nexport type VisuallyHiddenProps = VisuallyHiddenPrimitive.VisuallyHiddenProps;\n"],
+  "mappings": "AAAA,OAAS,kBAAkBA,MAA+B,WACnD,MAAMC,EAAiBD,EAAwB,KACzCE,EAAOF,EAAwB",
+  "names": ["VisuallyHiddenPrimitive", "VisuallyHidden", "Root"]
+}

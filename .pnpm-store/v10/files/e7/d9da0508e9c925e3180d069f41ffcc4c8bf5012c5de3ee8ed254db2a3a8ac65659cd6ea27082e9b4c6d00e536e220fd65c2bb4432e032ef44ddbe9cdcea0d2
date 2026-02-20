@@ -1,0 +1,2 @@
+import*as o from"react";import n from"classnames";import{Slot as c}from"radix-ui";import{sectionPropDefs as a}from"./section.props.js";import{extractProps as f}from"../helpers/extract-props.js";import{layoutPropDefs as P}from"../props/layout.props.js";import{marginPropDefs as l}from"../props/margin.props.js";const r=o.forwardRef((t,p)=>{const{asChild:e,className:s,...m}=f(t,a,P,l),i=e?c.Root:"section";return o.createElement(i,{...m,ref:p,className:n("rt-Section",s)})});r.displayName="Section";export{r as Section};
+//# sourceMappingURL=section.js.map

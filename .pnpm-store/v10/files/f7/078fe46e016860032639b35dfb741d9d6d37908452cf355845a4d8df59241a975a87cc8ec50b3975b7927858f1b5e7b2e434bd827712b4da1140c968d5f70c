@@ -1,0 +1,13 @@
+declare const kbdPropDefs: {
+    size: {
+        type: "enum";
+        className: string;
+        values: readonly ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
+        responsive: true;
+    };
+    asChild: {
+        type: "boolean";
+    };
+};
+export { kbdPropDefs };
+//# sourceMappingURL=kbd.props.d.ts.map

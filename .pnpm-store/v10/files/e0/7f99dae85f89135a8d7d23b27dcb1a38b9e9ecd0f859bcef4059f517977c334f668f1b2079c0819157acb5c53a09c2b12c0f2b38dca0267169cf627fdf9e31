@@ -1,0 +1,3 @@
+import type { MarginProps } from '../props/margin.props.js';
+export declare function getMarginStyles(props: MarginProps): readonly [string, import("react").CSSProperties | Record<string, string | number | null | undefined> | undefined];
+//# sourceMappingURL=get-margin-styles.d.ts.map

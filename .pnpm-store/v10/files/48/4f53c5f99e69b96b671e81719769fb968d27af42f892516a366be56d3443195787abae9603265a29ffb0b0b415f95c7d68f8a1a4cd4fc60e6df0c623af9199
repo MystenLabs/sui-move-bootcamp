@@ -1,0 +1,10 @@
+declare const weightPropDef: {
+    weight: {
+        type: "enum";
+        className: string;
+        values: readonly ["light", "regular", "medium", "bold"];
+        responsive: true;
+    };
+};
+export { weightPropDef };
+//# sourceMappingURL=weight.prop.d.ts.map

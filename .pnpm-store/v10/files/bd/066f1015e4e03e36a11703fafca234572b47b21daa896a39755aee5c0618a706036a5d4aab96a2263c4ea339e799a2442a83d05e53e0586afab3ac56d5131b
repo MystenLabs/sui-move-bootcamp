@@ -1,0 +1,17 @@
+declare const strongPropDefs: {
+    wrap: {
+        type: "enum";
+        className: string;
+        values: readonly ["wrap", "nowrap", "pretty", "balance"];
+        responsive: true;
+    };
+    truncate: {
+        type: "boolean";
+        className: string;
+    };
+    asChild: {
+        type: "boolean";
+    };
+};
+export { strongPropDefs };
+//# sourceMappingURL=strong.props.d.ts.map

@@ -1,0 +1,2 @@
+import*as o from"react";import n from"classnames";import{Slot as u}from"radix-ui";import{quotePropDefs as P}from"./quote.props.js";import{extractProps as a}from"../helpers/extract-props.js";const e=o.forwardRef((t,p)=>{const{asChild:r,className:s,...m}=a(t,P),f=r?u.Root:"q";return o.createElement(f,{...m,ref:p,className:n("rt-Quote",s)})});e.displayName="Quote";export{e as Quote};
+//# sourceMappingURL=quote.js.map

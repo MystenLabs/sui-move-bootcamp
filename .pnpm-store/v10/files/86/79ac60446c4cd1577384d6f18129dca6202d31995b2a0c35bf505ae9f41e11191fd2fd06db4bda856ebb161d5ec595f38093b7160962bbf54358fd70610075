@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../src/components/aspect-ratio.tsx"],
+  "sourcesContent": ["import { AspectRatio as AspectRatioPrimitive } from 'radix-ui';\nexport const AspectRatio = AspectRatioPrimitive.Root;\nexport type AspectRatioProps = AspectRatioPrimitive.AspectRatioProps;\n"],
+  "mappings": "AAAA,OAAS,eAAeA,MAA4B,WAC7C,MAAMC,EAAcD,EAAqB",
+  "names": ["AspectRatioPrimitive", "AspectRatio"]
+}

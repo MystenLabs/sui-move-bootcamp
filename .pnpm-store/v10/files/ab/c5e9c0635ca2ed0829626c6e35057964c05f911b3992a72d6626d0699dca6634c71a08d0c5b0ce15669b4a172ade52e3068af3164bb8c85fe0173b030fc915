@@ -1,0 +1,51 @@
+{
+  "name": "@mysten/utils",
+  "version": "0.3.1",
+  "description": "Shared utilities for @mysten/* packages",
+  "license": "Apache-2.0",
+  "author": "Mysten Labs <build@mystenlabs.com>",
+  "sideEffects": false,
+  "type": "module",
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.mjs"
+    }
+  },
+  "files": [
+    "CHANGELOG.md",
+    "dist",
+    "src"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MystenLabs/ts-sdks.git"
+  },
+  "keywords": [
+    "utils"
+  ],
+  "bugs": {
+    "url": "https://github.com/MystenLabs/ts-sdks/issues"
+  },
+  "homepage": "https://github.com/MystenLabs/ts-sdks/tree/main/packages/utils#readme",
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.17"
+  },
+  "dependencies": {
+    "@scure/base": "^2.0.0"
+  },
+  "scripts": {
+    "clean": "rm -rf tsconfig.tsbuildinfo ./dist",
+    "build": "rm -rf dist && tsc --noEmit && tsdown",
+    "prettier:check": "prettier -c --ignore-unknown .",
+    "prettier:fix": "prettier -w --ignore-unknown .",
+    "oxlint:check": "oxlint  .",
+    "oxlint:fix": "oxlint --fix",
+    "lint": "pnpm run oxlint:check && pnpm run prettier:check",
+    "lint:fix": "pnpm run oxlint:fix && pnpm run prettier:fix"
+  }
+}

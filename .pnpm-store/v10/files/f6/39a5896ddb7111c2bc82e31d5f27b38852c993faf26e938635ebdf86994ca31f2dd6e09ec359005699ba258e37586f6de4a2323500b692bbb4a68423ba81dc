@@ -1,0 +1,123 @@
+import * as _mysten_dapp_kit_core1 from "@mysten/dapp-kit-core";
+import { DAppKit, DefaultExpectedDppKit, RegisteredDAppKit } from "@mysten/dapp-kit-core";
+import { ComponentProps, PropsWithChildren } from "react";
+import * as _lit_react0 from "@lit/react";
+import { DAppKitConnectButton, DAppKitConnectModal } from "@mysten/dapp-kit-core/web";
+import * as react_jsx_runtime0 from "react/jsx-runtime";
+import * as nanostores0 from "nanostores";
+export * from "@mysten/dapp-kit-core";
+
+//#region src/components/ConnectButton.d.ts
+type ConnectButtonProps = ComponentProps<typeof ConnectButtonComponent>;
+declare const ConnectButtonComponent: _lit_react0.ReactWebComponent<DAppKitConnectButton, {}>;
+declare function ConnectButton({
+  instance,
+  ...props
+}: ConnectButtonProps): react_jsx_runtime0.JSX.Element;
+//#endregion
+//#region src/components/ConnectModal.d.ts
+type ConnectModalProps = ComponentProps<typeof ConnectModalComponent>;
+declare const ConnectModalComponent: _lit_react0.ReactWebComponent<DAppKitConnectModal, {}>;
+declare function ConnectModal({
+  instance,
+  ...props
+}: ConnectModalProps): react_jsx_runtime0.JSX.Element;
+//#endregion
+//#region src/components/DAppKitProvider.d.ts
+type DAppKitProviderProps = PropsWithChildren<{
+  dAppKit: DefaultExpectedDppKit;
+}>;
+declare function DAppKitProvider({
+  dAppKit,
+  children
+}: DAppKitProviderProps): react_jsx_runtime0.JSX.Element;
+//#endregion
+//#region src/hooks/useDAppKit.d.ts
+declare function useDAppKit<TDAppKit extends DAppKit<any> = RegisteredDAppKit>(dAppKit?: TDAppKit): TDAppKit;
+//#endregion
+//#region src/hooks/useWallets.d.ts
+type UseWalletsOptions<TDAppKit extends DAppKit> = {
+  dAppKit?: TDAppKit;
+};
+declare function useWallets<TDAppKit extends DAppKit<any> = RegisteredDAppKit>({
+  dAppKit
+}?: UseWalletsOptions<TDAppKit>): _mysten_dapp_kit_core1.UiWallet[];
+//#endregion
+//#region src/hooks/useWalletConnection.d.ts
+type UseWalletConnectionOptions<TDAppKit extends DAppKit<any>> = {
+  dAppKit?: TDAppKit;
+};
+declare function useWalletConnection<TDAppKit extends DAppKit = RegisteredDAppKit>({
+  dAppKit
+}?: UseWalletConnectionOptions<TDAppKit>): {
+  readonly wallet: _mysten_dapp_kit_core1.UiWallet;
+  readonly account: _mysten_dapp_kit_core1.UiWalletAccount;
+  readonly status: "connected";
+  readonly supportedIntents: string[];
+  readonly isConnected: true;
+  readonly isConnecting: false;
+  readonly isReconnecting: false;
+  readonly isDisconnected: false;
+} | {
+  readonly wallet: null;
+  readonly account: null;
+  readonly status: "connecting";
+  readonly supportedIntents: readonly [];
+  readonly isConnected: false;
+  readonly isConnecting: true;
+  readonly isReconnecting: false;
+  readonly isDisconnected: false;
+} | {
+  readonly wallet: _mysten_dapp_kit_core1.UiWallet;
+  readonly account: _mysten_dapp_kit_core1.UiWalletAccount;
+  readonly status: "reconnecting";
+  readonly supportedIntents: string[];
+  readonly isConnected: false;
+  readonly isConnecting: false;
+  readonly isReconnecting: true;
+  readonly isDisconnected: false;
+} | {
+  readonly wallet: null;
+  readonly account: null;
+  readonly status: "disconnected";
+  readonly supportedIntents: readonly [];
+  readonly isConnected: false;
+  readonly isConnecting: false;
+  readonly isReconnecting: false;
+  readonly isDisconnected: true;
+};
+//#endregion
+//#region src/hooks/useCurrentAccount.d.ts
+type UseCurrentAccountOptions<TDAppKit extends DAppKit> = {
+  dAppKit?: TDAppKit;
+};
+declare function useCurrentAccount<TDAppKit extends DAppKit<any> = RegisteredDAppKit>({
+  dAppKit
+}?: UseCurrentAccountOptions<TDAppKit>): _mysten_dapp_kit_core1.UiWalletAccount | null;
+//#endregion
+//#region src/hooks/useCurrentWallet.d.ts
+type UseCurrentWalletOptions<TDAppKit extends DAppKit> = {
+  dAppKit?: TDAppKit;
+};
+declare function useCurrentWallet<TDAppKit extends DAppKit<any> = RegisteredDAppKit>({
+  dAppKit
+}?: UseCurrentWalletOptions<TDAppKit>): _mysten_dapp_kit_core1.UiWallet | null;
+//#endregion
+//#region src/hooks/useCurrentClient.d.ts
+type UseCurrentClientOptions<TDAppKit extends DAppKit<any>> = {
+  dAppKit?: TDAppKit;
+};
+declare function useCurrentClient<TDAppKit extends DAppKit<any> = RegisteredDAppKit>({
+  dAppKit
+}?: UseCurrentClientOptions<TDAppKit>): ReturnType<TDAppKit["getClient"]>;
+//#endregion
+//#region src/hooks/useCurrentNetwork.d.ts
+type UseCurrentNetworkOptions<TDAppKit extends DAppKit> = {
+  dAppKit?: TDAppKit;
+};
+declare function useCurrentNetwork<TDAppKit extends DAppKit<any> = RegisteredDAppKit>({
+  dAppKit
+}?: UseCurrentNetworkOptions<TDAppKit>): nanostores0.StoreValue<TDAppKit["stores"]["$currentNetwork"]>;
+//#endregion
+export { ConnectButton, type ConnectButtonProps, ConnectModal, type ConnectModalProps, DAppKitProvider, type DAppKitProviderProps, useCurrentAccount, useCurrentClient, useCurrentNetwork, useCurrentWallet, useDAppKit, useWalletConnection, useWallets };
+//# sourceMappingURL=index.d.mts.map

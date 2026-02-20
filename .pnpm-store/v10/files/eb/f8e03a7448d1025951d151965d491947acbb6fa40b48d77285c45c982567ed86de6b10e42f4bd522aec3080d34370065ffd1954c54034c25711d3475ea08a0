@@ -1,0 +1,1 @@
+{"version":3,"file":"stack-trace.js","sourceRoot":"","sources":["../../src/stack-trace.ts"],"names":[],"mappings":";;AAAA,sDAIC;AAJD,SAAgB,qBAAqB,CAAC,GAAG,IAAgD;IACrF,IAAI,mBAAmB,IAAI,KAAK,IAAI,OAAO,KAAK,CAAC,iBAAiB,KAAK,UAAU,EAAE,CAAC;QAChF,KAAK,CAAC,iBAAiB,CAAC,GAAG,IAAI,CAAC,CAAC;IACrC,CAAC;AACL,CAAC"}

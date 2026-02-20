@@ -1,0 +1,4 @@
+type InlineStyle = React.CSSProperties | Record<string, string | number | null | undefined> | undefined;
+export declare function mergeStyles(...styles: Array<InlineStyle>): InlineStyle;
+export {};
+//# sourceMappingURL=merge-styles.d.ts.map

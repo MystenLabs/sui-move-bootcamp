@@ -1,0 +1,70 @@
+{
+  "name": "@scure/bip39",
+  "version": "2.0.1",
+  "description": "Secure, audited & minimal implementation of BIP39 mnemonic phrases",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "wordlists/*.js",
+    "wordlists/*.d.ts",
+    "src/index.ts"
+  ],
+  "dependencies": {
+    "@noble/hashes": "2.0.1",
+    "@scure/base": "2.0.0"
+  },
+  "devDependencies": {
+    "@paulmillr/jsbt": "0.4.4",
+    "prettier": "3.6.2",
+    "typescript": "5.9.2"
+  },
+  "scripts": {
+    "build": "tsc",
+    "build:release": "npx --no @paulmillr/jsbt esbuild test/build",
+    "format": "prettier --write 'src/**/*.ts' 'test/*.test.ts' 'test/scripts/*.js'",
+    "bench": "node test/benchmark.js",
+    "test": "node --experimental-strip-types --no-warnings test/index.ts",
+    "test:bun": "bun test/index.ts",
+    "test:deno": "deno --allow-env --allow-read test/index.js",
+    "test:node20": "cd test; npx tsc; node compiled/test/index.js",
+    "fetch-wordlist": "./test/scripts/fetch-wordlist.js"
+  },
+  "exports": {
+    ".": "./index.js",
+    "./wordlists/czech.js": "./wordlists/czech.js",
+    "./wordlists/english.js": "./wordlists/english.js",
+    "./wordlists/french.js": "./wordlists/french.js",
+    "./wordlists/italian.js": "./wordlists/italian.js",
+    "./wordlists/japanese.js": "./wordlists/japanese.js",
+    "./wordlists/korean.js": "./wordlists/korean.js",
+    "./wordlists/portuguese.js": "./wordlists/portuguese.js",
+    "./wordlists/simplified-chinese.js": "./wordlists/simplified-chinese.js",
+    "./wordlists/spanish.js": "./wordlists/spanish.js",
+    "./wordlists/traditional-chinese.js": "./wordlists/traditional-chinesejss"
+  },
+  "keywords": [
+    "bip39",
+    "mnemonic",
+    "phrase",
+    "code",
+    "bip0039",
+    "bip-39",
+    "wordlist",
+    "scure",
+    "noble",
+    "bitcoin"
+  ],
+  "homepage": "https://paulmillr.com/noble/#scure",
+  "funding": "https://paulmillr.com/funding/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/paulmillr/scure-bip39.git"
+  },
+  "type": "module",
+  "main": "index.js",
+  "module": "index.js",
+  "types": "index.d.ts",
+  "sideEffects": false,
+  "author": "Paul Miller (https://paulmillr.com)",
+  "license": "MIT"
+}

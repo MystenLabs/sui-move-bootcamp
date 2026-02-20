@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../src/components/radio.props.tsx"],
+  "sourcesContent": ["export { baseRadioPropDefs as radioPropDefs } from './_internal/base-radio.props.js';\n"],
+  "mappings": "AAAA,OAA8B,qBAArBA,MAA0C",
+  "names": ["baseRadioPropDefs"]
+}

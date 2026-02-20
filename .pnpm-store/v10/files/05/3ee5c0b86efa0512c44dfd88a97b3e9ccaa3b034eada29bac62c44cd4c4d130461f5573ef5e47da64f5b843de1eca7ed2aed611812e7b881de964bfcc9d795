@@ -1,0 +1,10 @@
+declare const textWrapPropDef: {
+    wrap: {
+        type: "enum";
+        className: string;
+        values: readonly ["wrap", "nowrap", "pretty", "balance"];
+        responsive: true;
+    };
+};
+export { textWrapPropDef };
+//# sourceMappingURL=text-wrap.prop.d.ts.map

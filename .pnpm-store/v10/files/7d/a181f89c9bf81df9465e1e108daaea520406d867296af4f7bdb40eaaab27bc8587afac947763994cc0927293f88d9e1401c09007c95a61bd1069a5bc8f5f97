@@ -1,0 +1,2 @@
+import*as r from"react";import f from"classnames";import{Slot as c}from"radix-ui";import{codePropDefs as i}from"./code.props.js";import{extractProps as P}from"../helpers/extract-props.js";import{marginPropDefs as C}from"../props/margin.props.js";const p=r.forwardRef((o,t)=>{const{asChild:s,className:m,color:e,...d}=P(o,i,C),n=o.variant==="ghost"?e||void 0:e,a=s?c.Root:"code";return r.createElement(a,{"data-accent-color":n,...d,ref:t,className:f("rt-reset","rt-Code",m)})});p.displayName="Code";export{p as Code};
+//# sourceMappingURL=code.js.map

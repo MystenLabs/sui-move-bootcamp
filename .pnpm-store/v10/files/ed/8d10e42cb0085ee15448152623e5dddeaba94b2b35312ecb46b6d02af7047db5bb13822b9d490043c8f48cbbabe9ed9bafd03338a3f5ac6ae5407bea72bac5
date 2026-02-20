@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../src/components/slot.tsx"],
+  "sourcesContent": ["import { Slot as SlotPrimitive } from 'radix-ui';\nexport const Root = SlotPrimitive.Root;\nexport const Slot = SlotPrimitive.Root;\nexport const Slottable = SlotPrimitive.Slottable;\n"],
+  "mappings": "AAAA,OAAS,QAAQA,MAAqB,WAC/B,MAAMC,EAAOD,EAAc,KACrBE,EAAOF,EAAc,KACrBG,EAAYH,EAAc",
+  "names": ["SlotPrimitive", "Root", "Slot", "Slottable"]
+}

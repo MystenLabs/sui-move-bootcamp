@@ -1,0 +1,24 @@
+declare const scrollAreaPropDefs: {
+    scrollbars: {
+        type: "enum";
+        values: readonly ["vertical", "horizontal", "both"];
+        default: "both";
+    };
+    radius: {
+        type: "enum";
+        values: readonly ["none", "small", "medium", "large", "full"];
+        default: undefined;
+    };
+    size: {
+        type: "enum";
+        className: string;
+        values: readonly ["1", "2", "3"];
+        default: "1";
+        responsive: true;
+    };
+    asChild: {
+        type: "boolean";
+    };
+};
+export { scrollAreaPropDefs };
+//# sourceMappingURL=scroll-area.props.d.ts.map

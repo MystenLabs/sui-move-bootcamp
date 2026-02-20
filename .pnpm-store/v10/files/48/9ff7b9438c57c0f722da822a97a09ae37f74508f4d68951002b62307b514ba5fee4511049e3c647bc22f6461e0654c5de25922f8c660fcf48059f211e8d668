@@ -1,0 +1,2 @@
+import*as r from"react";import d from"classnames";import{Slot as f}from"radix-ui";import{cardPropDefs as i}from"./card.props.js";import{extractProps as n}from"../helpers/extract-props.js";import{marginPropDefs as P}from"../props/margin.props.js";const o=r.forwardRef((p,e)=>{const{asChild:t,className:s,...a}=n(p,i,P),m=t?f.Root:"div";return r.createElement(m,{ref:e,...a,className:d("rt-reset","rt-BaseCard","rt-Card",s)})});o.displayName="Card";export{o as Card};
+//# sourceMappingURL=card.js.map

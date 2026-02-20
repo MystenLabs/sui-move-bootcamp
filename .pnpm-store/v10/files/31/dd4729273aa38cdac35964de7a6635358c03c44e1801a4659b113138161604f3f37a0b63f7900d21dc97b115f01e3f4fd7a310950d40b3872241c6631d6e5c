@@ -1,0 +1,1 @@
+{"version":3,"file":"get-matching-gray-color.d.ts","sourceRoot":"","sources":["../../../src/helpers/get-matching-gray-color.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,YAAY,EAAE,MAAM,wBAAwB,CAAC;AAE3D,KAAK,gBAAgB,GAAG,CAAC,OAAO,YAAY,CAAC,CAAC,MAAM,CAAC,CAAC;AAEtD,wBAAgB,oBAAoB,CAAC,WAAW,EAAE,gBAAgB,0DAmCjE"}

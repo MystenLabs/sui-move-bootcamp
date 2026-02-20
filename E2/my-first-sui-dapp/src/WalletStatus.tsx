@@ -1,23 +1,39 @@
 import { useCurrentAccount } from "@mysten/dapp-kit-react";
-import { Container, Flex, Heading, Text } from "@radix-ui/themes";
 import { OwnedObjects } from "./OwnedObjects";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./components/ui/card";
 
 export function WalletStatus({ refreshKey }: { refreshKey: number }) {
   const account = useCurrentAccount();
 
   return (
-    <Container my="2">
-      <Heading mb="2">Wallet Status</Heading>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Wallet Status</CardTitle>
+          <CardDescription>
+            {account
+              ? "Your wallet is connected"
+              : "Connect your wallet to get started"}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {account ? (
+            <p className="font-mono text-sm break-all">{account.address}</p>
+          ) : (
+            <p className="text-muted-foreground">
+              Click the connect button above to link your Sui wallet.
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
-      {account ? (
-        <Flex direction="column">
-          <Text>Wallet connected</Text>
-          <Text>Address: {account.address}</Text>
-        </Flex>
-      ) : (
-        <Text>Wallet not connected</Text>
-      )}
       <OwnedObjects refreshKey={refreshKey} />
-    </Container>
+    </div>
   );
 }

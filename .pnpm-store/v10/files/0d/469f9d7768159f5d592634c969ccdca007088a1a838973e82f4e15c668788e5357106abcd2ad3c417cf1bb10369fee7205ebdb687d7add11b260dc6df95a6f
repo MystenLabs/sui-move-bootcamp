@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../src/components/accessible-icon.tsx"],
+  "sourcesContent": ["import { AccessibleIcon as AccessibleIconPrimitive } from 'radix-ui';\nexport const AccessibleIcon = AccessibleIconPrimitive.Root;\nexport type AccessibleIconProps = AccessibleIconPrimitive.AccessibleIconProps;\n"],
+  "mappings": "AAAA,OAAS,kBAAkBA,MAA+B,WACnD,MAAMC,EAAiBD,EAAwB",
+  "names": ["AccessibleIconPrimitive", "AccessibleIcon"]
+}

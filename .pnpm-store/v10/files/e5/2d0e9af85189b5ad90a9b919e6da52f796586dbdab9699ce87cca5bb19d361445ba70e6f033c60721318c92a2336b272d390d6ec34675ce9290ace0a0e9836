@@ -1,0 +1,2 @@
+import*as o from"react";import f from"classnames";import{Slot as i}from"radix-ui";import{badgePropDefs as P}from"./badge.props.js";import{extractProps as g}from"../helpers/extract-props.js";import{marginPropDefs as c}from"../props/margin.props.js";const e=o.forwardRef((r,p)=>{const{asChild:t,className:s,color:a,radius:m,...n}=g(r,P,c),d=t?i.Root:"span";return o.createElement(d,{"data-accent-color":a,"data-radius":m,...n,ref:p,className:f("rt-reset","rt-Badge",s)})});e.displayName="Badge";export{e as Badge};
+//# sourceMappingURL=badge.js.map

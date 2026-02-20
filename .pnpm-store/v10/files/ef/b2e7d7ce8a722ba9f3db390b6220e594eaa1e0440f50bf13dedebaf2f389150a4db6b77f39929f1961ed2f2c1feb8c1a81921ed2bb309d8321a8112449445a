@@ -1,0 +1,1 @@
+{"version":3,"file":"UiWalletHandle.d.ts","sourceRoot":"","sources":["../../src/UiWalletHandle.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,eAAe,EAAE,MAAM,uBAAuB,CAAC;AAE7D,MAAM,MAAM,cAAc,GAAG;IACzB,QAAQ,CAAC,iBAAiB,EAAE,OAAO,MAAM,CAAC;IAC1C,QAAQ,CAAC,QAAQ,EAAE,eAAe,CAAC;CACtC,CAAC"}

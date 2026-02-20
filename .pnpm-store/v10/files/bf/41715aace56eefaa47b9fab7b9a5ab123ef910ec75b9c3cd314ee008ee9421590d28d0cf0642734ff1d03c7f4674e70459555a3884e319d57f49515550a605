@@ -1,0 +1,2 @@
+import*as o from"react";import n from"classnames";import{Slot as P}from"radix-ui";import{emPropDefs as a}from"./em.props.js";import{extractProps as E}from"../helpers/extract-props.js";const e=o.forwardRef((p,m)=>{const{asChild:r,className:t,...s}=E(p,a),f=r?P.Root:"em";return o.createElement(f,{...s,ref:m,className:n("rt-Em",t)})});e.displayName="Em";export{e as Em};
+//# sourceMappingURL=em.js.map

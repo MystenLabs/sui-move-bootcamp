@@ -1,0 +1,14 @@
+import * as React from 'react';
+import { Tooltip as TooltipPrimitive } from 'radix-ui';
+import { tooltipPropDefs } from './tooltip.props.js';
+import type { ComponentPropsWithout, RemovedProps } from '../helpers/component-props.js';
+import type { GetPropDefTypes } from '../props/prop-def.js';
+type TooltipOwnProps = GetPropDefTypes<typeof tooltipPropDefs>;
+interface TooltipProps extends React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Root>, ComponentPropsWithout<typeof TooltipPrimitive.Content, RemovedProps | 'content'>, TooltipOwnProps {
+    content: React.ReactNode;
+    container?: React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Portal>['container'];
+}
+declare const Tooltip: React.ForwardRefExoticComponent<TooltipProps & React.RefAttributes<HTMLDivElement>>;
+export { Tooltip };
+export type { TooltipProps };
+//# sourceMappingURL=tooltip.d.ts.map

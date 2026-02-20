@@ -1,0 +1,2 @@
+import*as o from"react";import f from"classnames";import{Slot as n}from"radix-ui";import{kbdPropDefs as a}from"./kbd.props.js";import{extractProps as i}from"../helpers/extract-props.js";import{marginPropDefs as P}from"../props/margin.props.js";const r=o.forwardRef((p,e)=>{const{asChild:t,className:s,...m}=i(p,a,P),d=t?n.Root:"kbd";return o.createElement(d,{...m,ref:e,className:f("rt-reset","rt-Kbd",s)})});r.displayName="Kbd";export{r as Kbd};
+//# sourceMappingURL=kbd.js.map

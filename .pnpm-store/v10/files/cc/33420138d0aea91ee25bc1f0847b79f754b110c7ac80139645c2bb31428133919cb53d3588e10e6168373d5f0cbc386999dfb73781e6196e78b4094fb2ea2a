@@ -1,0 +1,2 @@
+import*as o from"react";import f from"classnames";import{Slot as g}from"radix-ui";import{extractProps as P}from"../helpers/extract-props.js";import{strongPropDefs as a}from"./strong.props.js";const r=o.forwardRef((t,e)=>{const{asChild:p,className:s,...n}=P(t,a),m=p?g.Root:"strong";return o.createElement(m,{...n,ref:e,className:f("rt-Strong",s)})});r.displayName="Strong";export{r as Strong};
+//# sourceMappingURL=strong.js.map

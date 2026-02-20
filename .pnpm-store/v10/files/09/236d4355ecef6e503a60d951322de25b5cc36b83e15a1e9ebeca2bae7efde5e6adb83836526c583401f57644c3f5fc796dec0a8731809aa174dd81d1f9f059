@@ -1,0 +1,22 @@
+import * as React from 'react';
+import { ToggleGroup as ToggleGroupPrimitive } from 'radix-ui';
+import { segmentedControlRootPropDefs } from './segmented-control.props.js';
+import type { MarginProps } from '../props/margin.props.js';
+import type { ComponentPropsWithout, RemovedProps } from '../helpers/component-props.js';
+import type { GetPropDefTypes } from '../props/prop-def.js';
+type SegmentedControlRootOwnProps = GetPropDefTypes<typeof segmentedControlRootPropDefs>;
+interface SegmentedControlRootProps extends ComponentPropsWithout<'div', RemovedProps | 'dir'>, SegmentedControlRootOwnProps, MarginProps {
+    value?: string;
+    defaultValue?: string;
+    onValueChange?(value: string): void;
+}
+declare const SegmentedControlRoot: React.ForwardRefExoticComponent<SegmentedControlRootProps & React.RefAttributes<HTMLDivElement>>;
+interface SegmentedControlItemOwnProps {
+    value: string;
+}
+interface SegmentedControlItemProps extends ComponentPropsWithout<typeof ToggleGroupPrimitive.Item, RemovedProps | 'disabled' | 'type' | 'value'>, SegmentedControlItemOwnProps {
+}
+declare const SegmentedControlItem: React.ForwardRefExoticComponent<Omit<SegmentedControlItemProps, "ref"> & React.RefAttributes<HTMLButtonElement>>;
+export { SegmentedControlRoot as Root, SegmentedControlItem as Item };
+export type { SegmentedControlRootProps as RootProps, SegmentedControlItemProps as ItemProps };
+//# sourceMappingURL=segmented-control.d.ts.map

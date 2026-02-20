@@ -1,0 +1,22 @@
+import * as React from 'react';
+import { Context } from 'radix-ui/internal';
+import { RadioGroup as RadioGroupPrimitive } from 'radix-ui';
+import { radioGroupRootPropDefs } from './radio-group.props.js';
+import type { ComponentPropsWithout, RemovedProps } from '../helpers/component-props.js';
+import type { MarginProps } from '../props/margin.props.js';
+import type { GetPropDefTypes } from '../props/prop-def.js';
+type RadioGroupRootOwnProps = GetPropDefTypes<typeof radioGroupRootPropDefs>;
+interface RadioGroupRootProps extends ComponentPropsWithout<typeof RadioGroupPrimitive.Root, 'asChild' | 'color' | 'defaultChecked'>, MarginProps, RadioGroupRootOwnProps {
+}
+declare const RadioGroupRoot: React.ForwardRefExoticComponent<RadioGroupRootProps & React.RefAttributes<HTMLDivElement>>;
+interface RadioGroupItemProps extends ComponentPropsWithout<typeof RadioGroupItemRadio, RemovedProps>, MarginProps {
+}
+declare const RadioGroupItem: React.ForwardRefExoticComponent<RadioGroupItemProps & React.RefAttributes<HTMLButtonElement>>;
+interface RadioGroupItemRadioProps extends React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Item> {
+}
+declare const RadioGroupItemRadio: React.ForwardRefExoticComponent<RadioGroupItemRadioProps & {
+    __scopeRadioGroup?: Context.Scope;
+} & React.RefAttributes<HTMLButtonElement>>;
+export { RadioGroupRoot as Root, RadioGroupItem as Item };
+export type { RadioGroupRootProps as RootProps, RadioGroupItemProps as ItemProps };
+//# sourceMappingURL=radio-group.d.ts.map

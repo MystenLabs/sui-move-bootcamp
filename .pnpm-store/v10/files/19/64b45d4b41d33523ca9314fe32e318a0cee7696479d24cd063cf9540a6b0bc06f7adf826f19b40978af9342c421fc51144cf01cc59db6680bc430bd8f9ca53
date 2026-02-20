@@ -1,0 +1,1 @@
+{"version":3,"file":"storage-key.js","sourceRoot":"","sources":["../../src/storage-key.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,kDAAkD,EAAE,MAAM,8BAA8B,CAAC;AAElG;;;;;GAKG;AACH,MAAM,UAAU,4BAA4B,CAAC,eAAgC;IACzE,MAAM,gBAAgB,GAAG,kDAAkD,CAAC,eAAe,CAAC,CAAC;IAC7F,OAAO,GAAG,gBAAgB,CAAC,IAAI,CAAC,OAAO,CAAC,GAAG,EAAE,GAAG,CAAC,IAAI,eAAe,CAAC,OAAO,EAAE,CAAC;AACnF,CAAC"}

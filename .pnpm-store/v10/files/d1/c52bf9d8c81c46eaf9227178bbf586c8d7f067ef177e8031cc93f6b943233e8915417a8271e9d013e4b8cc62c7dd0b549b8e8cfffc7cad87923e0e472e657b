@@ -1,0 +1,20 @@
+declare const cardPropDefs: {
+    size: {
+        type: "enum";
+        className: string;
+        values: readonly ["1", "2", "3", "4", "5"];
+        default: "1";
+        responsive: true;
+    };
+    variant: {
+        type: "enum";
+        className: string;
+        values: readonly ["surface", "classic", "ghost"];
+        default: "surface";
+    };
+    asChild: {
+        type: "boolean";
+    };
+};
+export { cardPropDefs };
+//# sourceMappingURL=card.props.d.ts.map

@@ -1,0 +1,1 @@
+{"version":3,"file":"compare.d.ts","sourceRoot":"","sources":["../../src/compare.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,QAAQ,EAAE,eAAe,EAAE,MAAM,0BAA0B,CAAC;AAG1E;;;;;;;;;;;;;GAaG;AACH,wBAAgB,uBAAuB,CAAC,CAAC,EAAE,eAAe,EAAE,CAAC,EAAE,eAAe,GAAG,OAAO,CAOvF;AAED;;;;;;;;GAQG;AACH,wBAAgB,gCAAgC,CAAC,OAAO,EAAE,eAAe,EAAE,MAAM,EAAE,QAAQ,GAAG,OAAO,CAIpG"}

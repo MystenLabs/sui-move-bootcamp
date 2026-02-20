@@ -1,0 +1,12 @@
+import * as React from 'react';
+import { cardPropDefs } from './card.props.js';
+import type { MarginProps } from '../props/margin.props.js';
+import type { ComponentPropsWithout, RemovedProps } from '../helpers/component-props.js';
+import type { GetPropDefTypes } from '../props/prop-def.js';
+type CardOwnProps = GetPropDefTypes<typeof cardPropDefs>;
+interface CardProps extends ComponentPropsWithout<'div', RemovedProps>, MarginProps, CardOwnProps {
+}
+declare const Card: React.ForwardRefExoticComponent<CardProps & React.RefAttributes<HTMLDivElement>>;
+export { Card };
+export type { CardProps };
+//# sourceMappingURL=card.d.ts.map

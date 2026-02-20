@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../src/components/portal.tsx"],
+  "sourcesContent": ["import { Portal as PortalPrimitive } from 'radix-ui';\nexport const Portal = PortalPrimitive.Root;\nexport const Root = PortalPrimitive.Root;\nexport type PortalProps = PortalPrimitive.PortalProps;\n"],
+  "mappings": "AAAA,OAAS,UAAUA,MAAuB,WACnC,MAAMC,EAASD,EAAgB,KACzBE,EAAOF,EAAgB",
+  "names": ["PortalPrimitive", "Portal", "Root"]
+}

@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../src/components/checkbox-group.props.tsx"],
+  "sourcesContent": ["import { asChildPropDef } from '../props/as-child.prop.js';\nimport { baseCheckboxPropDefs } from './_internal/base-checkbox.props.js';\n\nconst checkboxGroupRootPropDefs = {\n  ...asChildPropDef,\n  ...baseCheckboxPropDefs,\n};\n\nexport { checkboxGroupRootPropDefs };\n"],
+  "mappings": "AAAA,OAAS,kBAAAA,MAAsB,4BAC/B,OAAS,wBAAAC,MAA4B,qCAErC,MAAMC,EAA4B,CAChC,GAAGF,EACH,GAAGC,CACL",
+  "names": ["asChildPropDef", "baseCheckboxPropDefs", "checkboxGroupRootPropDefs"]
+}

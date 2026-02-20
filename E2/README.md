@@ -90,7 +90,7 @@ const account = useCurrentAccount();
 
 ### 2. Allow users to sign and execute a mint transaction
 
-Create a [`src/MintNFTForm.tsx`](./my-first-sui-dapp/src/MintNFTForm.tsx) component that lets the connected user mint a Hero NFT.
+Create a [`src/components/ui/MintNFTForm.tsx`](./my-first-sui-dapp/src/components/ui/MintNFTForm.tsx) component that lets the connected user mint a Hero NFT.
 
 You will need the following imports:
 
