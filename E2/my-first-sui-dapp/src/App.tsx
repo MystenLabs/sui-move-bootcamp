@@ -1,11 +1,8 @@
 import { ConnectButton } from "@mysten/dapp-kit-react";
 import { WalletStatus } from "./WalletStatus";
 import { MintNFTForm } from "./components/ui/MintNFTForm";
-import { useState } from "react";
 
 function App() {
-  const [refreshKey, setRefreshKey] = useState(0);
-
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -16,8 +13,8 @@ function App() {
       </header>
 
       <main className="container mx-auto space-y-8 px-4 py-8">
-        <WalletStatus refreshKey={refreshKey} />
-        <MintNFTForm onMinted={() => setRefreshKey((k) => k + 1)} />
+        <WalletStatus />
+        <MintNFTForm />
       </main>
     </div>
   );

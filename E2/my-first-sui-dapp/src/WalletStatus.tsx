@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from "./components/ui/card";
 
-export function WalletStatus({ refreshKey }: { refreshKey: number }) {
+export function WalletStatus() {
   const account = useCurrentAccount();
 
   return (
@@ -33,7 +33,7 @@ export function WalletStatus({ refreshKey }: { refreshKey: number }) {
         </CardContent>
       </Card>
 
-      <OwnedObjects refreshKey={refreshKey} />
+      <OwnedObjects />
     </div>
   );
 }

@@ -1,17 +1,20 @@
-import { useCurrentAccount, useCurrentClient, useDAppKit } from "@mysten/dapp-kit-react";
+import { useCurrentAccount, useCurrentClient, useCurrentNetwork, useDAppKit } from "@mysten/dapp-kit-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Transaction } from "@mysten/sui/transactions";
 
-export const MintNFTForm = ({ onMinted }: { onMinted: () => void }) => {
+export const MintNFTForm = () => {
   const client = useCurrentClient();
   const account = useCurrentAccount();
   const dAppKit = useDAppKit();
+  const queryClient = useQueryClient();
+  const network = useCurrentNetwork();
 
   const handleMint = () => {
     if (!account?.address) {
       alert("Wallet not connected!");
       return;
     }
-    // TODO: add the implementation
+
     const tx = new Transaction();
     const hero = tx.moveCall({
       target: `0xc413c2e2c1ac0630f532941be972109eae5d6734e540f20109d75a59a1efea1e::hero::mint_hero`,
@@ -27,15 +30,15 @@ export const MintNFTForm = ({ onMinted }: { onMinted: () => void }) => {
       .then(async (resp) => {
         console.log(resp.Transaction?.digest);
         await client.waitForTransaction({ result: resp });
-        onMinted();
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            query.queryKey[0] === network &&
+            query.queryKey[1] === "getOwnedObjects",
+        });
       })
       .catch((err) => {
-        console.log(err);
-        console.log("You rejected it!!!");
-        alert("Oops...");
+        console.error(err);
       });
-
-    console.log(tx);
   };
 
   if (!account) {

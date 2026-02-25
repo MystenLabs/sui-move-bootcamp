@@ -1,5 +1,5 @@
-import { useCurrentAccount, useCurrentClient } from "@mysten/dapp-kit-react";
-import { useState, useEffect, useCallback } from "react";
+import { useCurrentAccount, useCurrentClient, useCurrentNetwork } from "@mysten/dapp-kit-react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -7,41 +7,27 @@ import {
   CardTitle,
 } from "./components/ui/card";
 
-export function OwnedObjects({ refreshKey }: { refreshKey: number }) {
+export function OwnedObjects() {
   const account = useCurrentAccount();
   const client = useCurrentClient();
+  const network = useCurrentNetwork();
 
-  const [data, setData] = useState<{ objects: { objectId: string }[] } | null>(null);
-  const [isPending, setIsPending] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchObjects = useCallback(async () => {
-    if (!account) return;
-    setIsPending(true);
-    setError(null);
-    try {
-      const result = await client.listOwnedObjects({
-        owner: account.address,
+  const { data, isPending, error } = useQuery({
+    queryKey: [network, "getOwnedObjects", account?.address],
+    queryFn: () =>
+      client.listOwnedObjects({
+        owner: account!.address,
         type: "0xc413c2e2c1ac0630f532941be972109eae5d6734e540f20109d75a59a1efea1e::hero::Hero",
-      });
-      setData(result);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to fetch objects");
-    } finally {
-      setIsPending(false);
-    }
-  }, [client, account]);
-
-  useEffect(() => {
-    if (account) fetchObjects();
-  }, [account?.address, refreshKey, fetchObjects]);
+      }),
+    enabled: !!account,
+  });
 
   if (!account) {
     return null;
   }
 
   if (error) {
-    return <div className="text-destructive-foreground">Error: {error}</div>;
+    return <div className="text-destructive-foreground">Error: {error.message}</div>;
   }
 
   if (isPending || !data) {
