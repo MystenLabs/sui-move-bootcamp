@@ -3,8 +3,8 @@
 import {
   ConnectButton,
   useCurrentAccount,
-  useDisconnectWallet,
-} from '@mysten/dapp-kit';
+  useDAppKit,
+} from '@mysten/dapp-kit-react';
 
 /**
  * zkLogin/Wallet connection button component
@@ -26,7 +26,7 @@ export function ZkLoginButton() {
  */
 export function CustomZkLoginButton() {
   const account = useCurrentAccount();
-  const { mutate: disconnect } = useDisconnectWallet();
+  const dAppKit = useDAppKit();
 
   // If connected (either via wallet or zkLogin), show address and disconnect
   if (account) {
@@ -45,7 +45,9 @@ export function CustomZkLoginButton() {
           </span>
         </div>
         <button
-          onClick={() => disconnect()}
+          onClick={() => {
+            void dAppKit.disconnectWallet();
+          }}
           className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
         >
           Disconnect
@@ -55,7 +57,7 @@ export function CustomZkLoginButton() {
   }
 
   // Show connect button - this opens the wallet picker which includes zkLogin options
-  return <ConnectButton connectText="Connect / Sign In" />;
+  return <ConnectButton />;
 }
 
 /**

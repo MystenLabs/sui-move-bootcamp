@@ -29,7 +29,11 @@ import {
   useEnokiAtom,
   visitedStepsAtom,
 } from '@/lib/atoms/ui';
-import { useCounterById, useCounterEvents } from '@/lib/counter/counter-reads';
+import {
+  useCounterById,
+  useCounterEvents,
+  useSuiBalanceGrpc,
+} from '@/lib/counter/counter-reads';
 import {
   CODE_STEPS,
   type DemoAction,
@@ -39,11 +43,7 @@ import clientConfig from '@/lib/env-config-client';
 import { TransactionError } from '@/lib/errors';
 import { COUNTER_QUERY_KEYS } from '@/lib/query-keys';
 import { cn } from '@/lib/utils';
-import {
-  ConnectButton,
-  useCurrentAccount,
-  useSuiClientQuery,
-} from '@mysten/dapp-kit';
+import { useCurrentAccount } from '@mysten/dapp-kit-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { Loader2 } from 'lucide-react';
@@ -161,11 +161,7 @@ const DemoPanel = React.memo(() => {
   );
 
   // Fetch SUI balance for connected wallet
-  const { data: balanceData } = useSuiClientQuery(
-    'getBalance',
-    { owner: account?.address ?? '', coinType: '0x2::sui::SUI' },
-    { enabled: Boolean(account?.address) },
-  );
+  const { data: balanceData } = useSuiBalanceGrpc(account?.address);
 
   // Sponsored mutation hooks (Enoki)
   const incrementMutation = useIncrement();
