@@ -1,7 +1,10 @@
 import clientConfig from '@/lib/env-config-client';
 import { COUNTER_QUERY_KEYS } from '@/lib/query-keys';
-import { useSuiClient } from '@mysten/dapp-kit';
-import type { SuiJsonRpcClient } from '@mysten/sui/jsonRpc';
+import { createSuiGraphQLClient } from '@/lib/sui-graphql-client';
+import type { SuiNetworkName } from '@/lib/sui-grpc-client';
+import type { ClientWithCoreApi } from '@mysten/dapp-kit-core';
+import { useCurrentClient, useCurrentNetwork } from '@mysten/dapp-kit-react';
+import type { SuiGraphQLClient } from '@mysten/sui/graphql';
 import { useQuery } from '@tanstack/react-query';
 
 /**
@@ -31,41 +34,42 @@ export interface CounterEvent {
  * @returns The deserialized counter data
  */
 export async function getCounterById(
-  client: SuiJsonRpcClient,
+  client: ClientWithCoreApi,
   objectId: string,
 ): Promise<CounterData | null> {
   try {
-    const objectResponse = await client.getObject({
-      id: objectId,
-      options: {
-        showContent: true,
-      },
+    const objectResponse = await client.core.getObject({
+      objectId,
+      include: { json: true },
     });
 
-    if (!objectResponse.data) {
+    const object = objectResponse.object;
+    if (!object) {
       return null;
     }
-
-    if (objectResponse.data.content?.dataType !== 'moveObject') {
-      return null;
-    }
-
-    const moveObject = objectResponse.data.content;
 
     // Verify this is a Counter object
-    if (!moveObject.type?.includes('counter::Counter')) {
+    if (!object.type?.includes('counter::Counter')) {
       return null;
     }
 
-    const fields = moveObject.fields as {
-      id: { id: string };
-      value: string | bigint;
-    };
+    const json = object.json;
+    if (!json || typeof json !== 'object') {
+      return null;
+    }
+
+    const valueRaw = (json as Record<string, unknown>).value;
+    if (
+      typeof valueRaw !== 'string' &&
+      typeof valueRaw !== 'number' &&
+      typeof valueRaw !== 'bigint'
+    ) {
+      return null;
+    }
 
     return {
       id: objectId,
-      value:
-        typeof fields.value === 'string' ? BigInt(fields.value) : fields.value,
+      value: BigInt(valueRaw),
     };
   } catch (error) {
     if (
@@ -83,18 +87,51 @@ export async function getCounterById(
  * React Query hook for fetching counter data
  */
 export const useCounterById = (objectId: string) => {
-  const client = useSuiClient();
+  const client = useCurrentClient();
 
   return useQuery({
     queryKey: COUNTER_QUERY_KEYS.value(objectId),
-    queryFn: () => {
-      if (!client) {
-        throw new Error('SuiClient not initialized');
-      }
-      return getCounterById(client, objectId);
-    },
+    queryFn: () => getCounterById(client, objectId),
     refetchInterval: 5000, // Refetch every 5 seconds to see updates
   });
+};
+
+const COUNTER_EVENTS_QUERY = `
+  query CounterEvents($module: String!, $first: Int!) {
+    events(filter: { module: $module }, first: $first) {
+      nodes {
+        sequenceNumber
+        timestamp
+        sender {
+          address
+        }
+        transaction {
+          digest
+        }
+        contents {
+          json
+          type {
+            repr
+          }
+        }
+      }
+    }
+  }
+`;
+
+type CounterEventsQueryResult = {
+  events?: {
+    nodes: Array<{
+      sequenceNumber: number;
+      timestamp?: string | null;
+      sender?: { address: string } | null;
+      transaction?: { digest: string } | null;
+      contents?: {
+        json?: unknown;
+        type?: { repr: string } | null;
+      } | null;
+    }>;
+  } | null;
 };
 
 /**
@@ -105,47 +142,53 @@ export const useCounterById = (objectId: string) => {
  * @returns Array of counter events
  */
 export async function getCounterEvents(
-  client: SuiJsonRpcClient,
+  client: SuiGraphQLClient,
   packageAddress: string,
   limit: number = 20,
 ): Promise<CounterEvent[]> {
-  // Query all events from the counter module in a single call
-  const moduleEvents = await client.queryEvents({
-    query: {
-      MoveModule: {
-        package: packageAddress,
-        module: 'counter',
-      },
+  const moduleFilter = `${packageAddress}::counter`;
+  const response = await client.query<CounterEventsQueryResult>({
+    query: COUNTER_EVENTS_QUERY,
+    variables: {
+      module: moduleFilter,
+      first: limit,
     },
-    limit,
-    order: 'descending',
   });
 
   const events: CounterEvent[] = [];
+  const nodes = response.data?.events?.nodes ?? [];
 
-  for (const event of moduleEvents.data) {
-    const parsedJson = event.parsedJson as {
-      by: string;
-      note: string;
-      new_value: string;
-    };
-
-    // Determine event type based on the event type string
-    const isIncrement = event.type.includes('::Incremented');
-    const isDecrement = event.type.includes('::Decremented');
+  for (const event of nodes) {
+    const typeRepr = event.contents?.type?.repr ?? '';
+    const isIncrement = typeRepr.includes('::Incremented');
+    const isDecrement = typeRepr.includes('::Decremented');
 
     if (!isIncrement && !isDecrement) {
-      // Skip unknown event types from this module
       continue;
     }
 
+    const parsedJson = (event.contents?.json ?? {}) as Record<string, unknown>;
+    const by =
+      typeof parsedJson.by === 'string'
+        ? parsedJson.by
+        : (event.sender?.address ?? '');
+    const note = typeof parsedJson.note === 'string' ? parsedJson.note : '';
+    const newValueRaw = parsedJson.new_value;
+    const newValue =
+      typeof newValueRaw === 'string' ||
+      typeof newValueRaw === 'number' ||
+      typeof newValueRaw === 'bigint'
+        ? BigInt(newValueRaw)
+        : BigInt(0);
+    const digest = event.transaction?.digest ?? 'unknown';
+
     events.push({
-      id: event.id.txDigest + '-' + event.id.eventSeq,
+      id: `${digest}-${event.sequenceNumber}`,
       type: isIncrement ? 'increment' : 'decrement',
-      by: parsedJson.by,
-      note: parsedJson.note,
-      newValue: BigInt(parsedJson.new_value),
-      timestamp: event.timestampMs ?? undefined,
+      by,
+      note,
+      newValue,
+      timestamp: event.timestamp ?? undefined,
     });
   }
 
@@ -156,17 +199,44 @@ export async function getCounterEvents(
  * React Query hook for fetching counter events
  */
 export const useCounterEvents = (limit: number = 10) => {
-  const client = useSuiClient();
+  const network = useCurrentNetwork();
   const packageAddress = clientConfig.NEXT_PUBLIC_PACKAGE_ADDRESS;
 
   return useQuery({
     queryKey: COUNTER_QUERY_KEYS.events(),
     queryFn: () => {
-      if (!client) {
-        throw new Error('SuiClient not initialized');
-      }
+      const client = createSuiGraphQLClient(network as SuiNetworkName);
       return getCounterEvents(client, packageAddress, limit);
     },
     refetchInterval: 5000, // Refetch every 5 seconds
+  });
+};
+
+/**
+ * gRPC balance query hook for connected wallet address.
+ */
+export const useSuiBalanceGrpc = (owner?: string) => {
+  const client = useCurrentClient();
+  const network = useCurrentNetwork();
+
+  return useQuery({
+    queryKey: ['sui-balance', network, owner],
+    enabled: Boolean(owner),
+    queryFn: async () => {
+      if (!owner) {
+        throw new Error('Owner is required');
+      }
+      const response = await client.core.getBalance({
+        owner,
+        coinType: '0x2::sui::SUI',
+      });
+      return {
+        totalBalance:
+          response.balance.balance ??
+          response.balance.coinBalance ??
+          response.balance.addressBalance,
+      };
+    },
+    refetchInterval: 5000,
   });
 };

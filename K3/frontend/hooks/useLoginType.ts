@@ -1,6 +1,6 @@
 'use client';
 
-import { useCurrentWallet } from '@mysten/dapp-kit';
+import { useCurrentWallet } from '@mysten/dapp-kit-react';
 import { useMemo } from 'react';
 
 export type LoginType = 'wallet' | 'zklogin' | null;
@@ -15,7 +15,7 @@ export function useLoginType(): {
   isWallet: boolean;
   walletName: string | null;
 } {
-  const { currentWallet } = useCurrentWallet();
+  const currentWallet = useCurrentWallet();
 
   return useMemo(() => {
     if (!currentWallet) {

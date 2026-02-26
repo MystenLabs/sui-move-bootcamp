@@ -11,7 +11,8 @@
   "dependencies": {
     "@base-ui/react": "^1.1.0",
     "@mysten/bcs": "^2.0.2",
-    "@mysten/dapp-kit": "^1.0.3",
+    "@mysten/dapp-kit-core": "^1.1.0",
+    "@mysten/dapp-kit-react": "^1.1.0",
     "@mysten/enoki": "^1.0.3",
     "@mysten/sui": "^2.4.0",
     "@radix-ui/colors": "^3.0.0",
@@ -36,18 +37,18 @@
     "zod": "^4.3.5"
   },
   "devDependencies": {
-    "prettier": "^3.5.0",
+    "@mysten/codegen": "^0.5.13",
     "@tailwindcss/postcss": "^4",
+    "@trivago/prettier-plugin-sort-imports": "^6.0.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.5",
-    "tailwindcss": "^4",
-    "typescript": "^5",
-    "@mysten/codegen": "^0.5.13",
-    "@trivago/prettier-plugin-sort-imports": "^6.0.0",
+    "prettier": "^3.5.0",
     "prettier-plugin-packagejson": "^2.5.20",
-    "prettier-plugin-tailwindcss": "^0.7.2"
+    "prettier-plugin-tailwindcss": "^0.7.2",
+    "tailwindcss": "^4",
+    "typescript": "^5"
   }
 }

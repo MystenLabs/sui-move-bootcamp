@@ -1,14 +1,11 @@
-import { createGrpcExecuteForNetwork } from '@/lib/grpc-execute';
 import { decrementTransaction } from '@/lib/counter/counter-transactions';
 import clientConfig from '@/lib/env-config-client';
 import { TransactionError, isUserRejection } from '@/lib/errors';
-import { createSuiGrpcClient } from '@/lib/sui-grpc-client';
-import type { SuiNetworkName } from '@/lib/sui-grpc-client';
 import {
+  useCurrentClient,
   useCurrentAccount,
-  useSignAndExecuteTransaction,
-  useSuiClientContext,
-} from '@mysten/dapp-kit';
+  useDAppKit,
+} from '@mysten/dapp-kit-react';
 import { useMutation } from '@tanstack/react-query';
 
 export interface DecrementDirectParams {
@@ -20,12 +17,9 @@ export interface DecrementDirectParams {
  * User pays their own gas fees. Execute and wait use Sui gRPC (F1-style).
  */
 export const useDecrementDirect = () => {
-  const { network } = useSuiClientContext();
+  const client = useCurrentClient();
   const sender = useCurrentAccount();
-  const { mutateAsync: signAndExecuteTransaction } =
-    useSignAndExecuteTransaction({
-      execute: createGrpcExecuteForNetwork(network as SuiNetworkName),
-    });
+  const dAppKit = useDAppKit();
 
   return useMutation({
     mutationFn: async (params: DecrementDirectParams) => {
@@ -44,11 +38,16 @@ export const useDecrementDirect = () => {
       );
 
       // 3. Sign and execute via gRPC (F1-style write path)
-      let result: Awaited<ReturnType<typeof signAndExecuteTransaction>>;
+      let digest: string;
       try {
-        result = await signAndExecuteTransaction({
+        const result = await dAppKit.signAndExecuteTransaction({
           transaction,
         });
+        const txResult =
+          result.$kind === 'Transaction'
+            ? result.Transaction
+            : result.FailedTransaction;
+        digest = txResult.digest;
       } catch (error) {
         if (isUserRejection(error)) {
           throw new TransactionError(
@@ -66,13 +65,12 @@ export const useDecrementDirect = () => {
 
       // 4. Wait for transaction confirmation via gRPC
       try {
-        const grpcClient = createSuiGrpcClient(network as SuiNetworkName);
-        const waitedResult = await grpcClient.core.waitForTransaction({
-          digest: result.digest,
+        const waitedResult = await client.core.waitForTransaction({
+          digest: digest,
         });
 
         return {
-          digest: result.digest,
+          digest: digest,
           result: waitedResult,
         };
       } catch (error) {

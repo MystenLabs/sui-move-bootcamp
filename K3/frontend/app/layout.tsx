@@ -1,5 +1,4 @@
-import LayoutWrapper from '@/components/layout-wrapper';
-import '@mysten/dapp-kit/dist/index.css';
+import ClientProviders from '@/components/client-providers';
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono, JetBrains_Mono } from 'next/font/google';
 
@@ -35,7 +34,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <LayoutWrapper>{children}</LayoutWrapper>
+        <ClientProviders>{children}</ClientProviders>
       </body>
     </html>
   );
