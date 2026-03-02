@@ -1,0 +1,9 @@
+[package]
+name = "action_queue"
+edition = "2024"
+
+[dependencies]
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet" }
+
+[addresses]
+action_queue = "0x0"

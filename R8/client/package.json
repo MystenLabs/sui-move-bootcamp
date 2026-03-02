@@ -1,0 +1,24 @@
+{
+  "name": "robot-tokenomics-client",
+  "version": "1.0.0",
+  "description": "TypeScript client for Module 8 - Tokenomics",
+  "type": "module",
+  "scripts": {
+    "request-cookies": "npx tsx src/request-cookies.ts",
+    "check-balance": "npx tsx src/check-balance.ts",
+    "create-robot": "npx tsx src/create-robot.ts",
+    "feed-robot": "npx tsx src/feed-robot.ts",
+    "read-queue": "npx tsx src/read-queue.ts",
+    "pop-action": "npx tsx src/pop-action.ts",
+    "demo": "npx tsx src/demo.ts"
+  },
+  "dependencies": {
+    "@mysten/sui": "^1.17.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "robot-auth-offchain",
+  "version": "1.0.0",
+  "description": "Off-chain Ed25519 authentication for robot control",
+  "type": "module",
+  "scripts": {
+    "generate-keys": "npx tsx src/generate-keys.ts",
+    "server": "npx tsx src/server.ts",
+    "client": "npx tsx src/client.ts",
+    "demo": "npx tsx src/demo.ts"
+  },
+  "dependencies": {
+    "@noble/ed25519": "^2.0.0",
+    "dotenv": "^16.3.1",
+    "serialport": "^12.0.0",
+    "ws": "^8.16.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/ws": "^8.5.10",
+    "tsx": "^4.7.0",
+    "typescript": "^5.0.0"
+  }
+}

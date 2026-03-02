@@ -1,0 +1,796 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Real-time Robot Control</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%);
+        color: #fff;
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+
+      /* Header */
+      header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+
+      header h1 {
+        font-size: 2rem;
+        margin-bottom: 15px;
+        background: linear-gradient(90deg, #4a9eff, #ff6b6b);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .status-bar {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+
+      .status-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        font-size: 0.9rem;
+      }
+
+      .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #ff4444;
+      }
+
+      .status-dot.connected {
+        background: #44ff44;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+          box-shadow: 0 0 0 0 rgba(68, 255, 68, 0.4);
+        }
+        50% {
+          opacity: 0.8;
+          box-shadow: 0 0 0 8px rgba(68, 255, 68, 0);
+        }
+      }
+
+      /* Main Grid */
+      .main-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      @media (max-width: 768px) {
+        .main-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* Panels */
+      .panel {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        padding: 20px;
+      }
+
+      .panel h2 {
+        font-size: 1.1rem;
+        color: #aaa;
+        margin-bottom: 15px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      /* Movement Controls - D-Pad Style */
+      .movement-controls {
+        display: grid;
+        grid-template-areas:
+          ". forward ."
+          "left stop right"
+          ". backward .";
+        gap: 10px;
+        max-width: 250px;
+        margin: 0 auto;
+      }
+
+      .movement-controls button:nth-child(1) {
+        grid-area: forward;
+      }
+      .movement-controls button:nth-child(2) {
+        grid-area: left;
+      }
+      .movement-controls button:nth-child(3) {
+        grid-area: stop;
+      }
+      .movement-controls button:nth-child(4) {
+        grid-area: right;
+      }
+      .movement-controls button:nth-child(5) {
+        grid-area: backward;
+      }
+
+      /* Buttons */
+      button {
+        padding: 15px;
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #4a9eff 0%, #2d6bb5 100%);
+        color: white;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.15s;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        min-height: 60px;
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(74, 158, 255, 0.5);
+      }
+
+      button:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 10px rgba(74, 158, 255, 0.3);
+      }
+
+      button:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
+      button.active {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
+        box-shadow: 0 0 20px rgba(255, 107, 107, 0.5);
+      }
+
+      button .icon {
+        font-size: 1.5rem;
+      }
+
+      button .label {
+        font-size: 0.75rem;
+        opacity: 0.8;
+      }
+
+      button.stop-btn {
+        background: linear-gradient(135deg, #ff6b6b 0%, #cc4444 100%);
+      }
+
+      button.secondary {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      button.secondary:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      /* Action Grid */
+      .action-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+      }
+
+      /* Posture Grid */
+      .posture-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+
+      /* Queue Display */
+      .queue-display {
+        margin-top: 15px;
+        padding: 10px;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+      }
+
+      .queue-items {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        min-height: 30px;
+      }
+
+      .queue-item {
+        padding: 4px 10px;
+        background: rgba(74, 158, 255, 0.3);
+        border-radius: 4px;
+        font-size: 0.8rem;
+      }
+
+      /* Current Action */
+      .current-action {
+        margin-top: 15px;
+        padding: 15px;
+        background: rgba(74, 158, 255, 0.2);
+        border-radius: 8px;
+        text-align: center;
+      }
+
+      .current-action.idle {
+        background: rgba(255, 255, 255, 0.05);
+        color: #666;
+      }
+
+      .current-action .action-name {
+        font-size: 1.2rem;
+        font-weight: bold;
+      }
+
+      .current-action .action-desc {
+        font-size: 0.9rem;
+        opacity: 0.7;
+      }
+
+      /* Progress bar */
+      .progress-bar {
+        height: 4px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 2px;
+        margin-top: 10px;
+        overflow: hidden;
+      }
+
+      .progress-bar .fill {
+        height: 100%;
+        background: linear-gradient(90deg, #4a9eff, #ff6b6b);
+        width: 0%;
+        transition: width 0.1s linear;
+      }
+
+      /* Latency Display */
+      .latency {
+        font-size: 0.8rem;
+        color: #888;
+        text-align: center;
+        margin-top: 10px;
+      }
+
+      .latency.good {
+        color: #44ff44;
+      }
+      .latency.medium {
+        color: #ffdd44;
+      }
+      .latency.bad {
+        color: #ff4444;
+      }
+
+      /* Log Panel */
+      .log-panel {
+        grid-column: 1 / -1;
+      }
+
+      .log {
+        height: 150px;
+        overflow-y: auto;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 8px;
+        padding: 10px;
+        font-family: monospace;
+        font-size: 0.8rem;
+      }
+
+      .log-entry {
+        padding: 3px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      .log-time {
+        color: #666;
+      }
+      .log-type {
+        padding: 1px 5px;
+        border-radius: 3px;
+        font-size: 0.7rem;
+        margin: 0 6px;
+      }
+      .log-type.send {
+        background: #4a9eff33;
+        color: #4a9eff;
+      }
+      .log-type.receive {
+        background: #44ff4433;
+        color: #44ff44;
+      }
+      .log-type.info {
+        background: #ffdd4433;
+        color: #ffdd44;
+      }
+      .log-type.error {
+        background: #ff444433;
+        color: #ff4444;
+      }
+
+      /* Keyboard hint */
+      .keyboard-hint {
+        text-align: center;
+        font-size: 0.8rem;
+        color: #666;
+        margin-top: 15px;
+      }
+
+      .keyboard-hint kbd {
+        padding: 2px 6px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        margin: 0 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Real-time Robot Control</h1>
+        <div class="status-bar">
+          <div class="status-item">
+            <div class="status-dot" id="wsDot"></div>
+            <span id="wsStatus">Disconnected</span>
+          </div>
+          <div class="status-item">
+            <div class="status-dot" id="robotDot"></div>
+            <span id="robotStatus">Robot Offline</span>
+          </div>
+          <div class="status-item" id="clientsItem">
+            <span id="clientCount">0 clients</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="main-grid">
+        <!-- Movement Panel -->
+        <div class="panel">
+          <h2>Movement</h2>
+          <div class="movement-controls">
+            <button onclick="sendCommand('forward')" data-key="w">
+              <span class="icon">^</span>
+              <span class="label">W</span>
+            </button>
+            <button onclick="sendCommand('left')" data-key="a">
+              <span class="icon">&lt;</span>
+              <span class="label">A</span>
+            </button>
+            <button onclick="sendCommand('stop')" class="stop-btn" data-key=" ">
+              <span class="icon">Stop</span>
+              <span class="label">Space</span>
+            </button>
+            <button onclick="sendCommand('right')" data-key="d">
+              <span class="icon">&gt;</span>
+              <span class="label">D</span>
+            </button>
+            <button onclick="sendCommand('backward')" data-key="s">
+              <span class="icon">v</span>
+              <span class="label">S</span>
+            </button>
+          </div>
+
+          <div class="keyboard-hint">
+            Use <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> or arrow
+            keys
+          </div>
+
+          <div class="current-action idle" id="currentAction">
+            <div class="action-name">Idle</div>
+            <div class="action-desc">Ready for commands</div>
+            <div class="progress-bar">
+              <div class="fill" id="progressFill"></div>
+            </div>
+          </div>
+
+          <div class="latency" id="latency">Latency: --</div>
+        </div>
+
+        <!-- Actions Panel -->
+        <div class="panel">
+          <h2>Actions</h2>
+          <div class="action-grid">
+            <button onclick="sendCommand('wave')">
+              <span class="icon">👋</span>
+              <span class="label">Wave</span>
+            </button>
+            <button onclick="sendCommand('jump')">
+              <span class="icon">🦘</span>
+              <span class="label">Jump</span>
+            </button>
+            <button onclick="sendCommand('push_up')">
+              <span class="icon">💪</span>
+              <span class="label">Push Up</span>
+            </button>
+            <button onclick="sendCommand('play_dead')">
+              <span class="icon">💀</span>
+              <span class="label">Play Dead</span>
+            </button>
+            <button onclick="sendCommand('stretch')">
+              <span class="icon">🧘</span>
+              <span class="label">Stretch</span>
+            </button>
+            <button onclick="sendCommand('trot_forward')">
+              <span class="icon">🏃</span>
+              <span class="label">Trot</span>
+            </button>
+          </div>
+
+          <h2 style="margin-top: 20px">Postures</h2>
+          <div class="posture-grid">
+            <button onclick="sendCommand('sit')">
+              <span class="icon">🪑</span>
+              <span class="label">Sit</span>
+            </button>
+            <button onclick="sendCommand('stand')">
+              <span class="icon">🧍</span>
+              <span class="label">Stand</span>
+            </button>
+            <button onclick="sendCommand('balance')">
+              <span class="icon">⚖️</span>
+              <span class="label">Balance</span>
+            </button>
+            <button onclick="sendCommand('rest')">
+              <span class="icon">😴</span>
+              <span class="label">Rest</span>
+            </button>
+          </div>
+
+          <div class="queue-display">
+            <strong>Queue:</strong>
+            <button
+              onclick="clearQueue()"
+              class="secondary"
+              style="
+                float: right;
+                padding: 4px 8px;
+                min-height: auto;
+                font-size: 0.8rem;
+              "
+            >
+              Clear
+            </button>
+            <div class="queue-items" id="queueItems">
+              <span style="color: #666">Empty</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Log Panel -->
+        <div class="panel log-panel">
+          <h2>Activity Log</h2>
+          <div class="log" id="log"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ============================================
+      // STATE
+      // ============================================
+      let ws = null;
+      let reconnectInterval = null;
+      let pingInterval = null;
+      let lastPingTime = 0;
+      let currentActionStart = 0;
+      let currentActionDuration = 0;
+      let progressInterval = null;
+
+      // ============================================
+      // WEBSOCKET
+      // ============================================
+      function connect() {
+        const protocol = location.protocol === "https:" ? "wss:" : "ws:";
+        const wsUrl = `${protocol}//${location.host}`;
+
+        log("info", `Connecting to ${wsUrl}...`);
+        ws = new WebSocket(wsUrl);
+
+        ws.onopen = () => {
+          log("info", "Connected!");
+          updateWsStatus(true);
+
+          if (reconnectInterval) {
+            clearInterval(reconnectInterval);
+            reconnectInterval = null;
+          }
+
+          // Start ping for latency measurement
+          pingInterval = setInterval(sendPing, 2000);
+        };
+
+        ws.onmessage = (event) => {
+          const msg = JSON.parse(event.data);
+          handleMessage(msg);
+        };
+
+        ws.onclose = () => {
+          log("info", "Disconnected");
+          updateWsStatus(false);
+          updateRobotStatus(false);
+
+          if (pingInterval) {
+            clearInterval(pingInterval);
+            pingInterval = null;
+          }
+
+          if (!reconnectInterval) {
+            reconnectInterval = setInterval(() => {
+              log("info", "Reconnecting...");
+              connect();
+            }, 3000);
+          }
+        };
+
+        ws.onerror = () => {
+          log("error", "Connection error");
+        };
+      }
+
+      function handleMessage(msg) {
+        switch (msg.type) {
+          case "welcome":
+            log("receive", "Welcome: " + msg.message);
+            updateRobotStatus(msg.state?.connected);
+            updateQueueDisplay(msg.queue || []);
+            updateClients(msg.clientCount);
+            break;
+
+          case "state":
+            updateRobotStatus(msg.state?.connected);
+            updateQueueDisplay(msg.queue || []);
+            updateClients(msg.clientCount);
+            break;
+
+          case "action_started":
+            log("info", `Started: ${msg.action} (${msg.description})`);
+            showCurrentAction(msg.action, msg.description, msg.duration);
+            highlightButton(msg.action, true);
+            updateQueueDisplay(msg.queue || []);
+            break;
+
+          case "action_completed":
+            log("info", `Completed: ${msg.action}`);
+            hideCurrentAction();
+            highlightButton(msg.action, false);
+            updateQueueDisplay(msg.queue || []);
+            break;
+
+          case "command_response":
+            if (!msg.success) {
+              log("error", msg.message);
+            }
+            break;
+
+          case "pong":
+            const latency = Date.now() - lastPingTime;
+            updateLatency(latency);
+            break;
+
+          case "queue_cleared":
+            log("info", "Queue cleared");
+            updateQueueDisplay([]);
+            break;
+        }
+      }
+
+      // ============================================
+      // COMMANDS
+      // ============================================
+      function sendCommand(command) {
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+          log("error", "Not connected");
+          return;
+        }
+
+        ws.send(JSON.stringify({ type: "command", command }));
+        log("send", `Command: ${command}`);
+      }
+
+      function clearQueue() {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: "clear_queue" }));
+        }
+      }
+
+      function sendPing() {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          lastPingTime = Date.now();
+          ws.send(JSON.stringify({ type: "ping" }));
+        }
+      }
+
+      // ============================================
+      // UI UPDATES
+      // ============================================
+      function updateWsStatus(connected) {
+        const dot = document.getElementById("wsDot");
+        const text = document.getElementById("wsStatus");
+        dot.classList.toggle("connected", connected);
+        text.textContent = connected ? "Connected" : "Disconnected";
+      }
+
+      function updateRobotStatus(connected) {
+        const dot = document.getElementById("robotDot");
+        const text = document.getElementById("robotStatus");
+        dot.classList.toggle("connected", connected);
+        text.textContent = connected ? "Robot Online" : "Robot Offline (Sim)";
+      }
+
+      function updateClients(count) {
+        document.getElementById("clientCount").textContent = `${count} client${
+          count !== 1 ? "s" : ""
+        }`;
+      }
+
+      function updateLatency(ms) {
+        const el = document.getElementById("latency");
+        el.textContent = `Latency: ${ms}ms`;
+        el.className =
+          "latency " + (ms < 50 ? "good" : ms < 150 ? "medium" : "bad");
+      }
+
+      function updateQueueDisplay(items) {
+        const container = document.getElementById("queueItems");
+        container.textContent = "";
+        if (items.length === 0) {
+          const empty = document.createElement("span");
+          empty.style.color = "#666";
+          empty.textContent = "Empty";
+          container.appendChild(empty);
+        } else {
+          items.forEach((item) => {
+            const span = document.createElement("span");
+            span.className = "queue-item";
+            span.textContent = item;
+            container.appendChild(span);
+          });
+        }
+      }
+
+      function showCurrentAction(action, description, duration) {
+        const el = document.getElementById("currentAction");
+        el.classList.remove("idle");
+        el.querySelector(".action-name").textContent = action;
+        el.querySelector(".action-desc").textContent = description;
+
+        // Start progress bar
+        currentActionStart = Date.now();
+        currentActionDuration = duration;
+
+        if (progressInterval) clearInterval(progressInterval);
+        progressInterval = setInterval(updateProgress, 50);
+      }
+
+      function hideCurrentAction() {
+        const el = document.getElementById("currentAction");
+        el.classList.add("idle");
+        el.querySelector(".action-name").textContent = "Idle";
+        el.querySelector(".action-desc").textContent = "Ready for commands";
+        document.getElementById("progressFill").style.width = "0%";
+
+        if (progressInterval) {
+          clearInterval(progressInterval);
+          progressInterval = null;
+        }
+      }
+
+      function updateProgress() {
+        const elapsed = Date.now() - currentActionStart;
+        const percent = Math.min(100, (elapsed / currentActionDuration) * 100);
+        document.getElementById("progressFill").style.width = percent + "%";
+      }
+
+      function highlightButton(command, active) {
+        const buttons = document.querySelectorAll("button");
+        buttons.forEach((btn) => {
+          if (btn.onclick?.toString().includes(`'${command}'`)) {
+            btn.classList.toggle("active", active);
+          }
+        });
+      }
+
+      // ============================================
+      // LOGGING
+      // ============================================
+      function log(type, message) {
+        const logEl = document.getElementById("log");
+        const time = new Date().toLocaleTimeString();
+
+        const entry = document.createElement("div");
+        entry.className = "log-entry";
+
+        const timeSpan = document.createElement("span");
+        timeSpan.className = "log-time";
+        timeSpan.textContent = time;
+
+        const typeSpan = document.createElement("span");
+        typeSpan.className = `log-type ${type}`;
+        typeSpan.textContent = type.toUpperCase();
+
+        const msgSpan = document.createElement("span");
+        msgSpan.textContent = message;
+
+        entry.append(timeSpan, typeSpan, msgSpan);
+
+        logEl.appendChild(entry);
+        logEl.scrollTop = logEl.scrollHeight;
+
+        while (logEl.children.length > 100) {
+          logEl.removeChild(logEl.firstChild);
+        }
+      }
+
+      // ============================================
+      // KEYBOARD CONTROLS
+      // ============================================
+      const keyMap = {
+        w: "forward",
+        arrowup: "forward",
+        s: "backward",
+        arrowdown: "backward",
+        a: "left",
+        arrowleft: "left",
+        d: "right",
+        arrowright: "right",
+        " ": "stop",
+        q: "trot_left",
+        e: "trot_right",
+        1: "sit",
+        2: "stand",
+        3: "balance",
+        4: "wave",
+      };
+
+      const pressedKeys = new Set();
+
+      document.addEventListener("keydown", (e) => {
+        const key = e.key.toLowerCase();
+        if (keyMap[key] && !pressedKeys.has(key)) {
+          pressedKeys.add(key);
+          sendCommand(keyMap[key]);
+          e.preventDefault();
+        }
+      });
+
+      document.addEventListener("keyup", (e) => {
+        const key = e.key.toLowerCase();
+        pressedKeys.delete(key);
+      });
+
+      // ============================================
+      // START
+      // ============================================
+      connect();
+    </script>
+  </body>
+</html>
