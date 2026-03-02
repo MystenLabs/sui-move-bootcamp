@@ -7,7 +7,7 @@ This exercise walks you through building a simple dApp that allows the user to:
 - See a filtered list of their owned Hero objects
 - Auto-refresh the list after minting
 
-For wallet integration we use **`@mysten/dapp-kit-react`**, which provides React components, hooks, and utilities for building Sui dApps with a gRPC-based client (`SuiGrpcClient`) for efficient node communication.
+For wallet integration we use **`@mysten/dapp-kit-react`**, which provides React components, hooks, and utilities for building Sui dApps with a gRPC-based client (`SuiGrpcClient`) for efficient node communication. For async data fetching and cache management we use **`@tanstack/react-query`**.
 
 ### Useful Links
 
@@ -56,14 +56,22 @@ Key points:
 
 #### [`src/main.tsx`](./my-first-sui-dapp/src/main.tsx) — Provider setup
 
-The app wraps everything in the dApp Kit provider:
+The app wraps everything in two providers — Tanstack React Query for data fetching/caching and the dApp Kit provider for wallet + Sui client:
 
 ```tsx
-<DAppKitProvider dAppKit={dAppKit}>
-  <App />
-</DAppKitProvider>
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { DAppKitProvider } from "@mysten/dapp-kit-react";
+
+const queryClient = new QueryClient();
+
+<QueryClientProvider client={queryClient}>
+  <DAppKitProvider dAppKit={dAppKit}>
+    <App />
+  </DAppKitProvider>
+</QueryClientProvider>
 ```
 
+- **`QueryClientProvider`** enables Tanstack React Query hooks (`useQuery`, `useQueryClient`) throughout the app.
 - **`DAppKitProvider`** supplies wallet connectivity and the Sui client to the component tree.
 
 #### [`src/App.tsx`](./my-first-sui-dapp/src/App.tsx) — Connect button
@@ -96,17 +104,21 @@ You will need the following imports:
 
 ```tsx
 import { useCurrentAccount, useCurrentClient, useDAppKit } from "@mysten/dapp-kit-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Transaction } from "@mysten/sui/transactions";
 ```
 
 Key hooks:
-- **`useDAppKit()`** — returns the dAppKit instance, which exposes `signAndExecuteTransaction()`.
-- **`useCurrentClient()`** — returns the active `SuiGrpcClient` for direct RPC calls.
+- **`useDAppKit()`** — returns the dAppKit instance; destructure `signAndExecuteTransaction` from it.
+- **`useCurrentClient()`** — returns the active Sui Client defined in `dapp-kit.ts` which is by default, what we're using: `SuiGrpcClient`, for direct RPC calls (e.g. waiting for transaction finality).
 - **`useCurrentAccount()`** — returns the connected wallet account.
+- **`useQueryClient()`** — returns the Tanstack React Query client for cache invalidation after minting.
 
 Build and execute the transaction:
 
 ```tsx
+const { signAndExecuteTransaction } = useDAppKit();
+
 const tx = new Transaction();
 const hero = tx.moveCall({
   target: `0xc413c2e2c1ac0630f532941be972109eae5d6734e540f20109d75a59a1efea1e::hero::mint_hero`,
@@ -115,10 +127,10 @@ const hero = tx.moveCall({
 });
 tx.transferObjects([hero], account.address);
 
-dAppKit.signAndExecuteTransaction({ transaction: tx });
+await signAndExecuteTransaction({ transaction: tx });
 ```
 
-Note: `signAndExecuteTransaction` is called on the **dAppKit instance** (obtained via `useDAppKit()`).
+Note: `signAndExecuteTransaction` is destructured from the **dAppKit instance** (returned by `useDAppKit()`).
 
 ---
 
@@ -126,69 +138,58 @@ Note: `signAndExecuteTransaction` is called on the **dAppKit instance** (obtaine
 
 Modify [`src/OwnedObjects.tsx`](./my-first-sui-dapp/src/OwnedObjects.tsx) to fetch only Hero NFTs instead of all owned objects.
 
-Use **`useCurrentClient()`** to get the client, then call its methods with React's `useState` and `useEffect` for manual state management:
+Use **`useCurrentClient()`** to get the client, then use **`useQuery`** from Tanstack React Query for automatic loading/error state management:
 
 ```tsx
 import { useCurrentAccount, useCurrentClient } from "@mysten/dapp-kit-react";
-import { useState, useEffect, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 const client = useCurrentClient();
+const account = useCurrentAccount();
 
-const [data, setData] = useState(null);
-const [isPending, setIsPending] = useState(true);
-const [error, setError] = useState(null);
-
-const fetchObjects = useCallback(async () => {
-  setIsPending(true);
-  try {
-    const result = await client.listOwnedObjects({
+const { data, isPending, error } = useQuery({
+  queryKey: ["ownedObjects", account?.address],
+  queryFn: async () => {
+    const { response } = await client.stateService.listOwnedObjects({
       owner: account!.address,
-      type: "0xc413c2e2c1ac0630f532941be972109eae5d6734e540f20109d75a59a1efea1e::hero::Hero",
+      objectType:
+        "0xc413c2e2c1ac0630f532941be972109eae5d6734e540f20109d75a59a1efea1e::hero::Hero",
     });
-    setData(result);
-  } catch (e) {
-    setError(e instanceof Error ? e.message : "Failed to fetch objects");
-  } finally {
-    setIsPending(false);
-  }
-}, [client, account]);
-
-useEffect(() => {
-  if (account) fetchObjects();
-}, [account?.address, refreshKey, fetchObjects]);
+    return response.objects ?? [];
+  },
+  enabled: !!account,
+});
 ```
 
 Key points:
-- The component accepts a `refreshKey` prop — incrementing it triggers a re-fetch.
-- The **`type`** parameter is a string that filters by fully-qualified object type.
-- Results are in `data.objects` (an array of object summaries).
+- The query uses **`client.stateService.listOwnedObjects()`** — the gRPC state-service endpoint for listing objects.
+`client.listOwnedObjects()` (without stateService) could also be used.
+- The **`objectType`** parameter filters by the fully-qualified Object type in Sui.
+- **`queryKey`** includes the account address so the cache is per-wallet.
+- **`enabled: !!account`** prevents the query from running before a wallet is connected.
+- `data` is the resolved array of object summaries (each with an `objectId` field).
 
 ---
 
 ### 4. Auto-refresh after minting
 
-After the mint transaction succeeds, you want the Hero list to update automatically. The `MintNFTForm` accepts an `onMinted` callback prop that the parent uses to increment the `refreshKey`:
+After the mint transaction succeeds, you want the Hero list to update automatically. Instead of threading callback props through the component tree, we use **React Query cache invalidation**.
+
+Inside `MintNFTForm`, after the transaction is confirmed, invalidate the `ownedObjects` query so `OwnedObjects` re-fetches:
 
 ```tsx
-// App.tsx — lift refresh state
-const [refreshKey, setRefreshKey] = useState(0);
+const queryClient = useQueryClient();
 
-<WalletStatus refreshKey={refreshKey} />
-<MintNFTForm onMinted={() => setRefreshKey((k) => k + 1)} />
-```
-
-Inside `MintNFTForm`, call the callback after the transaction is confirmed:
-
-```tsx
-dAppKit
-  .signAndExecuteTransaction({ transaction: tx })
+await signAndExecuteTransaction({ transaction: tx })
   .then(async (resp) => {
-    // Wait for the transaction to be indexed
     await client.waitForTransaction({ result: resp });
-    // Notify the parent to trigger a refetch
-    onMinted();
+    queryClient.invalidateQueries({
+      predicate: (query) =>
+        query.queryKey[0] === "ownedObjects" &&
+        query.queryKey[1] === account.address,
+    });
   });
 ```
 
-- **`client.waitForTransaction({ result })`** — waits until the transaction result is available on the node before triggering the refresh.
-- **`onMinted()`** — calls back to the parent, which increments `refreshKey`, causing `OwnedObjects` to re-fetch via its `useEffect`.
+- **`client.waitForTransaction({ result })`** — waits until the transaction is propagated, and indexed by the node before refreshing.
+- **`queryClient.invalidateQueries()`** — marks the matching cached query as stale, triggering Tanstack React Query to automatically re-fetch it. This avoids the need for lifted state or callback props — any component using the same `queryKey` will re-render with fresh data.
