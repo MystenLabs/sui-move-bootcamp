@@ -1,0 +1,820 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebSocket Robot Control</title>
+    <style>
+      /* ============================================
+       RESET & BASE STYLES
+       ============================================ */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        color: #fff;
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      /* ============================================
+       LAYOUT
+       ============================================ */
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 20px;
+      }
+
+      @media (max-width: 900px) {
+        .container {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* ============================================
+       HEADER
+       ============================================ */
+      header {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 20px;
+      }
+
+      header h1 {
+        font-size: 2rem;
+        margin-bottom: 10px;
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        font-size: 0.9rem;
+      }
+
+      .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #ff4444;
+        animation: pulse 2s infinite;
+      }
+
+      .status-dot.connected {
+        background: #44ff44;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      /* ============================================
+       ROBOT ARENA
+       ============================================ */
+      .arena-container {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        padding: 20px;
+      }
+
+      .arena {
+        position: relative;
+        width: 100%;
+        padding-bottom: 100%; /* Square aspect ratio */
+        background:
+          linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.03) 1px,
+            transparent 1px
+          ),
+          linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        background-size: 10% 10%;
+        border-radius: 12px;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        overflow: hidden;
+      }
+
+      /* ============================================
+       VIRTUAL ROBOT
+       ============================================ */
+      .robot {
+        position: absolute;
+        width: 60px;
+        height: 80px;
+        transform: translate(-50%, -50%);
+        transition: all 0.3s ease;
+      }
+
+      .robot.moving {
+        transition: all 0.1s linear;
+      }
+
+      /* Robot body */
+      .robot-body {
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* Main body */
+      .robot-body::before {
+        content: "";
+        position: absolute;
+        width: 40px;
+        height: 50px;
+        background: linear-gradient(135deg, #4a9eff 0%, #2d6bb5 100%);
+        border-radius: 8px;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 4px 15px rgba(74, 158, 255, 0.4);
+      }
+
+      /* Head */
+      .robot-head {
+        position: absolute;
+        width: 30px;
+        height: 25px;
+        background: linear-gradient(135deg, #5ab5ff 0%, #4a9eff 100%);
+        border-radius: 8px 8px 4px 4px;
+        left: 50%;
+        top: 5px;
+        transform: translateX(-50%);
+      }
+
+      /* Eyes */
+      .robot-eyes {
+        position: absolute;
+        top: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 8px;
+      }
+
+      .eye {
+        width: 8px;
+        height: 8px;
+        background: #fff;
+        border-radius: 50%;
+        position: relative;
+      }
+
+      .eye::after {
+        content: "";
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: #1a1a2e;
+        border-radius: 50%;
+        top: 2px;
+        left: 2px;
+      }
+
+      /* Sleepy eyes */
+      .robot.sleepy .eye {
+        height: 3px;
+        border-radius: 3px;
+      }
+
+      .robot.sleepy .eye::after {
+        display: none;
+      }
+
+      /* Happy eyes */
+      .robot.happy .eye {
+        background: #ffdd44;
+      }
+
+      /* Legs */
+      .robot-legs {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 12px;
+      }
+
+      .leg {
+        width: 12px;
+        height: 20px;
+        background: linear-gradient(135deg, #3d8be8 0%, #2d6bb5 100%);
+        border-radius: 4px;
+      }
+
+      /* Sitting posture */
+      .robot.sitting .leg {
+        height: 10px;
+      }
+
+      .robot.sitting .robot-body::before {
+        top: 60%;
+      }
+
+      /* Lying posture */
+      .robot.lying {
+        transform: translate(-50%, -50%) rotate(90deg);
+      }
+
+      .robot.lying .leg {
+        height: 8px;
+      }
+
+      /* Direction indicator */
+      .robot-direction {
+        position: absolute;
+        top: -15px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 0;
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-bottom: 12px solid #ffdd44;
+      }
+
+      /* ============================================
+       CONTROL PANEL
+       ============================================ */
+      .controls {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        padding: 20px;
+      }
+
+      .controls h2 {
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+        color: #aaa;
+      }
+
+      .control-section {
+        margin-bottom: 20px;
+      }
+
+      .control-section h3 {
+        font-size: 0.9rem;
+        color: #888;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .button-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+
+      .button-grid.two-col {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      button {
+        padding: 12px 8px;
+        border: none;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #4a9eff 0%, #2d6bb5 100%);
+        color: white;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(74, 158, 255, 0.4);
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
+
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      button .icon {
+        font-size: 1.4rem;
+      }
+
+      button.secondary {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      button.secondary:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      /* D-pad layout */
+      .dpad {
+        display: grid;
+        grid-template-areas:
+          ". up ."
+          "left . right"
+          ". down .";
+        gap: 8px;
+        max-width: 200px;
+        margin: 0 auto;
+      }
+
+      .dpad button:nth-child(1) {
+        grid-area: up;
+      }
+      .dpad button:nth-child(2) {
+        grid-area: left;
+      }
+      .dpad button:nth-child(3) {
+        grid-area: right;
+      }
+      .dpad button:nth-child(4) {
+        grid-area: down;
+      }
+
+      /* ============================================
+       INFO PANEL
+       ============================================ */
+      .info {
+        margin-top: 20px;
+        padding: 15px;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+        font-family: monospace;
+        font-size: 0.85rem;
+      }
+
+      .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 4px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      .info-row:last-child {
+        border-bottom: none;
+      }
+
+      .info-label {
+        color: #888;
+      }
+
+      .info-value {
+        color: #4a9eff;
+      }
+
+      /* ============================================
+       LOG PANEL
+       ============================================ */
+      .log-container {
+        grid-column: 1 / -1;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        padding: 20px;
+      }
+
+      .log-container h2 {
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+        color: #aaa;
+      }
+
+      .log {
+        height: 150px;
+        overflow-y: auto;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 8px;
+        padding: 10px;
+        font-family: monospace;
+        font-size: 0.85rem;
+      }
+
+      .log-entry {
+        padding: 4px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      .log-entry:last-child {
+        border-bottom: none;
+      }
+
+      .log-time {
+        color: #666;
+      }
+
+      .log-type {
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        margin: 0 8px;
+      }
+
+      .log-type.send {
+        background: #4a9eff33;
+        color: #4a9eff;
+      }
+
+      .log-type.receive {
+        background: #44ff4433;
+        color: #44ff44;
+      }
+
+      .log-type.info {
+        background: #ffdd4433;
+        color: #ffdd44;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <header>
+        <h1>WebSocket Robot Control</h1>
+        <div class="status">
+          <div class="status-dot" id="statusDot"></div>
+          <span id="statusText">Disconnected</span>
+          <span id="clientCount"></span>
+        </div>
+      </header>
+
+      <!-- Robot Arena -->
+      <div class="arena-container">
+        <div class="arena" id="arena">
+          <div class="robot" id="robot">
+            <div class="robot-direction"></div>
+            <div class="robot-body">
+              <div class="robot-head">
+                <div class="robot-eyes">
+                  <div class="eye"></div>
+                  <div class="eye"></div>
+                </div>
+              </div>
+              <div class="robot-legs">
+                <div class="leg"></div>
+                <div class="leg"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="controls">
+        <h2>Controls</h2>
+
+        <!-- Movement -->
+        <div class="control-section">
+          <h3>Movement</h3>
+          <div class="dpad">
+            <button onclick="sendCommand('forward')" id="btn-forward">
+              <span class="icon">^</span>
+            </button>
+            <button onclick="sendCommand('left')" id="btn-left">
+              <span class="icon">&lt;</span>
+            </button>
+            <button onclick="sendCommand('right')" id="btn-right">
+              <span class="icon">&gt;</span>
+            </button>
+            <button onclick="sendCommand('backward')" id="btn-backward">
+              <span class="icon">v</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Postures -->
+        <div class="control-section">
+          <h3>Postures</h3>
+          <div class="button-grid">
+            <button onclick="sendCommand('stand')">
+              <span class="icon">🧍</span>
+              Stand
+            </button>
+            <button onclick="sendCommand('sit')">
+              <span class="icon">🪑</span>
+              Sit
+            </button>
+            <button onclick="sendCommand('lie')">
+              <span class="icon">🛏️</span>
+              Lie
+            </button>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="control-section">
+          <h3>Actions</h3>
+          <div class="button-grid two-col">
+            <button onclick="sendCommand('wave')">
+              <span class="icon">👋</span>
+              Wave
+            </button>
+            <button onclick="sendCommand('sleep')">
+              <span class="icon">😴</span>
+              Sleep
+            </button>
+            <button onclick="sendCommand('wake')">
+              <span class="icon">☀️</span>
+              Wake
+            </button>
+            <button onclick="sendCommand('reset')" class="secondary">
+              <span class="icon">🔄</span>
+              Reset
+            </button>
+          </div>
+        </div>
+
+        <!-- Robot Info -->
+        <div class="info">
+          <div class="info-row">
+            <span class="info-label">Position</span>
+            <span class="info-value" id="infoPosition">50, 50</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Rotation</span>
+            <span class="info-value" id="infoRotation">0</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Posture</span>
+            <span class="info-value" id="infoPosture">standing</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Action</span>
+            <span class="info-value" id="infoAction">-</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Log -->
+      <div class="log-container">
+        <h2>Message Log</h2>
+        <div class="log" id="log"></div>
+      </div>
+    </div>
+
+    <script>
+      // ============================================
+      // WEBSOCKET CONNECTION
+      // ============================================
+
+      let ws = null;
+      let reconnectInterval = null;
+
+      function connect() {
+        // Connect to WebSocket server
+        // ws:// for local, wss:// for secure (production)
+        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+        const wsUrl = `${protocol}//${window.location.host}`;
+
+        log("info", `Connecting to ${wsUrl}...`);
+
+        ws = new WebSocket(wsUrl);
+
+        // ============================================
+        // CONNECTION OPENED
+        // ============================================
+        ws.onopen = () => {
+          log("info", "Connected!");
+          updateStatus(true);
+
+          // Clear reconnect interval if any
+          if (reconnectInterval) {
+            clearInterval(reconnectInterval);
+            reconnectInterval = null;
+          }
+        };
+
+        // ============================================
+        // MESSAGE RECEIVED
+        // ============================================
+        ws.onmessage = (event) => {
+          const message = JSON.parse(event.data);
+          log("receive", JSON.stringify(message));
+
+          // Handle different message types
+          switch (message.type) {
+            case "welcome":
+              log("info", message.message);
+              if (message.state) updateRobot(message.state);
+              if (message.clientCount) updateClientCount(message.clientCount);
+              break;
+
+            case "state":
+              if (message.state) updateRobot(message.state);
+              if (message.clientCount) updateClientCount(message.clientCount);
+              break;
+
+            case "action_started":
+              log("info", `Action started: ${message.action}`);
+              if (message.state) updateRobot(message.state);
+              setButtonsEnabled(false);
+              break;
+
+            case "action_completed":
+              log("info", `Action completed: ${message.action}`);
+              if (message.state) updateRobot(message.state);
+              setButtonsEnabled(true);
+              break;
+
+            case "pong":
+              log("receive", "Pong!");
+              break;
+          }
+        };
+
+        // ============================================
+        // CONNECTION CLOSED
+        // ============================================
+        ws.onclose = () => {
+          log("info", "Disconnected");
+          updateStatus(false);
+
+          // Try to reconnect every 3 seconds
+          if (!reconnectInterval) {
+            reconnectInterval = setInterval(() => {
+              log("info", "Attempting to reconnect...");
+              connect();
+            }, 3000);
+          }
+        };
+
+        // ============================================
+        // CONNECTION ERROR
+        // ============================================
+        ws.onerror = (error) => {
+          log("info", "Connection error");
+          console.error("WebSocket error:", error);
+        };
+      }
+
+      // ============================================
+      // SEND COMMAND
+      // ============================================
+      function sendCommand(command) {
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+          log("info", "Not connected!");
+          return;
+        }
+
+        const message = {
+          type: "command",
+          command: command,
+        };
+
+        ws.send(JSON.stringify(message));
+        log("send", JSON.stringify(message));
+      }
+
+      // ============================================
+      // UPDATE UI
+      // ============================================
+      function updateStatus(connected) {
+        const dot = document.getElementById("statusDot");
+        const text = document.getElementById("statusText");
+
+        if (connected) {
+          dot.classList.add("connected");
+          text.textContent = "Connected";
+        } else {
+          dot.classList.remove("connected");
+          text.textContent = "Disconnected";
+        }
+      }
+
+      function updateClientCount(count) {
+        const el = document.getElementById("clientCount");
+        el.textContent = count > 1 ? `(${count} clients)` : "";
+      }
+
+      function updateRobot(state) {
+        const robot = document.getElementById("robot");
+
+        // Update position (state values are 0-100)
+        robot.style.left = `${state.x}%`;
+        robot.style.top = `${state.y}%`;
+
+        // Update rotation
+        robot.style.transform = `translate(-50%, -50%) rotate(${state.rotation}deg)`;
+
+        // Update posture classes
+        robot.classList.remove("standing", "sitting", "lying");
+        robot.classList.add(state.posture);
+
+        // Update mood classes
+        robot.classList.remove("happy", "neutral", "sleepy");
+        robot.classList.add(state.mood);
+
+        // Update moving state
+        if (state.isMoving) {
+          robot.classList.add("moving");
+        } else {
+          robot.classList.remove("moving");
+        }
+
+        // Update info panel
+        document.getElementById("infoPosition").textContent = `${Math.round(
+          state.x,
+        )}, ${Math.round(state.y)}`;
+        document.getElementById("infoRotation").textContent = `${Math.round(
+          state.rotation,
+        )}deg`;
+        document.getElementById("infoPosture").textContent = state.posture;
+        document.getElementById("infoAction").textContent =
+          state.currentAction || "-";
+      }
+
+      function setButtonsEnabled(enabled) {
+        document.querySelectorAll("button").forEach((btn) => {
+          btn.disabled = !enabled;
+        });
+      }
+
+      // ============================================
+      // LOGGING
+      // ============================================
+      function log(type, message) {
+        const logEl = document.getElementById("log");
+        const time = new Date().toLocaleTimeString();
+
+        const entry = document.createElement("div");
+        entry.className = "log-entry";
+
+        const timeSpan = document.createElement("span");
+        timeSpan.className = "log-time";
+        timeSpan.textContent = time;
+
+        const typeSpan = document.createElement("span");
+        typeSpan.className = `log-type ${type}`;
+        typeSpan.textContent = type.toUpperCase();
+
+        const msgSpan = document.createElement("span");
+        msgSpan.textContent = message;
+
+        entry.append(timeSpan, typeSpan, msgSpan);
+
+        logEl.appendChild(entry);
+        logEl.scrollTop = logEl.scrollHeight;
+
+        // Keep only last 50 entries
+        while (logEl.children.length > 50) {
+          logEl.removeChild(logEl.firstChild);
+        }
+      }
+
+      // ============================================
+      // KEYBOARD CONTROLS
+      // ============================================
+      document.addEventListener("keydown", (e) => {
+        switch (e.key) {
+          case "ArrowUp":
+          case "w":
+            sendCommand("forward");
+            break;
+          case "ArrowDown":
+          case "s":
+            sendCommand("backward");
+            break;
+          case "ArrowLeft":
+          case "a":
+            sendCommand("left");
+            break;
+          case "ArrowRight":
+          case "d":
+            sendCommand("right");
+            break;
+          case " ":
+            sendCommand("wave");
+            break;
+        }
+      });
+
+      // ============================================
+      // START
+      // ============================================
+      connect();
+    </script>
+  </body>
+</html>
