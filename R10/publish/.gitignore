@@ -1,0 +1,4 @@
+# Publish output files (contain transaction details)
+.publish.res.json
+.create_registry.res.json
+.create_robot.res.json

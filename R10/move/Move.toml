@@ -1,0 +1,9 @@
+[package]
+name = "robot_rental_platform"
+edition = "2024"
+
+[dependencies]
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet" }
+
+[addresses]
+robot_rental_platform = "0x0"
