@@ -1,0 +1,21 @@
+{
+  "name": "realtime-robot-server",
+  "version": "1.0.0",
+  "description": "Real-time WebSocket server for controlling Bittle robot",
+  "type": "module",
+  "scripts": {
+    "start": "npx tsx src/server.ts",
+    "dev": "npx tsx watch src/server.ts"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "serialport": "^12.0.0",
+    "ws": "^8.16.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/ws": "^8.5.10",
+    "tsx": "^4.7.0",
+    "typescript": "^5.0.0"
+  }
+}
