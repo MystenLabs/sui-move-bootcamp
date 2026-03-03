@@ -1,0 +1,22 @@
+{
+  "name": "action-queue-client",
+  "version": "1.0.0",
+  "description": "TypeScript client for the Action Queue Sui contract",
+  "type": "module",
+  "scripts": {
+    "create-queue": "npx tsx src/create-queue.ts",
+    "add-action": "npx tsx src/add-action.ts",
+    "read-queue": "npx tsx src/read-queue.ts",
+    "pop-action": "npx tsx src/pop-action.ts",
+    "demo": "npx tsx src/demo.ts"
+  },
+  "dependencies": {
+    "@mysten/sui": "^1.17.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.0.0"
+  }
+}
