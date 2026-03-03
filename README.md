@@ -23,16 +23,7 @@ A comprehensive, hands-on learning resource for building on the [Sui](https://su
   - [Module I: Token Standards and Marketplaces](#module-i-token-standards-and-marketplaces)
   - [Module J: Infrastructure and Monitoring](#module-j-infrastructure-and-monitoring)
   - [Module K: Advanced Topics](#module-k-advanced-topics)
-  - [Module R1: Hello Bittle — Serial Basics](#module-r1-hello-bittle--serial-basics)
-  - [Module R2: My First Move Contract — Blockchain Fundamentals](#module-r2-my-first-move-contract--blockchain-fundamentals)
-  - [Module R3: WebSocket Playground — Real-time Basics](#module-r3-websocket-playground--real-time-basics)
-  - [Module R4: Blockchain Robot — First Integration](#module-r4-blockchain-robot--first-integration)
-  - [Module R5: Live Control — WebSocket + Serial](#module-r5-live-control--websocket--serial)
-  - [Module R6: Open to the World — Tunneling 101](#module-r6-open-to-the-world--tunneling-101)
-  - [Module R7: Secure the Channel — Authentication](#module-r7-secure-the-channel--authentication)
-  - [Module R8: Pay to Play — Tokenomics](#module-r8-pay-to-play--tokenomics)
-  - [Module R9: Multiplayer Robot — Shared State](#module-r9-multiplayer-robot--shared-state)
-  - [Module R10: Robot Rental Platform — Capstone](#module-r10-robot-rental-platform--capstone)
+  - [Module R: SuiBotics — Blockchain Robotics](#module-r-suibotics--blockchain-robotics)
 - [Prerequisites](#prerequisites)
 - [Technology Stack](#technology-stack)
 - [Resources](#resources)
@@ -173,95 +164,41 @@ Start with **[Module R1](#module-r1-hello-bittle--serial-basics)** or **[Module 
 - [K4: Nautilus — Trusted Execution Environments](./K4/)
 - [K5: Seal — Encryption & Access Policies](./K5/)
 
----
+### Module R: SuiBotics — Blockchain Robotics
 
-### Module R1: Hello Bittle — Serial Basics
+A progressive, project-based series that teaches Sui development through building blockchain-controlled robotics — from a simple serial connection to a full rental platform with tokens, authentication, and multiplayer access. Most modules work in simulation mode; a physical [Petoi Bittle X](https://docs.petoi.com/) robot is optional.
 
-Control a Petoi Bittle X robot with 20 lines of TypeScript. Learn serial communication fundamentals, baud rates, USB device detection, and the Bittle command protocol.
+#### Fundamentals
 
-```bash
-cd R1/hello-bittle && pnpm install && pnpm start
-```
+- [R1: Hello Bittle — Serial Basics](./R1/)
+  Serial communication, baud rates, USB device detection, and the Bittle command protocol.
+- [R2: My First Move Contract — Blockchain Fundamentals](./R2/)
+  Build a simple action queue on Sui. Objects, ownership, shared state, and the TypeScript SDK.
+- [R3: WebSocket Playground — Real-time Basics](./R3/)
+  Real-time robot controller with WebSocket. Bidirectional communication and multi-client broadcasting.
 
-### Module R2: My First Move Contract — Blockchain Fundamentals
+#### Integrations
 
-Build a simple action queue on the Sui blockchain. Learn Sui Move basics — objects, ownership, shared state — and interact with your contract using the TypeScript SDK.
+- [R4: Blockchain Robot — First Integration](./R4/)
+  Connect Sui to a physical robot via polling architecture. Map on-chain actions to robot commands.
+- [R5: Live Control — WebSocket + Serial](./R5/)
+  Real-time robot control over local network. Command queuing and latency optimization.
+- [R6: Open to the World — Tunneling 101](./R6/)
+  Control your robot from anywhere using Cloudflare Tunnel.
 
-```bash
-cd R2/move && sui move build && sui client publish --gas-budget 100000000
-```
+#### Security and Economics
 
-### Module R3: WebSocket Playground — Real-time Basics
+- [R7: Secure the Channel — Authentication](./R7/)
+  Ed25519 challenge-response auth (Part A) and on-chain state channels for trustless operation (Part B).
+- [R8: Pay to Play — Tokenomics](./R8/)
+  Custom COOKIE token, rate-limited faucet, and pay-per-action system using Sui Coin modules and TreasuryCap.
 
-Build a real-time robot controller with WebSocket. Control a virtual robot from your browser with instant feedback, bidirectional communication, and multi-client broadcasting.
+#### Full-Stack Applications
 
-```bash
-cd R3/server && pnpm install && pnpm start
-# Open http://localhost:8080
-```
-
-### Module R4: Blockchain Robot — First Integration
-
-Connect the Sui blockchain to a physical robot. Learn polling architecture for bridging the on-chain world to the physical world, mapping on-chain actions to robot commands.
-
-```bash
-cd R4/processor && pnpm install && pnpm start
-```
-
-### Module R5: Live Control — WebSocket + Serial
-
-Real-time robot control over local network — 100x faster than blockchain polling. Combine WebSocket and serial communication with command queuing and latency optimization.
-
-```bash
-cd R5/server && pnpm install && pnpm start
-```
-
-### Module R6: Open to the World — Tunneling 101
-
-Control your robot from anywhere in the world using Cloudflare Tunnel. Learn why NAT blocks incoming connections and how tunneling solves the problem.
-
-```bash
-cd R6/scripts && ./install-cloudflared.sh && ./start-all.sh
-```
-
-### Module R7: Secure the Channel — Authentication
-
-The most important security module. **Part A** covers off-chain Ed25519 challenge-response authentication. **Part B** introduces on-chain state channels — the key innovation for real-time blockchain robot control with deposits and trustless operation.
-
-```bash
-# Part A: Off-chain auth
-cd R7/part-a-offchain && pnpm install && pnpm generate-keys && pnpm demo
-# Part B: On-chain state channels
-cd R7/part-b-onchain/move && sui move build && sui client publish --gas-budget 100000000
-```
-
-### Module R8: Pay to Play — Tokenomics
-
-Create an economic model for shared robot access. Build a custom COOKIE token, a rate-limited faucet, and a pay-per-action system — learning Sui Coin modules, TreasuryCap, Table storage, and Clock-based logic.
-
-```bash
-cd R8/move && sui move build && sui client publish --gas-budget 100000000
-cd ../client && pnpm install && pnpm demo
-```
-
-### Module R9: Multiplayer Robot — Shared State
-
-Multiple users, one robot, fair access. Build an on-chain fairness queue with per-user limits and cooldowns, a React dApp with wallet integration (`@mysten/dapp-kit`), and a WebSocket broadcast server for real-time updates.
-
-```bash
-cd R9/move && sui move build && sui move test
-cd ../publish && ./publish.sh "My Queue"
-cd ../dapp && pnpm install && pnpm dev
-```
-
-### Module R10: Robot Rental Platform — Capstone
-
-The capstone project. Combines everything from R1–R9 into a complete robot rental platform: TREAT token payments with escrow, a robot registry for discovery, Ed25519 command signing with replay protection, time-based billing with automatic refunds, and rental receipts.
-
-```bash
-cd R10/move && sui move build && sui client publish --gas-budget 100000000
-cd ../client && pnpm install && pnpm demo
-```
+- [R9: Multiplayer Robot — Shared State](./R9/)
+  On-chain fairness queue, React dApp with wallet integration (`@mysten/dapp-kit`), and WebSocket broadcast server.
+- [R10: Robot Rental Platform — Capstone](./R10/)
+  Complete platform: TREAT token escrow, robot registry, Ed25519 command signing, time-based billing, and rental receipts.
 
 ---
 
