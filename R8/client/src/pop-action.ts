@@ -17,6 +17,7 @@
 import { Transaction } from "@mysten/sui/transactions";
 import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui/utils";
 import {
+  executeTransaction,
   getKeypair,
   PACKAGE_ADDRESS,
   printConfig,
@@ -48,19 +49,15 @@ async function main() {
   console.log("Checking queue state...");
 
   const response = await suiClient.getObject({
-    id: ROBOT_ID,
-    options: { showContent: true },
+    objectId: ROBOT_ID,
+    include: { json: true },
   });
 
-  if (
-    !response.data?.content ||
-    response.data.content.dataType !== "moveObject"
-  ) {
+  const fields = response.object.json as any;
+  if (!fields) {
     console.log("Error: Could not read robot state");
     process.exit(1);
   }
-
-  const fields = response.data.content.fields as any;
   const queue = fields.action_queue as any[];
 
   if (!queue || queue.length === 0) {
@@ -104,27 +101,20 @@ async function main() {
   });
 
   console.log("Sending transaction...");
-  const result = await suiClient.signAndExecuteTransaction({
-    transaction: tx,
-    signer: keypair,
-    options: {
-      showEffects: true,
-      showEvents: true,
-    },
-  });
+  const result = await executeTransaction(tx, keypair);
 
   console.log("");
   console.log("Transaction successful!");
   console.log(`  Digest: ${result.digest}`);
-  console.log(`  Status: ${result.effects?.status.status}`);
+  console.log(`  Status: ${result.status.success ? "success" : "failure"}`);
 
   // Show the ActionProcessed event
   const processedEvent = result.events?.find((e) =>
-    e.type.includes("::ActionProcessed"),
+    e.eventType.includes("::ActionProcessed"),
   );
 
   if (processedEvent) {
-    const data = processedEvent.parsedJson as any;
+    const data = processedEvent.json as any;
     console.log("");
     console.log("Action processed!");
     console.log(`  Action: ${data.action_name}`);
@@ -136,12 +126,12 @@ async function main() {
 
   // Show updated queue state
   const newResponse = await suiClient.getObject({
-    id: ROBOT_ID,
-    options: { showContent: true },
+    objectId: ROBOT_ID,
+    include: { json: true },
   });
 
-  if (newResponse.data?.content?.dataType === "moveObject") {
-    const newFields = newResponse.data.content.fields as any;
+  const newFields = newResponse.object.json as any;
+  if (newFields) {
     const newQueue = newFields.action_queue as any[];
     console.log("");
     console.log(`Remaining in queue: ${newQueue?.length || 0}`);

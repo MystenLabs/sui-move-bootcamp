@@ -55,16 +55,16 @@ async function main() {
   console.log("1. COOKIE Token Balance");
   console.log("-".repeat(30));
 
-  const coins = await suiClient.getCoins({
+  const coins = await suiClient.listCoins({
     owner: address,
     coinType: `${PACKAGE_ADDRESS}::cookie::COOKIE`,
   });
 
-  if (coins.data.length === 0) {
+  if (coins.objects.length === 0) {
     console.log("   No COOKIE tokens found");
   } else {
     let totalBalance = BigInt(0);
-    coins.data.forEach((coin, i) => {
+    coins.objects.forEach((coin, i) => {
       console.log(`   Coin ${i + 1}: ${coin.balance} COOKIE`);
       totalBalance += BigInt(coin.balance);
     });
@@ -82,16 +82,16 @@ async function main() {
   console.log("-".repeat(30));
 
   const mintCapResponse = await suiClient.getObject({
-    id: MINT_CAP_ID,
-    options: { showContent: true },
+    objectId: MINT_CAP_ID,
+    include: { json: true },
   });
 
-  if (mintCapResponse.data?.content?.dataType === "moveObject") {
-    const fields = mintCapResponse.data.content.fields as any;
-    const maxSupply = fields.max_supply;
+  const mintCapFields = mintCapResponse.object.json as any;
+  if (mintCapFields) {
+    const maxSupply = mintCapFields.max_supply;
 
     // Get total supply from TreasuryCap
-    const treasuryCapFields = fields.treasury_cap?.fields;
+    const treasuryCapFields = mintCapFields.treasury_cap?.fields;
     const totalSupply = treasuryCapFields?.total_supply?.fields?.value || "0";
 
     console.log(`   Max Supply: ${maxSupply}`);
@@ -109,13 +109,13 @@ async function main() {
   console.log("-".repeat(30));
 
   const faucetResponse = await suiClient.getObject({
-    id: FAUCET_MANAGER_ID,
-    options: { showContent: true },
+    objectId: FAUCET_MANAGER_ID,
+    include: { json: true },
   });
 
-  if (faucetResponse.data?.content?.dataType === "moveObject") {
-    const fields = faucetResponse.data.content.fields as any;
-    const totalDistributed = fields.total_distributed;
+  const faucetFields = faucetResponse.object.json as any;
+  if (faucetFields) {
+    const totalDistributed = faucetFields.total_distributed;
 
     console.log(`   Total Distributed: ${totalDistributed} COOKIE`);
     console.log(`   Daily Limit: 100 COOKIE per address`);

@@ -36,19 +36,16 @@ async function main() {
   console.log("");
 
   const response = await suiClient.getObject({
-    id: ROBOT_ID,
-    options: { showContent: true },
+    objectId: ROBOT_ID,
+    include: { json: true },
   });
 
-  if (
-    !response.data?.content ||
-    response.data.content.dataType !== "moveObject"
-  ) {
+  const fields = response.object.json as any;
+
+  if (!fields) {
     console.log("Error: Could not read robot state");
     process.exit(1);
   }
-
-  const fields = response.data.content.fields as any;
 
   // ============================================
   // Display robot info

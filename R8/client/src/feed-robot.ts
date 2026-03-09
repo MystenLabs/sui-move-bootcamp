@@ -15,6 +15,7 @@
 import { Transaction } from "@mysten/sui/transactions";
 import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui/utils";
 import {
+  executeTransaction,
   getKeypair,
   MINT_CAP_ID,
   PACKAGE_ADDRESS,
@@ -80,12 +81,12 @@ async function main() {
 
   console.log("Checking your COOKIE balance...");
 
-  const coins = await suiClient.getCoins({
+  const coins = await suiClient.listCoins({
     owner: address,
     coinType: `${PACKAGE_ADDRESS}::cookie::COOKIE`,
   });
 
-  const totalBalance = coins.data.reduce(
+  const totalBalance = coins.objects.reduce(
     (sum, coin) => sum + BigInt(coin.balance),
     BigInt(0),
   );
@@ -118,7 +119,7 @@ async function main() {
    */
 
   // Find a coin with enough balance
-  const paymentCoin = coins.data.find((c) => BigInt(c.balance) >= 1n);
+  const paymentCoin = coins.objects.find((c) => BigInt(c.balance) >= 1n);
 
   if (!paymentCoin) {
     console.log("Error: No coin with sufficient balance found.");
@@ -127,7 +128,7 @@ async function main() {
 
   // Split exactly 1 COOKIE from the coin
   // This creates a new coin object with exactly 1 COOKIE
-  const [payment] = tx.splitCoins(tx.object(paymentCoin.coinObjectId), [
+  const [payment] = tx.splitCoins(tx.object(paymentCoin.objectId), [
     tx.pure.u64(1), // Split off exactly 1 COOKIE
   ]);
 
@@ -157,27 +158,20 @@ async function main() {
   // ============================================
 
   console.log("Sending transaction...");
-  const result = await suiClient.signAndExecuteTransaction({
-    transaction: tx,
-    signer: keypair,
-    options: {
-      showEffects: true,
-      showEvents: true,
-    },
-  });
+  const result = await executeTransaction(tx, keypair);
 
   console.log("");
   console.log("Transaction successful!");
   console.log(`  Digest: ${result.digest}`);
-  console.log(`  Status: ${result.effects?.status.status}`);
+  console.log(`  Status: ${result.status.success ? "success" : "failure"}`);
 
   // Show the ActionQueued event
   const queuedEvent = result.events?.find((e) =>
-    e.type.includes("::ActionQueued"),
+    e.eventType.includes("::ActionQueued"),
   );
 
   if (queuedEvent) {
-    const data = queuedEvent.parsedJson as any;
+    const data = queuedEvent.json as any;
     console.log("");
     console.log("Action queued!");
     console.log(`  Action: ${data.action_name}`);
@@ -190,12 +184,12 @@ async function main() {
   });
 
   // Show remaining balance
-  const newCoins = await suiClient.getCoins({
+  const newCoins = await suiClient.listCoins({
     owner: address,
     coinType: `${PACKAGE_ADDRESS}::cookie::COOKIE`,
   });
 
-  const newBalance = newCoins.data.reduce(
+  const newBalance = newCoins.objects.reduce(
     (sum, coin) => sum + BigInt(coin.balance),
     BigInt(0),
   );

@@ -13,10 +13,10 @@
 
 import { Transaction } from "@mysten/sui/transactions";
 import {
+  executeTransaction,
   getKeypair,
   PACKAGE_ADDRESS,
   printConfig,
-  suiClient,
   validateConfig,
 } from "./config";
 
@@ -59,32 +59,26 @@ async function main() {
 
   // Execute the transaction
   console.log("Sending transaction...");
-  const result = await suiClient.signAndExecuteTransaction({
-    transaction: tx,
-    signer: keypair,
-    options: {
-      showEffects: true,
-      showObjectChanges: true,
-    },
-  });
+  const result = await executeTransaction(tx, keypair);
 
   console.log("");
   console.log("Transaction successful!");
   console.log(`  Digest: ${result.digest}`);
-  console.log(`  Status: ${result.effects?.status.status}`);
+  console.log(`  Status: ${result.status.success ? "success" : "failure"}`);
 
   // Find the created RobotPet object
-  const createdObjects = result.objectChanges?.filter(
-    (change) => change.type === "created",
+  const createdObjects = result.effects?.changedObjects
+    .filter((c) => c.idOperation === "Created")
+    .map((c) => ({
+      objectId: c.objectId,
+      objectType: result.objectTypes?.[c.objectId] || "",
+    }));
+
+  const robotPet = createdObjects?.find((obj) =>
+    obj.objectType.includes("::robot_pet::RobotPet"),
   );
 
-  const robotPet = createdObjects?.find(
-    (obj) =>
-      obj.type === "created" &&
-      obj.objectType.includes("::robot_pet::RobotPet"),
-  );
-
-  if (robotPet && robotPet.type === "created") {
+  if (robotPet) {
     console.log("");
     console.log("Robot created!");
     console.log(`  Object ID: ${robotPet.objectId}`);

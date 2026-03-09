@@ -13,6 +13,7 @@
 import { Transaction } from "@mysten/sui/transactions";
 import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui/utils";
 import {
+  executeTransaction,
   FAUCET_MANAGER_ID,
   getKeypair,
   MINT_CAP_ID,
@@ -66,26 +67,19 @@ async function main() {
 
   // Execute the transaction
   console.log("Sending transaction...");
-  const result = await suiClient.signAndExecuteTransaction({
-    transaction: tx,
-    signer: keypair,
-    options: {
-      showEffects: true,
-      showEvents: true,
-    },
-  });
+  const result = await executeTransaction(tx, keypair);
 
   console.log("");
   console.log("Transaction successful!");
   console.log(`  Digest: ${result.digest}`);
-  console.log(`  Status: ${result.effects?.status.status}`);
+  console.log(`  Status: ${result.status.success ? "success" : "failure"}`);
 
   // Show any events
   if (result.events && result.events.length > 0) {
     console.log("");
     console.log("Events:");
     result.events.forEach((event, i) => {
-      console.log(`  ${i + 1}. ${event.type}`);
+      console.log(`  ${i + 1}. ${event.eventType}`);
     });
   }
 
@@ -93,12 +87,12 @@ async function main() {
   console.log("");
   console.log("Checking your COOKIE balance...");
 
-  const coins = await suiClient.getCoins({
+  const coins = await suiClient.listCoins({
     owner: address,
     coinType: `${PACKAGE_ADDRESS}::cookie::COOKIE`,
   });
 
-  const totalBalance = coins.data.reduce(
+  const totalBalance = coins.objects.reduce(
     (sum, coin) => sum + BigInt(coin.balance),
     BigInt(0),
   );

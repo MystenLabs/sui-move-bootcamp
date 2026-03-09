@@ -15,6 +15,7 @@
 import { Transaction } from "@mysten/sui/transactions";
 import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui/utils";
 import {
+  executeTransaction,
   FAUCET_MANAGER_ID,
   MINT_CAP_ID,
   PACKAGE_ADDRESS,
@@ -58,12 +59,12 @@ async function main() {
   console.log("STEP 1: Check Initial Balance");
   console.log("─".repeat(60));
 
-  let coins = await suiClient.getCoins({
+  let coins = await suiClient.listCoins({
     owner: address,
     coinType: `${PACKAGE_ADDRESS}::cookie::COOKIE`,
   });
 
-  let balance = coins.data.reduce(
+  let balance = coins.objects.reduce(
     (sum, coin) => sum + BigInt(coin.balance),
     BigInt(0),
   );
@@ -90,22 +91,19 @@ async function main() {
   });
 
   console.log("  Requesting 10 COOKIE tokens...");
-  const faucetResult = await suiClient.signAndExecuteTransaction({
-    transaction: faucetTx,
-    signer: keypair,
-  });
+  const faucetResult = await executeTransaction(faucetTx, keypair);
   console.log(`  Transaction: ${faucetResult.digest}`);
 
   // Wait a moment for indexer
   await sleep(1000);
 
   // Check new balance
-  coins = await suiClient.getCoins({
+  coins = await suiClient.listCoins({
     owner: address,
     coinType: `${PACKAGE_ADDRESS}::cookie::COOKIE`,
   });
 
-  balance = coins.data.reduce(
+  balance = coins.objects.reduce(
     (sum, coin) => sum + BigInt(coin.balance),
     BigInt(0),
   );
@@ -122,11 +120,11 @@ async function main() {
   console.log("─".repeat(60));
 
   let robotState = await suiClient.getObject({
-    id: ROBOT_ID,
-    options: { showContent: true },
+    objectId: ROBOT_ID,
+    include: { json: true },
   });
 
-  let fields = (robotState.data?.content as any)?.fields;
+  let fields = robotState.object.json as any;
   let queue = fields?.action_queue || [];
 
   console.log(`  Robot: ${fields?.name}`);
@@ -147,22 +145,21 @@ async function main() {
 
   for (const actionName of actionsToQueue) {
     // Get a coin for payment
-    coins = await suiClient.getCoins({
+    coins = await suiClient.listCoins({
       owner: address,
       coinType: `${PACKAGE_ADDRESS}::cookie::COOKIE`,
     });
 
-    const paymentCoin = coins.data.find((c) => BigInt(c.balance) >= 1n);
+    const paymentCoin = coins.objects.find((c) => BigInt(c.balance) >= 1n);
     if (!paymentCoin) {
       console.log("  Error: Not enough COOKIE tokens!");
       break;
     }
 
     const feedTx = new Transaction();
-    const [payment] = feedTx.splitCoins(
-      feedTx.object(paymentCoin.coinObjectId),
-      [feedTx.pure.u64(1)],
-    );
+    const [payment] = feedTx.splitCoins(feedTx.object(paymentCoin.objectId), [
+      feedTx.pure.u64(1),
+    ]);
 
     feedTx.moveCall({
       target: `${PACKAGE_ADDRESS}::robot_pet::feed`,
@@ -176,17 +173,13 @@ async function main() {
     });
 
     console.log(`  Queueing "${actionName}"...`);
-    const feedResult = await suiClient.signAndExecuteTransaction({
-      transaction: feedTx,
-      signer: keypair,
-      options: { showEvents: true },
-    });
+    const feedResult = await executeTransaction(feedTx, keypair);
 
     const queuedEvent = feedResult.events?.find((e) =>
-      e.type.includes("::ActionQueued"),
+      e.eventType.includes("::ActionQueued"),
     );
     if (queuedEvent) {
-      const data = queuedEvent.parsedJson as any;
+      const data = queuedEvent.json as any;
       console.log(`    → Queued at position ${data.queue_position}`);
     }
 
@@ -204,11 +197,11 @@ async function main() {
   console.log("─".repeat(60));
 
   robotState = await suiClient.getObject({
-    id: ROBOT_ID,
-    options: { showContent: true },
+    objectId: ROBOT_ID,
+    include: { json: true },
   });
 
-  fields = (robotState.data?.content as any)?.fields;
+  fields = robotState.object.json as any;
   queue = fields?.action_queue || [];
 
   console.log(`  Queue length: ${queue.length}`);
@@ -246,28 +239,24 @@ async function main() {
         arguments: [popTx.object(ROBOT_ID), popTx.object(SUI_CLOCK_OBJECT_ID)],
       });
 
-      const popResult = await suiClient.signAndExecuteTransaction({
-        transaction: popTx,
-        signer: keypair,
-        options: { showEvents: true },
-      });
+      const popResult = await executeTransaction(popTx, keypair);
 
       const processedEvent = popResult.events?.find((e) =>
-        e.type.includes("::ActionProcessed"),
+        e.eventType.includes("::ActionProcessed"),
       );
 
       if (processedEvent) {
-        const data = processedEvent.parsedJson as any;
+        const data = processedEvent.json as any;
         console.log(`  ✓ Processed: ${data.action_name}`);
         console.log(`    → Robot command: k${data.action_name}`);
       }
 
       // Refresh queue
       robotState = await suiClient.getObject({
-        id: ROBOT_ID,
-        options: { showContent: true },
+        objectId: ROBOT_ID,
+        include: { json: true },
       });
-      fields = (robotState.data?.content as any)?.fields;
+      fields = robotState.object.json as any;
       queue = fields?.action_queue || [];
 
       await sleep(500);
@@ -289,16 +278,16 @@ async function main() {
   console.log("─".repeat(60));
 
   robotState = await suiClient.getObject({
-    id: ROBOT_ID,
-    options: { showContent: true },
+    objectId: ROBOT_ID,
+    include: { json: true },
   });
-  fields = (robotState.data?.content as any)?.fields;
+  fields = robotState.object.json as any;
 
-  coins = await suiClient.getCoins({
+  coins = await suiClient.listCoins({
     owner: address,
     coinType: `${PACKAGE_ADDRESS}::cookie::COOKIE`,
   });
-  balance = coins.data.reduce(
+  balance = coins.objects.reduce(
     (sum, coin) => sum + BigInt(coin.balance),
     BigInt(0),
   );
