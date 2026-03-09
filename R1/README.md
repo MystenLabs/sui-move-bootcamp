@@ -1,4 +1,4 @@
-# Module 1: Hello Bittle - Serial Basics
+# Module R1: Hello Bittle — Serial Basics
 
 Control a [Petoi Bittle X](https://www.petoi.com/pages/bittle-open-source-bionic-robot-dog) robot dog with just 20 lines of code.
 
@@ -329,7 +329,7 @@ rl.on("line", (input) => {
 Bittle sends data back! See the complete example in `src/exercise3.ts`:
 
 ```bash
-SERIAL_PORT=/dev/cu.usbmodem* pnpm tsx src/exercise3.ts
+SERIAL_PORT=/dev/cu.usbmodem* pnpm exercise3
 ```
 
 This demonstrates reading serial responses by listening to data events:
@@ -349,14 +349,16 @@ The script sends multiple commands (hi, sit, balance) and displays any messages 
 ```
 R1/
 ├── README.md               # This file
-└── hello-bittle
+├── detect-device.py        # Find your serial port
+└── hello-bittle/
+    ├── .env.example        # Environment variable template
     ├── package.json        # Dependencies (serialport)
     ├── tsconfig.json       # TypeScript config
-    ├── detect-device.py    # Find your serial port
     └── src/
         ├── commands.ts     # Command definitions
         ├── index.ts        # Simple hello example
-        └── demo.ts         # Multi-command demo
+        ├── demo.ts         # Multi-command demo
+        └── exercise3.ts    # Bidirectional serial example
 ```
 
 ---
