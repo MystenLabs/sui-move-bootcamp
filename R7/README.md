@@ -1,4 +1,4 @@
-# Module 7: Secure the Channel - Authentication and On-Chain Tunnels
+# Module R7: Secure the Channel - Authentication and On-Chain Tunnels
 
 **The most important module for understanding blockchain + robots!**
 
