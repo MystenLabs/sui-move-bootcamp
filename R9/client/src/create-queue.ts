@@ -12,10 +12,10 @@
 
 import { Transaction } from "@mysten/sui/transactions";
 import {
+  executeTransaction,
   getKeypair,
   PACKAGE_ADDRESS,
   printConfig,
-  suiClient,
   validateConfig,
 } from "./config";
 
@@ -50,33 +50,26 @@ async function main(): Promise<void> {
 
   // Execute the transaction
   console.log("Sending transaction...");
-  const result = await suiClient.signAndExecuteTransaction({
-    transaction: tx,
-    signer: keypair,
-    options: {
-      showEffects: true,
-      showEvents: true,
-      showObjectChanges: true,
-    },
-  });
+  const result = await executeTransaction(tx, keypair);
 
   console.log("");
   console.log("Transaction successful!");
   console.log(`  Digest: ${result.digest}`);
-  console.log(`  Status: ${result.effects?.status.status}`);
+  console.log(`  Status: ${result.status.success ? "success" : "failure"}`);
 
   // Find the created queue object
-  const createdObjects = result.objectChanges?.filter(
-    (change) => change.type === "created",
+  const createdObjects = result.effects?.changedObjects
+    .filter((c) => c.idOperation === "Created")
+    .map((c) => ({
+      objectId: c.objectId,
+      objectType: result.objectTypes?.[c.objectId] || "",
+    }));
+
+  const queueObject = createdObjects?.find((obj) =>
+    obj.objectType.includes("::multiplayer_queue::MultiplayerQueue"),
   );
 
-  const queueObject = createdObjects?.find(
-    (obj) =>
-      obj.type === "created" &&
-      obj.objectType.includes("::multiplayer_queue::MultiplayerQueue"),
-  );
-
-  if (queueObject && queueObject.type === "created") {
+  if (queueObject) {
     console.log("");
     console.log("Queue created!");
     console.log(`  Object ID: ${queueObject.objectId}`);
@@ -90,9 +83,9 @@ async function main(): Promise<void> {
     console.log("");
     console.log("Events:");
     result.events.forEach((event, i) => {
-      console.log(`  ${i + 1}. ${event.type}`);
-      if (event.parsedJson) {
-        console.log(`     ${JSON.stringify(event.parsedJson)}`);
+      console.log(`  ${i + 1}. ${event.eventType}`);
+      if (event.json) {
+        console.log(`     ${JSON.stringify(event.json)}`);
       }
     });
   }

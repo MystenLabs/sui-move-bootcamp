@@ -14,12 +14,12 @@
 import { Transaction } from "@mysten/sui/transactions";
 import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui/utils";
 import {
+  executeTransaction,
   getKeypair,
   isValidAction,
   PACKAGE_ADDRESS,
   printConfig,
   QUEUE_ID,
-  suiClient,
   VALID_ACTIONS,
   validateConfig,
 } from "./config";
@@ -80,29 +80,22 @@ async function main(): Promise<void> {
   // Execute the transaction
   console.log("Sending transaction...");
   try {
-    const result = await suiClient.signAndExecuteTransaction({
-      transaction: tx,
-      signer: keypair,
-      options: {
-        showEffects: true,
-        showEvents: true,
-      },
-    });
+    const result = await executeTransaction(tx, keypair);
 
     console.log("");
     console.log("Transaction successful!");
     console.log(`  Digest: ${result.digest}`);
-    console.log(`  Status: ${result.effects?.status.status}`);
+    console.log(`  Status: ${result.status.success ? "success" : "failure"}`);
 
     // Show events
     if (result.events && result.events.length > 0) {
       console.log("");
       console.log("Events:");
       result.events.forEach((event, i) => {
-        const eventType = event.type.split("::").pop();
+        const eventType = event.eventType.split("::").pop();
         console.log(`  ${i + 1}. ${eventType}`);
-        if (event.parsedJson) {
-          const data = event.parsedJson as Record<string, unknown>;
+        if (event.json) {
+          const data = event.json as Record<string, unknown>;
           if (data.queue_length) {
             console.log(`     Queue length: ${data.queue_length}`);
           }

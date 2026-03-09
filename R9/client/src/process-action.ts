@@ -13,6 +13,7 @@
 import { Transaction } from "@mysten/sui/transactions";
 import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui/utils";
 import {
+  executeTransaction,
   getKeypair,
   PACKAGE_ADDRESS,
   printConfig,
@@ -40,12 +41,12 @@ async function main(): Promise<void> {
   // First, check if there are actions to process
   console.log("Checking queue state...");
   const queueResponse = await suiClient.getObject({
-    id: QUEUE_ID,
-    options: { showContent: true },
+    objectId: QUEUE_ID,
+    include: { json: true },
   });
 
-  if (queueResponse.data?.content?.dataType === "moveObject") {
-    const fields = queueResponse.data.content.fields as Record<string, unknown>;
+  const fields = queueResponse.object.json as Record<string, unknown> | null;
+  if (fields) {
     const actions = fields.actions as unknown[];
     const admin = fields.admin as string;
 
@@ -70,17 +71,9 @@ async function main(): Promise<void> {
     const nextAction = actions[0] as Record<string, unknown>;
     console.log("");
     console.log("Next action to process:");
-    console.log(
-      `  Action: ${(nextAction.fields as Record<string, unknown>)?.action_name}`,
-    );
-    console.log(
-      `  From: ${(nextAction.fields as Record<string, unknown>)?.sender}`,
-    );
-    console.log(
-      `  Priority: ${
-        (nextAction.fields as Record<string, unknown>)?.is_priority
-      }`,
-    );
+    console.log(`  Action: ${nextAction?.action_name}`);
+    console.log(`  From: ${nextAction?.sender}`);
+    console.log(`  Priority: ${nextAction?.is_priority}`);
   }
 
   console.log("");
@@ -97,29 +90,22 @@ async function main(): Promise<void> {
   // Execute the transaction
   console.log("Sending transaction...");
   try {
-    const result = await suiClient.signAndExecuteTransaction({
-      transaction: tx,
-      signer: keypair,
-      options: {
-        showEffects: true,
-        showEvents: true,
-      },
-    });
+    const result = await executeTransaction(tx, keypair);
 
     console.log("");
     console.log("Transaction successful!");
     console.log(`  Digest: ${result.digest}`);
-    console.log(`  Status: ${result.effects?.status.status}`);
+    console.log(`  Status: ${result.status.success ? "success" : "failure"}`);
 
     // Show events
     if (result.events && result.events.length > 0) {
       console.log("");
       console.log("Events:");
       result.events.forEach((event, i) => {
-        const eventType = event.type.split("::").pop();
+        const eventType = event.eventType.split("::").pop();
         console.log(`  ${i + 1}. ${eventType}`);
-        if (event.parsedJson) {
-          const data = event.parsedJson as Record<string, unknown>;
+        if (event.json) {
+          const data = event.json as Record<string, unknown>;
           if (eventType === "ActionProcessed") {
             console.log(`     Action: ${data.action_name}`);
             console.log(`     Wait time: ${Number(data.wait_time_ms) / 1000}s`);

@@ -1,17 +1,19 @@
 import { createNetworkConfig } from "@mysten/dapp-kit";
-import { getFullnodeUrl } from "@mysten/sui/client";
+import { getJsonRpcFullnodeUrl } from "@mysten/sui/jsonRpc";
 
 const { networkConfig, useNetworkVariable, useNetworkVariables } =
   createNetworkConfig({
     devnet: {
-      url: getFullnodeUrl("devnet"),
+      url: getJsonRpcFullnodeUrl("devnet"),
+      network: "devnet",
       variables: {
         packageId: "",
         queueId: "",
       },
     },
     testnet: {
-      url: getFullnodeUrl("testnet"),
+      url: getJsonRpcFullnodeUrl("testnet"),
+      network: "testnet",
       variables: {
         // Update these after deploying the contract
         packageId: import.meta.env.VITE_PACKAGE_ID || "",
@@ -19,7 +21,8 @@ const { networkConfig, useNetworkVariable, useNetworkVariables } =
       },
     },
     mainnet: {
-      url: getFullnodeUrl("mainnet"),
+      url: getJsonRpcFullnodeUrl("mainnet"),
+      network: "mainnet",
       variables: {
         packageId: "",
         queueId: "",

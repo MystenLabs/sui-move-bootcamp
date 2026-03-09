@@ -58,13 +58,13 @@ async function main(): Promise<void> {
   console.log("-".repeat(30));
 
   const queueResponse = await suiClient.getObject({
-    id: QUEUE_ID,
-    options: { showContent: true },
+    objectId: QUEUE_ID,
+    include: { json: true },
   });
 
-  if (queueResponse.data?.content?.dataType === "moveObject") {
-    const fields = queueResponse.data.content.fields as Record<string, unknown>;
+  const fields = queueResponse.object.json as Record<string, unknown> | null;
 
+  if (fields) {
     console.log(`   Name: ${fields.name}`);
     console.log(
       `   Queue Length: ${(fields.actions as unknown[])?.length ?? 0}`,

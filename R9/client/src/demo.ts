@@ -15,6 +15,7 @@
 import { Transaction } from "@mysten/sui/transactions";
 import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui/utils";
 import {
+  executeTransaction,
   getKeypair,
   PACKAGE_ADDRESS,
   printConfig,
@@ -81,21 +82,17 @@ async function main(): Promise<void> {
       ],
     });
 
-    const result = await suiClient.signAndExecuteTransaction({
-      transaction: tx,
-      signer: keypair,
-      options: { showEffects: true, showEvents: true },
-    });
+    const result = await executeTransaction(tx, keypair);
 
     console.log(`  Transaction: ${result.digest}`);
-    console.log(`  Status: ${result.effects?.status.status}`);
+    console.log(`  Status: ${result.status.success ? "success" : "failure"}`);
 
     // Parse events
     const queuedEvent = result.events?.find((e) =>
-      e.type.includes("ActionQueued"),
+      e.eventType.includes("ActionQueued"),
     );
-    if (queuedEvent?.parsedJson) {
-      const data = queuedEvent.parsedJson as Record<string, unknown>;
+    if (queuedEvent?.json) {
+      const data = queuedEvent.json as Record<string, unknown>;
       console.log(`  Position in queue: ${data.position}`);
       console.log(`  New queue length: ${data.queue_length}`);
     }
@@ -140,21 +137,17 @@ async function main(): Promise<void> {
       arguments: [tx.object(QUEUE_ID), tx.object(SUI_CLOCK_OBJECT_ID)],
     });
 
-    const result = await suiClient.signAndExecuteTransaction({
-      transaction: tx,
-      signer: keypair,
-      options: { showEffects: true, showEvents: true },
-    });
+    const result = await executeTransaction(tx, keypair);
 
     console.log(`  Transaction: ${result.digest}`);
-    console.log(`  Status: ${result.effects?.status.status}`);
+    console.log(`  Status: ${result.status.success ? "success" : "failure"}`);
 
     // Parse events
     const processedEvent = result.events?.find((e) =>
-      e.type.includes("ActionProcessed"),
+      e.eventType.includes("ActionProcessed"),
     );
-    if (processedEvent?.parsedJson) {
-      const data = processedEvent.parsedJson as Record<string, unknown>;
+    if (processedEvent?.json) {
+      const data = processedEvent.json as Record<string, unknown>;
       console.log(`  Processed: ${data.action_name}`);
       console.log(`  Wait time: ${Number(data.wait_time_ms) / 1000}s`);
       console.log(`  Remaining: ${data.remaining_in_queue}`);
@@ -202,12 +195,12 @@ async function getQueueState(): Promise<{
   isPaused: boolean;
 }> {
   const response = await suiClient.getObject({
-    id: QUEUE_ID,
-    options: { showContent: true },
+    objectId: QUEUE_ID,
+    include: { json: true },
   });
 
-  if (response.data?.content?.dataType === "moveObject") {
-    const fields = response.data.content.fields as Record<string, unknown>;
+  const fields = response.object.json as Record<string, unknown> | null;
+  if (fields) {
     return {
       queueLength: (fields.actions as unknown[])?.length ?? 0,
       totalQueued: Number(fields.total_queued),

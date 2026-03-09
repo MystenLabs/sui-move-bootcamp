@@ -5,7 +5,7 @@
  * Parses events and forwards them to the WebSocket server for broadcasting.
  *
  * ## How It Works
- * 1. Connects to Sui RPC endpoint
+ * 1. Connects to Sui GraphQL endpoint
  * 2. Subscribes to events from the package
  * 3. Parses each event type
  * 4. Calls registered callbacks for each event
@@ -18,7 +18,7 @@
  * - QueueStateChanged
  */
 
-import { SuiClient } from "@mysten/sui/client";
+import { SuiGraphQLClient } from "@mysten/sui/graphql";
 import type {
   ActionProcessedEvent,
   ActionQueuedEvent,
@@ -54,15 +54,20 @@ export interface EventCallbacks {
  * Connects to Sui and subscribes to multiplayer queue events.
  */
 export class BlockchainEventListener {
-  private client: SuiClient;
+  private client: SuiGraphQLClient;
   private packageId: string;
   private callbacks: EventCallbacks;
   private unsubscribe: (() => void) | null = null;
   private pollInterval: NodeJS.Timeout | null = null;
   private lastCursor: string | null = null;
 
-  constructor(rpcUrl: string, packageId: string, callbacks: EventCallbacks) {
-    this.client = new SuiClient({ url: rpcUrl });
+  constructor(
+    rpcUrl: string,
+    packageId: string,
+    callbacks: EventCallbacks,
+    network: string = "testnet",
+  ) {
+    this.client = new SuiGraphQLClient({ url: rpcUrl, network });
     this.packageId = packageId;
     this.callbacks = callbacks;
   }
@@ -80,16 +85,32 @@ export class BlockchainEventListener {
     console.log(`[Blockchain] Polling every ${pollIntervalMs}ms`);
 
     // Initial query to get cursor
-    const events = await this.client.queryEvents({
-      query: {
-        MoveModule: { package: this.packageId, module: "multiplayer_queue" },
+    const eventsResult = await this.client.query({
+      query: `
+        query LatestEvents($module: String!) {
+          events(
+            filter: { emittingModule: $module }
+            last: 1
+          ) {
+            pageInfo {
+              startCursor
+              endCursor
+            }
+            nodes {
+              type { repr }
+              json
+            }
+          }
+        }
+      `,
+      variables: {
+        module: `${this.packageId}::multiplayer_queue`,
       },
-      limit: 1,
-      order: "descending",
     });
 
-    if (events.data.length > 0) {
-      this.lastCursor = events.nextCursor ?? null;
+    const eventsData = eventsResult.data as any;
+    if (eventsData?.events?.nodes?.length > 0) {
+      this.lastCursor = eventsData.events.pageInfo.endCursor ?? null;
     }
 
     // Start polling
@@ -101,23 +122,40 @@ export class BlockchainEventListener {
    */
   private async pollEvents(): Promise<void> {
     try {
-      const query = {
-        query: {
-          MoveModule: { package: this.packageId, module: "multiplayer_queue" },
+      const eventsResult = await this.client.query({
+        query: `
+          query PollEvents($module: String!, $after: String) {
+            events(
+              filter: { emittingModule: $module }
+              after: $after
+              first: 50
+            ) {
+              pageInfo {
+                hasNextPage
+                endCursor
+              }
+              nodes {
+                type { repr }
+                json
+              }
+            }
+          }
+        `,
+        variables: {
+          module: `${this.packageId}::multiplayer_queue`,
+          after: this.lastCursor,
         },
-        limit: 50,
-        order: "ascending" as const,
-        cursor: this.lastCursor ?? undefined,
-      };
+      });
 
-      const events = await this.client.queryEvents(query);
+      const eventsData = eventsResult.data as any;
+      const nodes = eventsData?.events?.nodes || [];
 
-      for (const event of events.data) {
-        this.handleEvent(event.type, event.parsedJson);
+      for (const event of nodes) {
+        this.handleEvent(event.type.repr, event.json);
       }
 
-      if (events.nextCursor) {
-        this.lastCursor = events.nextCursor;
+      if (eventsData?.events?.pageInfo?.endCursor) {
+        this.lastCursor = eventsData.events.pageInfo.endCursor;
       }
     } catch (error) {
       console.error("[Blockchain] Error polling events:", error);
@@ -178,12 +216,12 @@ export class BlockchainEventListener {
   } | null> {
     try {
       const response = await this.client.getObject({
-        id: queueId,
-        options: { showContent: true },
+        objectId: queueId,
+        include: { json: true },
       });
 
-      if (response.data?.content?.dataType === "moveObject") {
-        const fields = response.data.content.fields as Record<string, unknown>;
+      const fields = response.object.json as Record<string, unknown> | null;
+      if (fields) {
         return {
           name: fields.name as string,
           queueLength: Number((fields.actions as unknown[])?.length ?? 0),

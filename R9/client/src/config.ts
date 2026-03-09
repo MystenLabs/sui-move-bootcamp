@@ -5,9 +5,10 @@
  * for connecting to the Sui network.
  */
 
-import { SuiClient } from "@mysten/sui/client";
+import { SuiGraphQLClient } from "@mysten/sui/graphql";
 import { decodeSuiPrivateKey } from "@mysten/sui/cryptography";
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
+import { Transaction } from "@mysten/sui/transactions";
 import "dotenv/config";
 
 // ============================================
@@ -16,14 +17,28 @@ import "dotenv/config";
 
 export const PACKAGE_ADDRESS = process.env.PACKAGE_ADDRESS || "";
 export const QUEUE_ID = process.env.QUEUE_ID || "";
-export const SUI_RPC_URL =
-  process.env.SUI_RPC_URL || "https://fullnode.testnet.sui.io";
 
 // ============================================
 // Sui Client
 // ============================================
 
-export const suiClient = new SuiClient({ url: SUI_RPC_URL });
+const GRAPHQL_URLS: Record<string, string> = {
+  mainnet: "https://sui-mainnet.mystenlabs.com/graphql",
+  testnet: "https://sui-testnet.mystenlabs.com/graphql",
+  devnet: "https://sui-devnet.mystenlabs.com/graphql",
+  localnet: "http://127.0.0.1:9125/graphql",
+};
+
+// Derive network from RPC URL or default to testnet
+const SUI_NETWORK = (process.env.SUI_NETWORK || "testnet") as string;
+
+export const suiClient = new SuiGraphQLClient({
+  url:
+    process.env.SUI_GRAPHQL_URL ||
+    GRAPHQL_URLS[SUI_NETWORK] ||
+    GRAPHQL_URLS.testnet,
+  network: SUI_NETWORK,
+});
 
 // ============================================
 // Keypair Functions
@@ -100,7 +115,7 @@ export function printConfig(): void {
   console.log("Configuration:");
   console.log(`  Package: ${PACKAGE_ADDRESS || "(not set)"}`);
   console.log(`  Queue ID: ${QUEUE_ID || "(not set)"}`);
-  console.log(`  RPC URL: ${SUI_RPC_URL}`);
+  console.log(`  Network: ${SUI_NETWORK}`);
   console.log("");
 }
 
@@ -128,4 +143,29 @@ export type ValidAction = (typeof VALID_ACTIONS)[number];
  */
 export function isValidAction(action: string): action is ValidAction {
   return VALID_ACTIONS.includes(action as ValidAction);
+}
+
+// ============================================
+// Transaction Helper
+// ============================================
+
+/**
+ * Execute a transaction, unwrap the result, and return the transaction data.
+ */
+export async function executeTransaction(
+  tx: Transaction,
+  signer: Ed25519Keypair,
+  include?: { effects?: boolean; events?: boolean; objectTypes?: boolean },
+) {
+  const result = await suiClient.signAndExecuteTransaction({
+    transaction: tx,
+    signer,
+    include: include || { effects: true, events: true, objectTypes: true },
+  });
+
+  if (result.$kind === "FailedTransaction") {
+    throw new Error("Transaction failed");
+  }
+
+  return result.Transaction;
 }
