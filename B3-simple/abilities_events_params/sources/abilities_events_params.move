@@ -6,6 +6,9 @@ module abilities_events_params::abilities_events_params;
 use std::string::String;
 use sui::event;
 
+// Test address (was previously in Move.toml [addresses])
+const USER: address = @0x1;
+
 /// Error codes - Used for clarity and easier debugging.
 
 /// Error code used when attempting to award a medal that is not available.
@@ -119,7 +122,7 @@ use std::unit_test::assert_eq;
 /// Basic test case to check `Hero` Object creation
 #[test]
 fun test_hero_creation() {
-    let mut test = ts::begin(@USER);
+    let mut test = ts::begin(USER);
 
     let hero = mint_hero(
         b"The Comedian".to_string(),
@@ -138,7 +141,7 @@ fun test_hero_creation() {
 /// Test that an event is emitted when a hero is minted.
 #[test]
 fun test_event_thrown() {
-    let mut test = ts::begin(@USER);
+    let mut test = ts::begin(USER);
 
     let hero = mint_hero(b"Doctor Manhattan".to_string(), test.ctx());
     assert_eq!(hero.name, b"Doctor Manhattan".to_string());
@@ -151,8 +154,8 @@ fun test_event_thrown() {
     // Iterate all the events for that test
     let mut i = 0;
     while (i < events.length()) {
-        //Check that all events where emitted by the @USER
-        assert!(events[i].owner == @USER, 661);
+        //Check that all events where emitted by the USER
+        assert!(events[i].owner == USER, 661);
         i = i + 1;
     };
 
@@ -163,7 +166,7 @@ fun test_event_thrown() {
 
 #[test]
 fun test_medal_award() {
-    let mut test = ts::begin(@USER);
+    let mut test = ts::begin(USER);
 
     let mut hero = mint_hero(b"Rorschach".to_string(), test.ctx());
 

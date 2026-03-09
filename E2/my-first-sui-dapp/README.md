@@ -6,9 +6,9 @@ Client dApp using the following tools:
 - [React](https://react.dev/) as the UI framework
 - [TypeScript](https://www.typescriptlang.org/) for type checking
 - [Vite](https://vitejs.dev/) for build tooling
-- [Radix UI](https://www.radix-ui.com/) for pre-built UI components
+- [Tailwind CSS](https://tailwindcss.com/) for utility-first styling
 - [ESLint](https://eslint.org/)
-- [`@mysten/dapp-kit`](https://sdk.mystenlabs.com/dapp-kit) for connecting to
+- [`@mysten/dapp-kit-react`](https://sdk.mystenlabs.com/dapp-kit) for connecting to
   wallets and loading data
 - [pnpm](https://pnpm.io/) for package management
 

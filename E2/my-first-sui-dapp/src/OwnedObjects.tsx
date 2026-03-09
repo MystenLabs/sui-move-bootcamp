@@ -1,49 +1,57 @@
-import { useCurrentAccount, useSuiClientQuery } from "@mysten/dapp-kit";
-import { Flex, Heading, Text } from "@radix-ui/themes";
+import { useCurrentAccount, useCurrentClient, useCurrentNetwork } from "@mysten/dapp-kit-react";
+import { useQuery } from "@tanstack/react-query";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "./components/ui/card";
 
 export function OwnedObjects() {
   const account = useCurrentAccount();
+  const client = useCurrentClient();
+  const network = useCurrentNetwork();
 
-  const { data, isPending, error } = useSuiClientQuery(
-    "getOwnedObjects",
-    {
-      owner: account?.address as string,
-      filter: {
-        StructType:
-          "0xc413c2e2c1ac0630f532941be972109eae5d6734e540f20109d75a59a1efea1e::hero::Hero",
-      },
-    },
-    {
-      enabled: !!account,
-      refetchOnWindowFocus: false,
-      staleTime: 0,
-    },
-  );
+  const { data, isPending, error } = useQuery({
+    queryKey: [network, "getOwnedObjects", account?.address],
+    queryFn: () =>
+      client.listOwnedObjects({
+        owner: account!.address,
+        type: "0xc413c2e2c1ac0630f532941be972109eae5d6734e540f20109d75a59a1efea1e::hero::Hero",
+      }),
+    enabled: !!account,
+  });
 
   if (!account) {
     return null;
   }
 
   if (error) {
-    return <Flex>Error: {error.message}</Flex>;
+    return <div className="text-destructive-foreground">Error: {error.message}</div>;
   }
 
   if (isPending || !data) {
-    return <Flex>Loading...</Flex>;
+    return <div className="text-muted-foreground">Loading...</div>;
   }
 
   return (
-    <Flex direction="column" my="2">
-      {data.data.length === 0 ? (
-        <Text>No objects owned by the connected wallet</Text>
-      ) : (
-        <Heading size="4">Objects owned by the connected wallet</Heading>
-      )}
-      {data.data.map((object) => (
-        <Flex key={object.data?.objectId}>
-          <Text>Object ID: {object.data?.objectId}</Text>
-        </Flex>
-      ))}
-    </Flex>
+    <Card>
+      <CardHeader>
+        <CardTitle>
+          {data.objects.length === 0
+            ? "No objects owned by the connected wallet"
+            : "Objects owned by the connected wallet"}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          {data.objects.map((object) => (
+            <p key={object.objectId} className="font-mono text-sm break-all">
+              Object ID: {object.objectId}
+            </p>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

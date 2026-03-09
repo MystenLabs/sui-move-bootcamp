@@ -6,6 +6,9 @@ module abilities_events_params::abilities_events_params;
 use std::string::String;
 use sui::event;
 
+// Test address (was previously in Move.toml [addresses])
+const USER: address = @0x1;
+
 /// Error codes - Used for clarity and easier debugging.
 
 /// Error code used when attempting to award a medal that is not available.
@@ -165,9 +168,9 @@ use sui::test_scenario::{take_shared, return_shared};
 /// Basic test case to check `Hero` Object creation
 #[test]
 fun test_hero_creation() {
-    let mut test = ts::begin(@USER);
+    let mut test = ts::begin(USER);
     init(test.ctx());
-    test.next_tx(@USER);
+    test.next_tx(USER);
     let mut registry = take_shared<HeroRegistry>(&test);
     let hero = mint_hero(
         b"Flash".to_string(),
@@ -187,9 +190,9 @@ fun test_hero_creation() {
 /// Test that an event is emitted when a hero is minted.
 #[test]
 fun test_event_thrown() {
-    let mut test = ts::begin(@USER); //Init the module
+    let mut test = ts::begin(USER); //Init the module
     init(test.ctx());
-    test.next_tx(@USER);
+    test.next_tx(USER);
     let mut registry = take_shared<HeroRegistry>(&test);
     let hero = mint_hero(b"Flash".to_string(), &mut registry, test.ctx());
     let hero2 = mint_hero(b"Flash".to_string(), &mut registry, test.ctx());
@@ -201,8 +204,8 @@ fun test_event_thrown() {
     assert_eq!(events.length(), 2); //Iterate all the events for that test
     let mut i = 0;
     while (i < events.length()) {
-        //Check that all events where emited by the @USER
-        assert!(events[i].owner == @USER, 661);
+        //Check that all events where emited by the USER
+        assert!(events[i].owner == USER, 661);
         i = i + 1;
     };
     return_shared(registry);
@@ -213,9 +216,9 @@ fun test_event_thrown() {
 
 #[test]
 fun test_medal_award() {
-    let mut test = ts::begin(@USER);
+    let mut test = ts::begin(USER);
     init(test.ctx());
-    test.next_tx(@USER);
+    test.next_tx(USER);
 
     let mut registry = take_shared<HeroRegistry>(&test);
     let mut medalStorage = take_shared<MedalStorage>(&test);
@@ -244,9 +247,9 @@ fun test_medal_award() {
 
 #[test, expected_failure(abort_code = EMedalOfHonorNotAvailable)]
 fun test_medal_award_error() {
-    let mut test = ts::begin(@USER);
+    let mut test = ts::begin(USER);
     init(test.ctx());
-    test.next_tx(@USER);
+    test.next_tx(USER);
 
     let mut registry = take_shared<HeroRegistry>(&test);
     let mut medalStorage = take_shared<MedalStorage>(&test);

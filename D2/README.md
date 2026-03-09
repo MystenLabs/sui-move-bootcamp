@@ -39,7 +39,7 @@ npm run test
 #### 1. Fetch the object data from the chain
 
 - Modify the function [getHero.ts](./get-hero/src/helpers/getHero.ts), so that the object is fetched
-- You should use the [suiClient.getObject](https://sdk.mystenlabs.com/sui/migrations/sui-2.0/sui) method
+- You should use the [suiClient.getObject](https://sdk.mystenlabs.com/sui/clients/core#getobject) method
 - The `Hero Exists` test should pass
 
 #### 2. Parse its "Hero" fields

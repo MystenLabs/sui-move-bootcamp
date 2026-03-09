@@ -5,7 +5,6 @@ import { ENV } from "../env";
 import { getHeroSwordIds } from "../helpers/getHeroSwordIds";
 import {SuiClientTypes} from "@mysten/sui/client";
 
-
 const HERO_OBJECT_ID =
   "0x5b89d98e0b73963c23bba7e877d9ebe066bf793277242dcc887b5b9d9b6d74cd";
 

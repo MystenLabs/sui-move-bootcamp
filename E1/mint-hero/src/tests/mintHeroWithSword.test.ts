@@ -1,29 +1,37 @@
-import { SuiTransactionBlockResponse } from "@mysten/sui/client";
 import { mintHeroWithSword } from "../helpers/mintHeroWithSword";
 import { parseCreatedObjectsIds } from "../helpers/parseCreatedObjectsIds";
 import { getHeroSwordIds } from "../helpers/getHeroSwordIds";
 import { suiClient } from "../suiClient";
+import { SuiClientTypes } from "@mysten/sui/client";
 
 describe("Mint a Hero NFT and equip a Sword", () => {
-  let txResponse: SuiTransactionBlockResponse;
+  let txResult: SuiClientTypes.TransactionResult<{effects: true}>;
+  let txResponse: SuiClientTypes.Transaction<{effects: true}>;
   let heroId: string | undefined;
   let swordId: string | undefined;
 
   beforeAll(async () => {
-    txResponse = await mintHeroWithSword();
+    txResult = await mintHeroWithSword();
+
+    if (!txResult.Transaction) {
+      throw new Error("Transaction failed");
+    }
+
+    txResponse = txResult.Transaction;
     await suiClient.waitForTransaction({ digest: txResponse.digest });
     console.log("Executed transaction with txDigest:", txResponse.digest);
   });
 
   test("Transaction Status", () => {
     expect(txResponse.effects).toBeDefined();
-    expect(txResponse.effects!.status.status).toBe("success");
+    expect(txResponse.effects!.status.success).toBe(true);
   });
 
   test("Created Hero and Sword", async () => {
-    expect(txResponse.objectChanges).toBeDefined();
+    expect(txResponse.effects!.changedObjects).toBeDefined();
     const { heroesIds, swordsIds } = parseCreatedObjectsIds({
-      objectChanges: txResponse.objectChanges!,
+      objectChanges: txResponse.effects!.changedObjects!,
+      objectTypes: txResponse.objectTypes!,
     });
     expect(heroesIds.length).toBe(1);
     expect(swordsIds.length).toBe(1);
