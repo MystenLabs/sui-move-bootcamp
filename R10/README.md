@@ -1,4 +1,4 @@
-# Module 10: Robot Rental Platform - Full Stack Capstone
+# Module R10: Robot Rental Platform - Full Stack Capstone
 
 This capstone module combines everything from Modules 1-9 into a complete robot rental platform:
 
