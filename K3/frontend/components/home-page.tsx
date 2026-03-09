@@ -331,7 +331,7 @@ const DemoPanel = React.memo(() => {
           ),
         });
         queryClient.invalidateQueries({
-          queryKey: COUNTER_QUERY_KEYS.events(),
+          queryKey: COUNTER_QUERY_KEYS.eventsBase(),
         });
       }, 1000);
     } catch (error) {

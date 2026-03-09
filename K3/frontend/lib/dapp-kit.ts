@@ -1,7 +1,10 @@
 'use client';
 import clientConfig from '@/lib/env-config-client';
 import { createSuiClientForNetwork } from '@/lib/sui-client-wrapper';
-import type { SuiNetworkName } from '@/lib/sui-grpc-client';
+import {
+  type SuiNetworkName,
+  createSuiGrpcClient,
+} from '@/lib/sui-grpc-client';
 import { createDAppKit } from '@mysten/dapp-kit-react';
 import { enokiWalletsInitializer } from '@mysten/enoki';
 
@@ -21,7 +24,7 @@ function createHybridDAppKit() {
     networks: NETWORKS,
     defaultNetwork: clientConfig.NEXT_PUBLIC_SUI_NETWORK_NAME,
     // Keep provider-level client RPC-compatible for Enoki wallet flows.
-    createClient: (network) => createSuiClientForNetwork(network as SuiNetworkName),
+    createClient: (network) => createSuiGrpcClient(network as SuiNetworkName),
     walletInitializers: [
       enokiWalletsInitializer({
         apiKey: clientConfig.NEXT_PUBLIC_ENOKI_API_KEY,

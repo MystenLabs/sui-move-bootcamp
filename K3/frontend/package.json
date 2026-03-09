@@ -3,18 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
+    "dev": "next dev",
+    "lint": "eslint",
+    "start": "next start"
   },
   "dependencies": {
     "@base-ui/react": "^1.1.0",
     "@mysten/bcs": "^2.0.2",
-    "@mysten/dapp-kit-core": "^1.1.0",
-    "@mysten/dapp-kit-react": "^1.1.0",
-    "@mysten/enoki": "^1.0.3",
-    "@mysten/sui": "^2.4.0",
+    "@mysten/dapp-kit-core": "^1.1.4",
+    "@mysten/dapp-kit-react": "^2.0.0",
+    "@mysten/enoki": "^1.0.4",
+    "@mysten/sui": "^2.6.0",
     "@radix-ui/colors": "^3.0.0",
     "@radix-ui/react-icons": "^1.3.0",
     "@radix-ui/themes": "^3.2.1",

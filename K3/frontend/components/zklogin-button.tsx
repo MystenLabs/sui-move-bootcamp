@@ -1,10 +1,10 @@
 'use client';
 
 import {
-  ConnectButton,
   useCurrentAccount,
   useDAppKit,
 } from '@mysten/dapp-kit-react';
+import { ConnectButton } from '@mysten/dapp-kit-react/ui';
 
 /**
  * zkLogin/Wallet connection button component
