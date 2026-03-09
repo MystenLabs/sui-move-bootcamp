@@ -15,10 +15,10 @@
 import { Transaction } from "@mysten/sui/transactions";
 import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui/utils";
 import {
+  executeTransaction,
   keypair,
   requirePackageAddress,
   requireQueueId,
-  suiClient,
 } from "./config";
 
 // List of valid actions (for validation)
@@ -80,21 +80,17 @@ async function main() {
 
   console.log("Sending transaction...");
 
-  const result = await suiClient.signAndExecuteTransaction({
-    transaction: tx,
-    signer: keypair,
-    options: {
-      showEvents: true,
-    },
-  });
+  const result = await executeTransaction(tx, keypair, { events: true });
 
   console.log(`\nSuccess! Digest: ${result.digest}`);
 
   // Show the event
-  const addedEvent = result.events?.find((e) => e.type.includes("ActionAdded"));
+  const addedEvent = result.events?.find((e) =>
+    e.eventType.includes("ActionAdded"),
+  );
 
   if (addedEvent) {
-    const data = addedEvent.parsedJson as {
+    const data = addedEvent.json as {
       action_name: string;
       sender: string;
       queue_length: string;

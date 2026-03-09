@@ -9,7 +9,7 @@
  */
 
 import { Transaction } from "@mysten/sui/transactions";
-import { keypair, requirePackageAddress, suiClient } from "./config";
+import { executeTransaction, keypair, requirePackageAddress } from "./config";
 
 async function main() {
   const packageAddress = requirePackageAddress();
@@ -38,16 +38,7 @@ async function main() {
 
   console.log("Signing and executing...");
 
-  const result = await suiClient.signAndExecuteTransaction({
-    transaction: tx,
-    signer: keypair,
-    options: {
-      // Request additional data in the response
-      showEffects: true,
-      showEvents: true,
-      showObjectChanges: true,
-    },
-  });
+  const result = await executeTransaction(tx, keypair);
 
   console.log("\nTransaction successful!");
   console.log(`Digest: ${result.digest}`);
@@ -58,11 +49,11 @@ async function main() {
 
   // Look for the QueueCreated event
   const queueEvent = result.events?.find((e) =>
-    e.type.includes("QueueCreated"),
+    e.eventType.includes("QueueCreated"),
   );
 
   if (queueEvent) {
-    const eventData = queueEvent.parsedJson as {
+    const eventData = queueEvent.json as {
       queue_id: string;
       admin: string;
     };
@@ -73,18 +64,19 @@ async function main() {
     console.log(`QUEUE_ID=${eventData.queue_id}`);
   }
 
-  // Alternative: Find from object changes
-  const createdObjects = result.objectChanges?.filter(
-    (change) => change.type === "created",
-  );
+  // Alternative: Find from effects changedObjects + objectTypes
+  const createdObjects = result.effects?.changedObjects
+    .filter((c) => c.idOperation === "Created")
+    .map((c) => ({
+      objectId: c.objectId,
+      objectType: result.objectTypes?.[c.objectId] || "",
+    }));
 
   if (createdObjects && createdObjects.length > 0) {
     console.log("\nCreated objects:");
     for (const obj of createdObjects) {
-      if (obj.type === "created") {
-        console.log(`  - ${obj.objectType}`);
-        console.log(`    ID: ${obj.objectId}`);
-      }
+      console.log(`  - ${obj.objectType}`);
+      console.log(`    ID: ${obj.objectId}`);
     }
   }
 }

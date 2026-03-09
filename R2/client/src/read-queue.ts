@@ -33,36 +33,20 @@ async function main() {
 
   // Get the object from the blockchain
   const response = await suiClient.getObject({
-    id: queueId,
-    options: {
-      // Request the parsed Move data
-      showContent: true,
-    },
+    objectId: queueId,
+    include: { json: true },
   });
-
-  if (response.error) {
-    console.error("Error fetching queue:", response.error);
-    process.exit(1);
-  }
-
-  if (!response.data?.content) {
-    console.error("Queue not found");
-    process.exit(1);
-  }
 
   // ============================================
   // PARSE THE DATA
   // ============================================
 
-  // The content is in Move struct format
-  const content = response.data.content;
+  const queueData = response.object.json as ActionQueueData | null;
 
-  if (content.dataType !== "moveObject") {
-    console.error("Unexpected data type");
+  if (!queueData) {
+    console.error("Queue not found");
     process.exit(1);
   }
-
-  const queueData = content.fields as unknown as ActionQueueData;
 
   // ============================================
   // DISPLAY RESULTS

@@ -10,10 +10,10 @@
 
 import { Transaction } from "@mysten/sui/transactions";
 import {
+  executeTransaction,
   keypair,
   requirePackageAddress,
   requireQueueId,
-  suiClient,
 } from "./config";
 
 async function main() {
@@ -36,23 +36,17 @@ async function main() {
   console.log("Processing next action...");
 
   try {
-    const result = await suiClient.signAndExecuteTransaction({
-      transaction: tx,
-      signer: keypair,
-      options: {
-        showEvents: true,
-      },
-    });
+    const result = await executeTransaction(tx, keypair, { events: true });
 
     console.log(`\nSuccess! Digest: ${result.digest}`);
 
     // Show what was processed
     const processedEvent = result.events?.find((e) =>
-      e.type.includes("ActionProcessed"),
+      e.eventType.includes("ActionProcessed"),
     );
 
     if (processedEvent) {
-      const data = processedEvent.parsedJson as {
+      const data = processedEvent.json as {
         action_name: string;
         original_sender: string;
         queue_length: string;

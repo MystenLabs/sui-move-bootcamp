@@ -11,6 +11,7 @@
 import { Transaction } from "@mysten/sui/transactions";
 import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui/utils";
 import {
+  executeTransaction,
   keypair,
   requirePackageAddress,
   requireQueueId,
@@ -21,18 +22,14 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function readQueue(queueId: string) {
   const response = await suiClient.getObject({
-    id: queueId,
-    options: { showContent: true },
+    objectId: queueId,
+    include: { json: true },
   });
 
-  if (
-    !response.data?.content ||
-    response.data.content.dataType !== "moveObject"
-  ) {
+  const fields = response.object.json as any;
+  if (!fields) {
     throw new Error("Failed to read queue");
   }
-
-  const fields = response.data.content.fields as any;
 
   // The actions field is a vector, which gets returned as an array
   const actions = fields.actions || [];
@@ -66,10 +63,7 @@ async function addAction(
     ],
   });
 
-  await suiClient.signAndExecuteTransaction({
-    transaction: tx,
-    signer: keypair,
-  });
+  await executeTransaction(tx, keypair);
 }
 
 async function popAction(packageAddress: string, queueId: string) {
@@ -79,15 +73,13 @@ async function popAction(packageAddress: string, queueId: string) {
     arguments: [tx.object(queueId)],
   });
 
-  const result = await suiClient.signAndExecuteTransaction({
-    transaction: tx,
-    signer: keypair,
-    options: { showEvents: true },
-  });
+  const result = await executeTransaction(tx, keypair, { events: true });
 
-  const event = result.events?.find((e) => e.type.includes("ActionProcessed"));
+  const event = result.events?.find((e) =>
+    e.eventType.includes("ActionProcessed"),
+  );
   if (event) {
-    const data = event.parsedJson as { action_name: string };
+    const data = event.json as { action_name: string };
     return data.action_name;
   }
   return null;
