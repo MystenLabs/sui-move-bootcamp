@@ -1,4 +1,4 @@
-# Module 2: My First Move Contract - Blockchain Fundamentals
+# Module R2: My First Move Contract - Blockchain Fundamentals
 
 Build a simple action queue on the Sui blockchain. No tokens, no complexity - just the fundamentals.
 
