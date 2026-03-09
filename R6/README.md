@@ -1,4 +1,4 @@
-# Module 6: Open to the World - Tunneling 101
+# Module R6: Open to the World - Tunneling 101
 
 Control your robot from anywhere in the world! No static IP, no port forwarding, no router configuration needed.
 
