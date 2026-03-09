@@ -1,4 +1,4 @@
-# Module 5: Live Control - WebSocket + Serial
+# Module R5: Live Control - WebSocket + Serial
 
 Control your Petoi Bittle robot in real-time from a web browser. No blockchain delays - instant response!
 
