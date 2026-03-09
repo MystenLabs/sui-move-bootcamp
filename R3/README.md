@@ -1,4 +1,4 @@
-# Module 3: WebSocket Playground - Real-time Basics
+# Module R3: WebSocket Playground - Real-time Basics
 
 Build a real-time robot controller using WebSockets. Control a virtual robot from your browser with instant feedback.
 
