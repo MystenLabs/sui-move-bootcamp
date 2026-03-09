@@ -1,4 +1,4 @@
-# Module 9: Multiplayer Robot - Shared State
+# Module R9: Multiplayer Robot - Shared State
 
 Learn how to build fair multiplayer systems where multiple users share access to a single resource (the robot) with proper queue management, rate limiting, and real-time updates.
 
