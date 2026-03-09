@@ -13,10 +13,10 @@ import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui/utils";
 import { popAction, readQueue } from "./blockchain";
 import {
   address,
+  executeTransaction,
   keypair,
   PACKAGE_ADDRESS,
   QUEUE_ID,
-  suiClient,
 } from "./config";
 
 async function main() {
@@ -56,10 +56,7 @@ async function main() {
       ],
     });
 
-    const result = await suiClient.signAndExecuteTransaction({
-      transaction: tx,
-      signer: keypair,
-    });
+    const result = await executeTransaction(tx, keypair);
 
     console.log(`   Transaction: ${result.digest}`);
     console.log("   Success!\n");

@@ -4,8 +4,9 @@
  * This module loads and validates all configuration from .env
  */
 
-import { getFullnodeUrl, SuiClient } from "@mysten/sui/client";
+import { SuiGraphQLClient } from "@mysten/sui/graphql";
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
+import { Transaction } from "@mysten/sui/transactions";
 import dotenv from "dotenv";
 
 // Load environment variables
@@ -20,8 +21,19 @@ const network = (process.env.NETWORK || "testnet") as
   | "testnet"
   | "mainnet";
 
-export const suiClient = new SuiClient({
-  url: getFullnodeUrl(network),
+const GRAPHQL_URLS: Record<string, string> = {
+  mainnet: "https://sui-mainnet.mystenlabs.com/graphql",
+  testnet: "https://sui-testnet.mystenlabs.com/graphql",
+  devnet: "https://sui-devnet.mystenlabs.com/graphql",
+  localnet: "http://127.0.0.1:9125/graphql",
+};
+
+export const suiClient = new SuiGraphQLClient({
+  url:
+    process.env.SUI_GRAPHQL_URL ||
+    GRAPHQL_URLS[network] ||
+    GRAPHQL_URLS.testnet,
+  network,
 });
 
 const phrase = process.env.ADMIN_PHRASE;
@@ -76,4 +88,26 @@ export function printConfig() {
   console.log(`  Serial Port: ${SERIAL_PORT}`);
   console.log(`  Baud Rate: ${BAUD_RATE}`);
   console.log(`  Poll Interval: ${POLL_INTERVAL_MS}ms`);
+}
+
+/**
+ * Execute a transaction, unwrap the result, and return the transaction data.
+ * Throws if the transaction fails.
+ */
+export async function executeTransaction(
+  tx: Transaction,
+  signer: Ed25519Keypair,
+  include?: { effects?: boolean; events?: boolean; objectTypes?: boolean },
+) {
+  const result = await suiClient.signAndExecuteTransaction({
+    transaction: tx,
+    signer,
+    include: include || { effects: true, events: true, objectTypes: true },
+  });
+
+  if (result.$kind === "FailedTransaction") {
+    throw new Error("Transaction failed");
+  }
+
+  return result.Transaction;
 }

@@ -5,7 +5,14 @@
  */
 
 import { Transaction } from "@mysten/sui/transactions";
-import { DEBUG, keypair, PACKAGE_ADDRESS, QUEUE_ID, suiClient } from "./config";
+import {
+  DEBUG,
+  executeTransaction,
+  keypair,
+  PACKAGE_ADDRESS,
+  QUEUE_ID,
+  suiClient,
+} from "./config";
 
 // ============================================
 // TYPE DEFINITIONS
@@ -32,18 +39,13 @@ export interface QueueState {
  */
 export async function readQueue(): Promise<QueueState> {
   const response = await suiClient.getObject({
-    id: QUEUE_ID,
-    options: { showContent: true },
+    objectId: QUEUE_ID,
+    include: { json: true },
   });
-
-  if (
-    !response.data?.content ||
-    response.data.content.dataType !== "moveObject"
-  ) {
+  const fields = response.object.json as any;
+  if (!fields) {
     throw new Error("Failed to read queue from blockchain");
   }
-
-  const fields = response.data.content.fields as any;
 
   // Parse actions from the blockchain format
   const actions: QueuedAction[] = (fields.actions || []).map((action: any) => ({
@@ -83,19 +85,15 @@ export async function popAction(): Promise<string | null> {
   });
 
   try {
-    const result = await suiClient.signAndExecuteTransaction({
-      transaction: tx,
-      signer: keypair,
-      options: { showEvents: true },
-    });
+    const result = await executeTransaction(tx, keypair, { events: true });
 
     // Find the processed action from events
     const event = result.events?.find((e) =>
-      e.type.includes("ActionProcessed"),
+      e.eventType.includes("ActionProcessed"),
     );
 
     if (event) {
-      const data = event.parsedJson as { action_name: string };
+      const data = event.json as { action_name: string };
       return data.action_name;
     }
 
