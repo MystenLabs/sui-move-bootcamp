@@ -1,5 +1,5 @@
 [package]
 name = "robot_tokenomics"
-edition = "2024"         # edition = "legacy" to use legacy (pre-2024) Move
+edition = "2024"
 
 [dependencies]
