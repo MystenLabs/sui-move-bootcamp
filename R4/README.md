@@ -1,4 +1,4 @@
-# Module 4: Blockchain Robot - First Integration
+# Module R4: Blockchain Robot - First Integration
 
 Connect the Sui blockchain to a physical Petoi Bittle robot. Watch as on-chain transactions make a real robot move!
 
