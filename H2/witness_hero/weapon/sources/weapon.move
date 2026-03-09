@@ -31,6 +31,11 @@ fun init(otw: WEAPON, ctx: &mut TxContext) {
 }
 
 // TODO: add a function to mint a weapon which is only accessible to the whitelisted contracts
+public fun mint_weapon<W: drop>(
+
+): Weapon {
+    abort 0
+}
 
 public fun name(weapon: &Weapon): String {
     weapon.name

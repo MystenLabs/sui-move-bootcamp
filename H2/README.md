@@ -2,39 +2,21 @@
 
 ##### What you will learn in this module:
 
-This section demonstrates four fundamental Move patterns that are essential for building secure and flexible smart contracts on Sui.
+This section demonstrates three fundamental Move patterns that are essential for building secure and flexible smart contracts on Sui. Each exercise is self-contained with its own README and detailed instructions.
 
-## 1. Capability Pattern with Properties
+## Exercises
 
-The capability pattern is implemented through two modules:
+### 1. [Capability Pattern](./capability_hero/)
 
-- `hero`: Contains the main game logic
-- `store`: A generic store management module
+Uses `AdminCap` objects with an ID-linked `for` field for fine-grained, per-object access control. A generic `HeroStore<T>` lets players buy weapons and armor, while only the correct store admin can add inventory or collect funds.
 
-Key features:
+### 2. [Witness Pattern](./witness_hero/)
 
-- Uses `AdminCap` objects for access control
-- Demonstrates how store managers must hold the correct `AdminCap` object
-- Implements property-based access control
+Uses Move's type system to implement module-level access control across two packages. The `weapon` package maintains an `AllowList` of authorized witness types, and the `hero` package passes its `HERO_WITNESS` to mint weapons — but only after the weapon deployer whitelists it.
 
-This pattern builds on top of the simple Capability Pattern that solely relies on Sui object ownership model and builds a more fine grained authorization mechanism using arbitrary properties declared on the Cap oject.
+### 3. [Display Pattern](./display_hero/)
 
-## 2. Witness Pattern
-
-The witness pattern demonstrates how to implement module-level or smart contract-level access control:
-
-- Utilizes Move's type system to ensure a struct can only be initialized in its declaring module
-- Implements a whitelisting mechanism for contract calls
-- Shows how to verify the origin of calls between modules within the same or different smart contracts
-- Demonstrates secure cross-module communication
-
-This pattern is particularly useful for implementing secure module interactions and ensuring that only authorized modules can perform specific actions.
-
-## 3. Display Pattern
-
-- Display is Sui's standard for defining how objects should be rendered in wallets and explorers
-- It provides a flexible way to attach metadata to on-chain objects
-- Metadata is stored on-chain but can reference off-chain resources (like images)
+Uses Sui's Display standard to define how `Hero` objects render in wallets and explorers. Template fields like `{name}` and `{blob_id}` interpolate object values at query time. Includes a TypeScript integration test that creates a Display via a programmable transaction block.
 
 ---
 

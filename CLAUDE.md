@@ -75,6 +75,10 @@ The main branch has intentional TODOs and placeholder implementations. When cont
 - Completed code goes on the corresponding solution branch
 - PR checklist requires both `sui move build` and `sui move test` to pass
 
+## Marp Slides
+
+Some modules contain a `slides/` directory with [Marp](https://marp.app/) slide decks. Whenever a `slides/` directory exists (or is created), ensure it contains a `README.md` with usage instructions. Use `H1/slides/README.md` as the canonical template — copy its contents into any new `slides/README.md`.
+
 ## Key Patterns Used Across the Codebase
 
 - **Hero theme**: Most modules use Hero/Sword/Weapon structs as teaching examples

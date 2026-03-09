@@ -6,8 +6,7 @@ use sui::dynamic_object_field as dof;
 use sui::sui::SUI;
 use weapon::weapon::{Self, AllowList};
 
-const EInvalidWeaponTicket: u64 = 0;
-const EInsufficientFunds: u64 = 1;
+const EInsufficientFunds: u64 = 0;
 
 const WEAPON_PRICE: u64 = 1_000_000_000;
 
@@ -25,12 +24,6 @@ public struct AdminCap has key {
 public struct Hero has key {
     id: UID,
     name: String,
-}
-
-public struct WeaponTicket has key {
-    id: UID,
-    hero_id: ID,
-    weapon_name: String,
 }
 
 fun init(ctx: &mut TxContext) {
@@ -66,34 +59,16 @@ public fun withdraw_treasury(
     balance.into_coin(ctx)
 }
 
-public fun mint_weapon_ticket(
-    price: Coin<SUI>,
-    treasury: &mut Treasury,
-    hero: &Hero,
-    weapon_name: String,
-    ctx: &mut TxContext,
-): WeaponTicket {
-    assert!(price.value() >= WEAPON_PRICE, EInsufficientFunds);
-    treasury.balance.join(price.into_balance());
-
-    WeaponTicket {
-        id: object::new(ctx),
-        hero_id: hero.id.to_inner(),
-        weapon_name,
-    }
-}
-
-public fun transfer_weapon_ticket(weapon_ticket: WeaponTicket, ctx: &mut TxContext) {
-    transfer::transfer(weapon_ticket, ctx.sender());
-}
-
 public fun attach_weapon(
     hero: &mut Hero,
-    weapon_ticket: WeaponTicket,
+    price: Coin<SUI>,
+    treasury: &mut Treasury,
+    weapon_name: String,
     allow_list: &AllowList,
     ctx: &mut TxContext,
 ) {
     // TODO: create the logic that allows the hero to attach a weapon that is minted in the external contract
+    abort 0
 }
 
 // Test Only
@@ -133,27 +108,17 @@ fun test_attach_weapon_fails_for_non_whitelisted_witness() {
 
     ts.next_tx(HERO_USER);
     {
+        let allow_list = ts.take_shared<AllowList>();
         let mut treasury = ts.take_shared<Treasury>();
-        let hero = ts.take_from_sender<Hero>();
-        let weapon_ticket = mint_weapon_ticket(
+        let mut hero = ts.take_from_sender<Hero>();
+        attach_weapon(
+            &mut hero,
             coin::mint_for_testing(WEAPON_PRICE, ts.ctx()),
             &mut treasury,
-            &hero,
             b"Weapon".to_string(),
+            &allow_list,
             ts.ctx(),
         );
-        transfer_weapon_ticket(weapon_ticket, ts.ctx());
-        ts.return_to_sender(hero);
-        ts::return_shared(treasury);
-    };
-
-    ts.next_tx(HERO_USER);
-    {
-        let allow_list = ts.take_shared<AllowList>();
-        let weapon_ticket = ts.take_from_sender<WeaponTicket>();
-        let mut hero = ts.take_from_sender<Hero>();
-        attach_weapon(&mut hero, weapon_ticket, &allow_list, ts.ctx());
-
         abort (1337)
     }
 }
@@ -187,27 +152,19 @@ fun test_attach_weapon_succeeds_for_whitelisted_witness() {
 
     ts.next_tx(HERO_USER);
     {
+        let allow_list = ts.take_shared<AllowList>();
         let mut treasury = ts.take_shared<Treasury>();
-        let hero = ts.take_from_sender<Hero>();
-        let weapon_ticket = mint_weapon_ticket(
+        let mut hero = ts.take_from_sender<Hero>();
+        attach_weapon(
+            &mut hero,
             coin::mint_for_testing(WEAPON_PRICE, ts.ctx()),
             &mut treasury,
-            &hero,
             b"Weapon".to_string(),
+            &allow_list,
             ts.ctx(),
         );
-        transfer_weapon_ticket(weapon_ticket, ts.ctx());
-        ts.return_to_sender(hero);
-        ts::return_shared(treasury);
-    };
-
-    ts.next_tx(HERO_USER);
-    {
-        let allow_list = ts.take_shared<AllowList>();
-        let weapon_ticket = ts.take_from_sender<WeaponTicket>();
-        let mut hero = ts.take_from_sender<Hero>();
-        attach_weapon(&mut hero, weapon_ticket, &allow_list, ts.ctx());
         ts::return_shared(allow_list);
+        ts::return_shared(treasury);
         ts.return_to_sender(hero);
     };
 

@@ -15,7 +15,7 @@ footer: "Sui"
 
 /* ----- Base Section ----- */
 section {
-  background: #000000;
+  background: #000000 !important;
   color: #8B8B8B;
   font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: 22px;
@@ -65,7 +65,7 @@ section p {
 }
 
 section strong {
-  color: #FFFFFF;
+  color: #FFFFFF !important;
   font-weight: 600;
 }
 
@@ -127,7 +127,8 @@ section table {
 }
 
 section th {
-  color: #FFFFFF;
+  color: #FFFFFF !important;
+  background: #000000 !important;
   font-weight: 600;
   text-align: left;
   padding: 10px 16px;
@@ -137,6 +138,7 @@ section th {
 section td {
   padding: 8px 16px;
   border-bottom: 1px solid #1A1A1A;
+  background: #000000 !important;
 }
 
 section hr {

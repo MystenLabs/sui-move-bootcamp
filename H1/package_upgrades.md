@@ -56,35 +56,37 @@ To restrict:
 
 A common challenge: after upgrading, you want users to use the new package version's functions, not the old ones. Since old package versions remain on-chain, nothing technically prevents calling them.
 
-The solution is a **Version** shared object:
+The solution is a **versioned shared object** -- a shared object that tracks the current package version and also holds useful state:
 
 ```move
-module my_package::version;
+module my_package::training_ground;
 
 const EInvalidPackageVersion: u64 = 0;
 const VERSION: u64 = 1;
 
-public struct Version has key {
+public struct TrainingGround has key {
     id: UID,
     version: u64,
+    xp_per_level: u64,
 }
 
 fun init(ctx: &mut TxContext) {
-    transfer::share_object(Version {
+    transfer::share_object(TrainingGround {
         id: object::new(ctx),
         version: VERSION,
+        xp_per_level: 100,
     })
 }
 
-public fun check_is_valid(self: &Version) {
+public fun check_is_valid(self: &TrainingGround) {
     assert!(self.version == VERSION, EInvalidPackageVersion);
 }
 ```
 
-Public functions that mutate shared state should take `&Version` and call `check_is_valid()`. When you upgrade:
+Public functions that mutate shared state should take `&TrainingGround` and call `check_is_valid()`. When you upgrade:
 
 1. Bump the `VERSION` constant in the new code
-2. Add a `migrate` function that updates the shared `Version` object's `version` field
+2. Add a `migrate` function that updates the shared object's `version` field (and any other config)
 3. After publishing the upgrade, call `migrate` to activate the new version
 4. Old package functions now fail the version check
 
@@ -102,7 +104,7 @@ After an upgrade:
 
 # Hands-On Exercise: Upgrading the Hero Package
 
-In this exercise you will publish the Hero game package (`package_upgrade/`), interact with it, then upgrade it to add paid minting.
+In this exercise you will publish the Hero game package (`package_upgrade/`), train and level up heroes, then upgrade the package to rebalance the training mechanics.
 
 ## Prerequisites
 
@@ -149,20 +151,19 @@ From the publish output, note three values:
 |---|---|
 | **Package ID** | The `Published Objects` section, the new package address |
 | **UpgradeCap ID** | In `Created Objects`, the object with type `0x2::package::UpgradeCap` |
-| **HeroVersion ID** | In `Created Objects`, the object with type `<pkg>::hero_version::HeroVersion` |
+| **TrainingGround ID** | In `Created Objects`, the object with type `<pkg>::training_ground::TrainingGround` |
 
 > Tip: Use `sui client objects` to list all objects owned by your address.
 
-## Step 3: Interact with v1
+## Step 3: Play the Game
 
-Mint a free hero:
+Mint a hero:
 
 ```bash
 sui client call \
   --package <PACKAGE_ID> \
   --module hero \
-  --function mint_hero \
-  --args <HERO_VERSION_ID>
+  --function mint_hero
 ```
 
 Note the **Hero object ID** from the output. You can inspect it:
@@ -171,59 +172,72 @@ Note the **Hero object ID** from the output. You can inspect it:
 sui client object <HERO_ID>
 ```
 
-You should see a `Hero` with `health: 100` and `stamina: 10`.
+You should see a `Hero` with `lvl: 1`, `xp: 0`, and `xp_2_lvl_up: 100`.
+
+Now train the hero twice (each training session gives 50 XP):
+
+```bash
+sui client call \
+  --package <PACKAGE_ID> \
+  --module training_ground \
+  --function train \
+  --args <TRAINING_GROUND_ID> <HERO_ID>
+```
+
+```bash
+sui client call \
+  --package <PACKAGE_ID> \
+  --module training_ground \
+  --function train \
+  --args <TRAINING_GROUND_ID> <HERO_ID>
+```
+
+The hero now has 100 XP -- enough to level up:
+
+```bash
+sui client call \
+  --package <PACKAGE_ID> \
+  --module training_ground \
+  --function level_up \
+  --args <TRAINING_GROUND_ID> <HERO_ID>
+```
+
+Inspect the hero again:
+
+```bash
+sui client object <HERO_ID>
+```
+
+You should see `lvl: 2`, `xp: 0`, `xp_2_lvl_up: 200` (level × 100 XP per level).
 
 ## Step 4: Modify Code for v2
 
-Now make the following changes to upgrade the package:
+Now make the following changes to upgrade the package and rebalance the training mechanics:
 
-### 4a. Bump the version (`sources/hero_version.move`)
+### 4a. Rebalance the TrainingGround (`sources/training_ground.move`)
 
-Change the `VERSION` constant from `1` to `2` and add a `migrate` function to update the shared `HeroVersion` object:
+Bump the `VERSION` constant from `1` to `2` and add a `migrate` function that updates both the version and the XP-per-level configuration. Deprecate the old `train` function and add `train_v2` with reduced XP gain:
 
 ```move
 const VERSION: u64 = 2;  // bumped from 1
 
-public fun migrate(self: &mut HeroVersion) {
+const EUseTrainV2Instead: u64 = 2;
+
+/// Migrate the shared object to v2: update version and rebalance xp_per_level.
+public fun migrate(self: &mut TrainingGround) {
     self.version = VERSION;
+    self.xp_per_level = 150;  // rebalanced from 100
 }
-```
 
-### 4b. Deprecate `mint_hero` and add `mint_hero_v2` (`sources/hero.move`)
-
-Add error and price constants:
-
-```move
-const EInsufficientPayment: u64 = 1;
-const EUseMintHeroV2Instead: u64 = 2;
-
-const HERO_PRICE: u64 = 5_000_000_000;  // 5 SUI
-```
-
-Make `mint_hero` abort so old callers get a clear error:
-
-```move
-public fun mint_hero(_version: &HeroVersion, _ctx: &mut TxContext) {
-    abort EUseMintHeroV2Instead
+/// Deprecated -- use train_v2 instead.
+public fun train(_self: &TrainingGround, _hero: &mut Hero) {
+    abort EUseTrainV2Instead
 }
-```
 
-Add the paid minting function (5 SUI = 5_000_000_000 MIST):
-
-```move
-use sui::coin::Coin;
-use sui::sui::SUI;
-
-public fun mint_hero_v2(
-    version: &HeroVersion,
-    payment: Coin<SUI>,
-    ctx: &mut TxContext,
-) {
-    version.check_is_valid();
-    assert!(payment.value() >= HERO_PRICE, EInsufficientPayment);
-    transfer::public_transfer(payment, ctx.sender());
-    let hero = Hero { id: object::new(ctx), health: 100, stamina: 10 };
-    transfer::transfer(hero, ctx.sender());
+/// Train a hero (v2): grants 30 XP per session instead of 50.
+public fun train_v2(self: &TrainingGround, hero: &mut Hero) {
+    self.check_is_valid();
+    hero.add_xp(30);
 }
 ```
 
@@ -236,54 +250,83 @@ sui client test-upgrade --upgrade-capability <UPGRADE_CAP_ID>
 
 Note the **new Package ID** from the output.
 
-## Step 6: Migrate the HeroVersion Object
+## Before Migrating: The Version Gap
 
-Call the `migrate` function using the **new** package ID to update the `HeroVersion` object:
+The upgrade is published, but the on-chain `TrainingGround` still has `version: 1`. The new package code expects `VERSION = 2`, so the version check will fail:
+
+```bash
+# Try train_v2 through the NEW package — fails!
+sui client call \
+  --package <NEW_PACKAGE_ID> \
+  --module training_ground \
+  --function train_v2 \
+  --args <TRAINING_GROUND_ID> <HERO_ID>
+```
+
+This aborts with `EInvalidPackageVersion` because `TrainingGround.version` (1) ≠ `VERSION` (2).
+
+Meanwhile, the **old package still works** — its compiled code has `VERSION = 1`, which still matches the object:
+
+```bash
+# Train through the OLD package — still works!
+sui client call \
+  --package <PACKAGE_ID> \
+  --module training_ground \
+  --function train \
+  --args <TRAINING_GROUND_ID> <HERO_ID>
+```
+
+This succeeds and grants 50 XP as before.
+
+> **This is the controlled migration window.** The upgrade is live on-chain but not yet activated. Users can still use the old package until you call `migrate` to flip the switch. This is why the versioned shared object pattern is powerful — it decouples publishing from activation.
+
+## Step 6: Migrate
+
+Call `migrate` on the TrainingGround using the **new** package ID:
 
 ```bash
 sui client call \
   --package <NEW_PACKAGE_ID> \
-  --module hero_version \
+  --module training_ground \
   --function migrate \
-  --args <HERO_VERSION_ID>
+  --args <TRAINING_GROUND_ID>
 ```
+
+After this, the TrainingGround's `version` is `2` and `xp_per_level` is `150`.
 
 ## Step 7: Observe the Differences
 
-### Old `mint_hero` now fails
+### Old `train` now fails
 
 ```bash
 sui client call \
   --package <NEW_PACKAGE_ID> \
-  --module hero \
-  --function mint_hero \
-  --args <HERO_VERSION_ID>
+  --module training_ground \
+  --function train \
+  --args <TRAINING_GROUND_ID> <HERO_ID>
 ```
 
-This will abort with `EUseMintHeroV2Instead`.
+This will abort with `EUseTrainV2Instead`.
 
-### New `mint_hero_v2` works with payment
-
-First, get a coin object with at least 5 SUI. Then:
+### New `train_v2` works with reduced XP
 
 ```bash
 sui client call \
   --package <NEW_PACKAGE_ID> \
-  --module hero \
-  --function mint_hero_v2 \
-  --args <HERO_VERSION_ID> <COIN_ID>
+  --module training_ground \
+  --function train_v2 \
+  --args <TRAINING_GROUND_ID> <HERO_ID>
 ```
 
-This succeeds and creates a new Hero.
+This succeeds and grants 30 XP (down from 50 in v1).
 
-### Compare the two Heroes
+### Level up uses rebalanced XP curve
 
-```bash
-sui client object <V1_HERO_ID>
-sui client object <V2_HERO_ID>
-```
+Train enough times and level up again. With `xp_per_level` now set to `150`, the hero needs `lvl * 150` XP to reach each new level -- a harder grind than v1's `lvl * 100`.
 
-Both have the same `Hero` type (referencing the original package ID), but were created by different package versions.
+### Compare v1 vs v2 heroes
+
+Mint a new hero using the v2 package and train both heroes. The v1 hero (migrated) and the v2 hero share the same `Hero` type but experience the rebalanced mechanics: 30 XP per training session (down from 50) and 150 XP per level (up from 100).
 
 ## Further Reading
 
