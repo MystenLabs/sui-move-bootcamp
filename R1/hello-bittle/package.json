@@ -5,15 +5,15 @@
   "type": "module",
   "scripts": {
     "start": "npx tsx src/index.ts",
-    "demo": "npx tsx src/demo.ts",
-    "exercise3": "npx tsx src/exercise3.ts"
+    "demo": "npx tsx src/demo.ts"
   },
   "dependencies": {
+    "dotenv": "^17.3.1",
     "serialport": "^12.0.0"
   },
   "devDependencies": {
-    "@types/node": "^24.10.0",
-    "tsx": "^4.20.0",
-    "typescript": "^5.9.0"
+    "@types/node": "^24.12.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
   }
 }
