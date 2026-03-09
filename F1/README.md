@@ -35,6 +35,6 @@ Please read the corresponding [README.md](./move/README.MD) for the detailed ins
 ### 2. User Interface
 
 - For this part of the exercise, we will have to build the UI that interacts with the smart contracts.
-- As we did in the exercise [E2](../E2/), we will be using the CLI tool [@mysten/create-dapp](https://sdk.mystenlabs.com/dapp-kit/create-dapp) to bootstrap our application, and utilize [Sui dApp Kit](https://sdk.mystenlabs.com/dapp-kit) to handle wallet connections
+- As we did in exercise [E2](../E2/), we will bootstrap our application and use [`@mysten/dapp-kit-react`](https://docs.sui.io/references/ts-sdk/dapp-kit-react) for wallet connections and Sui interactions
 
 Please read the corresponding [README.md](./app/README.md) for the detailed instructions.
