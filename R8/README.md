@@ -1,4 +1,4 @@
-# Module 8: Pay to Play - Tokenomics
+# Module R8: Pay to Play - Tokenomics
 
 Create an economic model for shared robot access using custom tokens on Sui.
 
