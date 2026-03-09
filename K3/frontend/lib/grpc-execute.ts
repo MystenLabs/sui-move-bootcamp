@@ -4,11 +4,11 @@ import { createSuiGrpcClient } from '@/lib/sui-grpc-client';
 
 /**
  * Creates an execute function that submits the transaction via Sui gRPC (F1-style).
- * Use this with useSignAndExecuteTransaction({ execute }) so writes go over gRPC
- * while build/toJSON still use the RPC client from context.
+ * Use this with dAppKit.signAndExecuteTransaction({ execute }) so writes go over
+ * gRPC while build/toJSON still use the client from the active dApp Kit network.
  *
  * @param network - Current Sui network (mainnet | testnet | devnet)
- * @returns Execute function compatible with useSignAndExecuteTransaction
+ * @returns Execute function compatible with dAppKit.signAndExecuteTransaction
  */
 export function createGrpcExecuteForNetwork(network: SuiNetworkName) {
   return async ({

@@ -97,8 +97,8 @@ export const useCounterById = (objectId: string) => {
 };
 
 const COUNTER_EVENTS_QUERY = `
-  query CounterEvents($module: String!, $first: Int!) {
-    events(filter: { module: $module }, first: $first) {
+  query CounterEvents($module: String!, $last: Int!) {
+    events(filter: { module: $module }, last: $last) {
       nodes {
         sequenceNumber
         timestamp
@@ -151,7 +151,7 @@ export async function getCounterEvents(
     query: COUNTER_EVENTS_QUERY,
     variables: {
       module: moduleFilter,
-      first: limit,
+      last: limit,
     },
   });
 
@@ -192,7 +192,9 @@ export async function getCounterEvents(
     });
   }
 
-  return events;
+  // `last` returns the latest N events, but keeps connection order.
+  // Reverse so the newest activity appears first in the UI.
+  return events.reverse();
 }
 
 /**
@@ -203,7 +205,7 @@ export const useCounterEvents = (limit: number = 10) => {
   const packageAddress = clientConfig.NEXT_PUBLIC_PACKAGE_ADDRESS;
 
   return useQuery({
-    queryKey: COUNTER_QUERY_KEYS.events(),
+    queryKey: COUNTER_QUERY_KEYS.events(network, packageAddress, limit),
     queryFn: () => {
       const client = createSuiGraphQLClient(network as SuiNetworkName);
       return getCounterEvents(client, packageAddress, limit);
