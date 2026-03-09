@@ -10,9 +10,10 @@
  * - OPERATOR_ED25519_PRIVATE_KEY: Operator's Ed25519 key (hex or bech32)
  */
 
-import { getFullnodeUrl, SuiClient } from "@mysten/sui/client";
+import { SuiGraphQLClient } from "@mysten/sui/graphql";
 import { decodeSuiPrivateKey } from "@mysten/sui/cryptography";
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
+import { Transaction } from "@mysten/sui/transactions";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -23,8 +24,19 @@ export const NETWORK = (process.env.SUI_NETWORK || "testnet") as
   | "devnet"
   | "mainnet";
 
-export const suiClient = new SuiClient({
-  url: getFullnodeUrl(NETWORK),
+const GRAPHQL_URLS: Record<string, string> = {
+  mainnet: "https://sui-mainnet.mystenlabs.com/graphql",
+  testnet: "https://sui-testnet.mystenlabs.com/graphql",
+  devnet: "https://sui-devnet.mystenlabs.com/graphql",
+  localnet: "http://127.0.0.1:9125/graphql",
+};
+
+export const suiClient = new SuiGraphQLClient({
+  url:
+    process.env.SUI_GRAPHQL_URL ||
+    GRAPHQL_URLS[NETWORK] ||
+    GRAPHQL_URLS.testnet,
+  network: NETWORK,
 });
 
 // Contract configuration
@@ -75,3 +87,24 @@ export const DEFAULT_PENALTY_AMOUNT = 50_000_000; // 0.05 SUI
 console.log("Configuration loaded:");
 console.log(`  Network: ${NETWORK}`);
 console.log(`  Package: ${PACKAGE_ID.slice(0, 10)}...`);
+
+/**
+ * Execute a transaction, unwrap the result, and return the transaction data.
+ */
+export async function executeTransaction(
+  tx: Transaction,
+  signer: Ed25519Keypair,
+  include?: { effects?: boolean; events?: boolean; objectTypes?: boolean },
+) {
+  const result = await suiClient.signAndExecuteTransaction({
+    transaction: tx,
+    signer,
+    include: include || { effects: true, events: true, objectTypes: true },
+  });
+
+  if (result.$kind === "FailedTransaction") {
+    throw new Error("Transaction failed");
+  }
+
+  return result.Transaction;
+}

@@ -21,7 +21,7 @@ import {
   USER_ED25519_PRIVATE_KEY,
   getOperatorKeypair,
   getUserKeypair,
-  suiClient,
+  executeTransaction,
 } from "./config";
 
 // For Node.js crypto
@@ -134,13 +134,9 @@ async function createTunnel() {
   // Execute transaction
   console.log("Submitting transaction...");
 
-  const result = await suiClient.signAndExecuteTransaction({
-    transaction: tx,
-    signer: userKeypair, // User pays for creation
-    options: {
-      showEffects: true,
-      showEvents: true,
-    },
+  const result = await executeTransaction(tx, userKeypair, {
+    effects: true,
+    events: true,
   });
 
   console.log();
@@ -152,11 +148,11 @@ async function createTunnel() {
 
   // Extract tunnel ID from events
   const tunnelCreatedEvent = result.events?.find((e) =>
-    e.type.includes("TunnelCreated"),
+    e.eventType.includes("TunnelCreated"),
   );
 
   if (tunnelCreatedEvent) {
-    const tunnelId = (tunnelCreatedEvent.parsedJson as any)?.tunnel_id;
+    const tunnelId = (tunnelCreatedEvent.json as any)?.tunnel_id;
     console.log(`Tunnel ID: ${tunnelId}`);
     console.log();
     console.log("Save these values for later:");

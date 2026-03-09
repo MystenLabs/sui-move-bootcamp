@@ -18,7 +18,7 @@ import {
   MODULE_NAME,
   OPERATOR_ED25519_PRIVATE_KEY,
   PACKAGE_ID,
-  suiClient,
+  executeTransaction,
   USER_ED25519_PRIVATE_KEY,
 } from "./config";
 
@@ -165,13 +165,9 @@ async function closeTunnel() {
   console.log("Submitting close transaction...");
 
   const userKeypair = getUserKeypair();
-  const result = await suiClient.signAndExecuteTransaction({
-    transaction: tx,
-    signer: userKeypair,
-    options: {
-      showEffects: true,
-      showEvents: true,
-    },
+  const result = await executeTransaction(tx, userKeypair, {
+    effects: true,
+    events: true,
   });
 
   console.log();

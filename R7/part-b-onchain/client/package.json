@@ -9,13 +9,13 @@
     "demo": "npx tsx src/demo.ts"
   },
   "dependencies": {
-    "@mysten/sui": "^1.17.0",
-    "@noble/ed25519": "^2.0.0",
-    "dotenv": "^16.3.1"
+    "@mysten/sui": "^2.6.0",
+    "@noble/ed25519": "^2.3.0",
+    "dotenv": "^16.6.1"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
-    "tsx": "^4.7.0",
-    "typescript": "^5.0.0"
+    "@types/node": "^20.19.37",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
   }
 }
