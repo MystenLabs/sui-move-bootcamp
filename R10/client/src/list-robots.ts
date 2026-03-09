@@ -4,6 +4,7 @@
  * Usage: pnpm list-robots
  */
 
+import { bcs } from "@mysten/sui/bcs";
 import { REGISTRY_ID, suiClient, validateConfig } from "./config";
 
 async function main() {
@@ -18,16 +19,15 @@ async function main() {
   try {
     // Get registry object
     const registry = await suiClient.getObject({
-      id: REGISTRY_ID,
-      options: { showContent: true },
+      objectId: REGISTRY_ID,
+      include: { json: true },
     });
 
-    if (registry.data?.content?.dataType !== "moveObject") {
+    const fields = registry.object.json as any;
+    if (!fields) {
       console.error("Could not read registry");
       process.exit(1);
     }
-
-    const fields = registry.data.content.fields as any;
     const robotNames = fields.robot_names || [];
     const activeCount = fields.active_count || 0;
     const totalRegistered = fields.total_registered || 0;
@@ -61,16 +61,23 @@ async function main() {
     for (const robotName of robotNames) {
       try {
         // Query dynamic field for this robot name
-        const robotField = await suiClient.getDynamicFieldObject({
+        const robotField = await suiClient.getDynamicField({
           parentId: robotsTableId,
           name: {
             type: "0x1::string::String",
-            value: robotName,
+            bcs: bcs.string().serialize(robotName).toBytes(),
           },
         });
 
-        if (robotField.data?.content?.dataType === "moveObject") {
-          const robotData = (robotField.data.content.fields as any).value;
+        // Get the field's object with JSON data
+        const fieldObject = await suiClient.getObject({
+          objectId: robotField.dynamicField.fieldId,
+          include: { json: true },
+        });
+
+        const fieldJson = fieldObject.object.json as any;
+        if (fieldJson) {
+          const robotData = fieldJson.value;
 
           console.log(`  ${robotData.name}`);
           console.log(`    Type: ${robotData.robot_type}`);

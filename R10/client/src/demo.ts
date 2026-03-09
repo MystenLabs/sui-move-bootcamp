@@ -142,13 +142,13 @@ async function main() {
   );
 
   const registry = await suiClient.getObject({
-    id: REGISTRY_ID,
-    options: { showContent: true },
+    objectId: REGISTRY_ID,
+    include: { json: true },
   });
 
-  if (registry.data?.content?.dataType === "moveObject") {
-    const fields = registry.data.content.fields as any;
-    const robotNames = fields.robot_names || [];
+  const registryFields = registry.object.json as any;
+  if (registryFields) {
+    const robotNames = registryFields.robot_names || [];
     console.log(`Found ${robotNames.length} robot(s) in registry:`);
     robotNames.forEach((name: string) => console.log(`  - ${name}`));
     console.log("");
@@ -177,7 +177,9 @@ async function main() {
 
   // Get TREAT coins
   const coins = await getTreatCoins(address);
-  const coinToUse = coins.find((c) => BigInt(c.balance) >= BigInt(totalCost));
+  const coinToUse = coins.find(
+    (c: any) => BigInt(c.balance) >= BigInt(totalCost),
+  );
 
   if (!coinToUse) {
     console.error("No coin with sufficient balance");
@@ -185,7 +187,7 @@ async function main() {
   }
 
   const tx3 = new Transaction();
-  const [paymentCoin] = tx3.splitCoins(tx3.object(coinToUse.coinObjectId), [
+  const [paymentCoin] = tx3.splitCoins(tx3.object(coinToUse.objectId), [
     tx3.pure.u64(totalCost),
   ]);
 
@@ -204,14 +206,16 @@ async function main() {
   const result3 = await executeTransaction(tx3, keypair);
 
   // Get session ID from created objects
-  const createdSession = result3.objectChanges?.find(
-    (change) =>
-      change.type === "created" &&
-      change.objectType.includes("::rental_session::RentalSession"),
-  );
+  const createdSession = result3.effects?.changedObjects
+    .filter((c) => c.idOperation === "Created")
+    .map((c) => ({
+      objectId: c.objectId,
+      objectType: result3.objectTypes?.[c.objectId] || "",
+    }))
+    .find((o) => o.objectType.includes("::rental_session::RentalSession"));
 
   let sessionId = "";
-  if (createdSession && createdSession.type === "created") {
+  if (createdSession) {
     sessionId = createdSession.objectId;
   }
 
@@ -288,13 +292,13 @@ async function main() {
   const result4 = await executeTransaction(tx4, keypair);
 
   const endEvent = result4.events?.find((e) =>
-    e.type.includes("::SessionEnded"),
+    e.eventType.includes("::SessionEnded"),
   );
 
   console.log(`Transaction: ${result4.digest}\n`);
 
   if (endEvent) {
-    const data = endEvent.parsedJson as any;
+    const data = endEvent.json as any;
     console.log("Settlement:");
     console.log(`  Actual minutes used: ${data.actual_minutes}`);
     console.log(`  Paid to operator: ${data.amount_paid} TREAT`);

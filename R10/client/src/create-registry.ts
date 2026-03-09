@@ -41,16 +41,18 @@ async function main() {
     const result = await executeTransaction(tx, keypair);
 
     // Find the created registry object
-    const createdRegistry = result.objectChanges?.find(
-      (change) =>
-        change.type === "created" &&
-        change.objectType.includes("::robot_registry::RobotRegistry"),
-    );
+    const createdRegistry = result.effects?.changedObjects
+      .filter((c) => c.idOperation === "Created")
+      .map((c) => ({
+        objectId: c.objectId,
+        objectType: result.objectTypes?.[c.objectId] || "",
+      }))
+      .find((o) => o.objectType.includes("::robot_registry::RobotRegistry"));
 
     console.log("\n=== Success! ===");
     console.log(`Transaction: ${result.digest}`);
 
-    if (createdRegistry && createdRegistry.type === "created") {
+    if (createdRegistry) {
       console.log(`\nRegistry ID: ${createdRegistry.objectId}`);
       console.log("\nAdd this to your .env file:");
       console.log(`REGISTRY_ID=${createdRegistry.objectId}`);

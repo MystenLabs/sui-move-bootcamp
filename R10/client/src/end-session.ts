@@ -47,16 +47,15 @@ async function main() {
   // Get session info
   try {
     const session = await suiClient.getObject({
-      id: sessionId,
-      options: { showContent: true },
+      objectId: sessionId,
+      include: { json: true },
     });
 
-    if (session.data?.content?.dataType !== "moveObject") {
+    const fields = session.object.json as any;
+    if (!fields) {
       console.error("Session not found or already ended");
       process.exit(1);
     }
-
-    const fields = session.data.content.fields as any;
 
     if (!fields.is_active) {
       console.error("Session is not active");
@@ -111,14 +110,14 @@ async function main() {
 
     // Parse events
     const endEvent = result.events?.find((e) =>
-      e.type.includes("::SessionEnded"),
+      e.eventType.includes("::SessionEnded"),
     );
 
     console.log("\n=== Session Ended! ===");
     console.log(`Transaction: ${result.digest}`);
 
     if (endEvent) {
-      const data = endEvent.parsedJson as any;
+      const data = endEvent.json as any;
       console.log(`\nSettlement:`);
       console.log(`  Robot: ${data.robot_name}`);
       console.log(`  Actual minutes: ${data.actual_minutes}`);
@@ -127,13 +126,15 @@ async function main() {
     }
 
     // Find created receipt
-    const createdReceipt = result.objectChanges?.find(
-      (change) =>
-        change.type === "created" &&
-        change.objectType.includes("::rental_session::RentalReceipt"),
-    );
+    const createdReceipt = result.effects?.changedObjects
+      .filter((c) => c.idOperation === "Created")
+      .map((c) => ({
+        objectId: c.objectId,
+        objectType: result.objectTypes?.[c.objectId] || "",
+      }))
+      .find((o) => o.objectType.includes("::rental_session::RentalReceipt"));
 
-    if (createdReceipt && createdReceipt.type === "created") {
+    if (createdReceipt) {
       console.log(`\nReceipt ID: ${createdReceipt.objectId}`);
     }
   } catch (error: any) {

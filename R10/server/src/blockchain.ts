@@ -9,7 +9,7 @@
  * Session creation and ending are done by the dApp.
  */
 
-import { getFullnodeUrl, SuiClient } from "@mysten/sui/client";
+import { SuiGraphQLClient } from "@mysten/sui/graphql";
 import { config } from "./config";
 import type { SessionData } from "./types";
 
@@ -17,17 +17,24 @@ import type { SessionData } from "./types";
 // SUI CLIENT
 // ============================================
 
-let suiClient: SuiClient | null = null;
+const GRAPHQL_URLS: Record<string, string> = {
+  mainnet: "https://sui-mainnet.mystenlabs.com/graphql",
+  testnet: "https://sui-testnet.mystenlabs.com/graphql",
+  devnet: "https://sui-devnet.mystenlabs.com/graphql",
+  localnet: "http://127.0.0.1:9125/graphql",
+};
+
+let suiClient: SuiGraphQLClient | null = null;
 
 /**
  * Get or create the Sui client
  */
-export function getSuiClient(): SuiClient {
+export function getSuiClient(): SuiGraphQLClient {
   if (!suiClient) {
+    const network = config.network || "testnet";
     const rpcUrl =
-      config.rpcUrl ||
-      getFullnodeUrl(config.network as "testnet" | "devnet" | "mainnet");
-    suiClient = new SuiClient({ url: rpcUrl });
+      config.rpcUrl || GRAPHQL_URLS[network] || GRAPHQL_URLS.testnet;
+    suiClient = new SuiGraphQLClient({ url: rpcUrl, network });
   }
   return suiClient;
 }
@@ -49,14 +56,11 @@ export async function fetchSessionData(
 
   try {
     const response = await client.getObject({
-      id: sessionId,
-      options: {
-        showContent: true,
-        showType: true,
-      },
+      objectId: sessionId,
+      include: { json: true },
     });
 
-    if (!response.data || !response.data.content) {
+    if (!response.object) {
       if (config.debug) {
         console.log(`Session ${sessionId} not found`);
       }
@@ -64,15 +68,7 @@ export async function fetchSessionData(
     }
 
     // Verify it's a RentalSession object
-    const content = response.data.content;
-    if (content.dataType !== "moveObject") {
-      if (config.debug) {
-        console.log(`Object ${sessionId} is not a Move object`);
-      }
-      return null;
-    }
-
-    const typeName = content.type;
+    const typeName = response.object.type;
     if (!typeName.includes("RentalSession")) {
       if (config.debug) {
         console.log(`Object ${sessionId} is not a RentalSession`);
@@ -81,7 +77,13 @@ export async function fetchSessionData(
     }
 
     // Extract fields
-    const fields = content.fields as Record<string, unknown>;
+    const fields = response.object.json as Record<string, unknown>;
+    if (!fields) {
+      if (config.debug) {
+        console.log(`Object ${sessionId} has no JSON fields`);
+      }
+      return null;
+    }
 
     return {
       sessionId,

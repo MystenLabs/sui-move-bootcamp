@@ -13,6 +13,7 @@
  * 4. Outputs the session ID and keys for WebSocket control
  */
 
+import { bcs } from "@mysten/sui/bcs";
 import { Transaction } from "@mysten/sui/transactions";
 import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui/utils";
 import {
@@ -56,28 +57,36 @@ async function main() {
 
   // Get robot info to calculate price
   const registry = await suiClient.getObject({
-    id: REGISTRY_ID,
-    options: { showContent: true },
+    objectId: REGISTRY_ID,
+    include: { json: true },
   });
 
-  if (registry.data?.content?.dataType !== "moveObject") {
+  const fields = registry.object.json as any;
+  if (!fields) {
     console.error("Could not read registry");
     process.exit(1);
   }
-
-  const fields = registry.data.content.fields as any;
   const robotsTableId = fields.robots?.fields?.id?.id;
 
   // Get robot price
   let pricePerMinute = 2; // Default
   try {
-    const robotField = await suiClient.getDynamicFieldObject({
+    const robotField = await suiClient.getDynamicField({
       parentId: robotsTableId,
-      name: { type: "0x1::string::String", value: robotName },
+      name: {
+        type: "0x1::string::String",
+        bcs: bcs.string().serialize(robotName).toBytes(),
+      },
     });
-
-    if (robotField.data?.content?.dataType === "moveObject") {
-      const robotData = (robotField.data.content.fields as any).value;
+    // Get the field's object and use getObject with json
+    const fieldObjectId = robotField.dynamicField.fieldId;
+    const fieldObject = await suiClient.getObject({
+      objectId: fieldObjectId,
+      include: { json: true },
+    });
+    const fieldJson = fieldObject.object.json as any;
+    if (fieldJson) {
+      const robotData = fieldJson.value;
       pricePerMinute = parseInt(robotData.price_per_minute, 10);
 
       if (!robotData.is_available) {
@@ -120,7 +129,7 @@ async function main() {
   let paymentCoin;
   if (coinToUse) {
     // Split exact amount from this coin
-    const [payment] = tx.splitCoins(tx.object(coinToUse.coinObjectId), [
+    const [payment] = tx.splitCoins(tx.object(coinToUse.objectId), [
       tx.pure.u64(totalCost),
     ]);
     paymentCoin = payment;
@@ -150,37 +159,35 @@ async function main() {
     const result = await executeTransaction(tx, keypair);
 
     // Find created session object
-    const createdSession = result.objectChanges?.find(
-      (change) =>
-        change.type === "created" &&
-        change.objectType.includes("::rental_session::RentalSession"),
-    );
+    const createdSession = result.effects?.changedObjects
+      .filter((c) => c.idOperation === "Created")
+      .map((c) => ({
+        objectId: c.objectId,
+        objectType: result.objectTypes?.[c.objectId] || "",
+      }))
+      .find((o) => o.objectType.includes("::rental_session::RentalSession"));
 
     // Parse events
     const sessionEvent = result.events?.find((e) =>
-      e.type.includes("::SessionStarted"),
+      e.eventType.includes("::SessionStarted"),
     );
 
     console.log("\n=== Session Started! ===");
     console.log(`Transaction: ${result.digest}`);
 
-    if (createdSession && createdSession.type === "created") {
+    if (createdSession) {
       console.log(`\nSession ID: ${createdSession.objectId}`);
     }
 
     if (sessionEvent) {
-      const data = sessionEvent.parsedJson as any;
+      const data = sessionEvent.json as any;
       console.log(`Robot: ${data.robot_name}`);
       console.log(`Prepaid: ${data.prepaid_minutes} minutes`);
     }
 
     // Output keys for WebSocket connection
     console.log("\n=== Connection Info (save this!) ===");
-    console.log(
-      `SESSION_ID=${
-        createdSession?.type === "created" ? createdSession.objectId : ""
-      }`,
-    );
+    console.log(`SESSION_ID=${createdSession?.objectId || ""}`);
     console.log(`USER_COMMAND_PRIVATE_KEY=0x${bytesToHex(privateKey)}`);
     console.log(`USER_COMMAND_PUBLIC_KEY=0x${bytesToHex(publicKey)}`);
     console.log(

@@ -8,7 +8,7 @@
  * - Common transaction patterns
  */
 
-import { SuiClient, getFullnodeUrl } from "@mysten/sui/client";
+import { SuiGraphQLClient } from "@mysten/sui/graphql";
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 import { Transaction } from "@mysten/sui/transactions";
 import * as ed from "@noble/ed25519";
@@ -38,8 +38,19 @@ export const REGISTRY_ID = process.env.REGISTRY_ID || "";
 // SUI CLIENT
 // ============================================
 
-export const suiClient = new SuiClient({
-  url: getFullnodeUrl(NETWORK),
+const GRAPHQL_URLS: Record<string, string> = {
+  mainnet: "https://sui-mainnet.mystenlabs.com/graphql",
+  testnet: "https://sui-testnet.mystenlabs.com/graphql",
+  devnet: "https://sui-devnet.mystenlabs.com/graphql",
+  localnet: "http://127.0.0.1:9125/graphql",
+};
+
+export const suiClient = new SuiGraphQLClient({
+  url:
+    process.env.SUI_GRAPHQL_URL ||
+    GRAPHQL_URLS[NETWORK] ||
+    GRAPHQL_URLS.testnet,
+  network: NETWORK,
 });
 
 // ============================================
@@ -143,23 +154,26 @@ export function getTreatCoinType(): string {
  * Get user's TREAT token balance
  */
 export async function getTreatBalance(address: string): Promise<bigint> {
-  const coins = await suiClient.getCoins({
+  const coins = await suiClient.listCoins({
     owner: address,
     coinType: getTreatCoinType(),
   });
 
-  return coins.data.reduce((total, coin) => total + BigInt(coin.balance), 0n);
+  return coins.objects.reduce(
+    (total, coin) => total + BigInt(coin.balance),
+    0n,
+  );
 }
 
 /**
  * Get all TREAT coins for an address
  */
 export async function getTreatCoins(address: string) {
-  const coins = await suiClient.getCoins({
+  const coins = await suiClient.listCoins({
     owner: address,
     coinType: getTreatCoinType(),
   });
-  return coins.data;
+  return coins.objects;
 }
 
 /**
@@ -172,17 +186,19 @@ export async function executeTransaction(
   const result = await suiClient.signAndExecuteTransaction({
     transaction: tx,
     signer: keypair,
-    options: {
-      showEffects: true,
-      showEvents: true,
-      showObjectChanges: true,
+    include: {
+      effects: true,
+      events: true,
+      objectTypes: true,
     },
   });
 
-  // Wait for transaction to be confirmed
-  await suiClient.waitForTransaction({ digest: result.digest });
+  if (result.$kind === "FailedTransaction") {
+    throw new Error("Transaction failed");
+  }
 
-  return result;
+  await suiClient.waitForTransaction({ digest: result.Transaction.digest });
+  return result.Transaction;
 }
 
 /**

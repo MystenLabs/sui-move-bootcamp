@@ -64,14 +64,14 @@ async function main() {
 
     // Parse events
     const mintEvent = result.events?.find((e) =>
-      e.type.includes("::TokensMinted"),
+      e.eventType.includes("::TokensMinted"),
     );
 
     console.log("\n=== Success! ===");
     console.log(`Transaction: ${result.digest}`);
 
     if (mintEvent) {
-      const data = mintEvent.parsedJson as any;
+      const data = mintEvent.json as any;
       console.log(`Minted: ${data.amount} TREAT`);
       console.log(`Daily total: ${data.new_daily_total}/100`);
     }

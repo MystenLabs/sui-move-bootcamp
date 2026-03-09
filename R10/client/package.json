@@ -14,13 +14,13 @@
     "demo": "tsx src/demo.ts"
   },
   "dependencies": {
-    "@mysten/sui": "^1.18.0",
-    "@noble/ed25519": "^2.2.3",
-    "dotenv": "^16.4.7"
+    "@mysten/sui": "^2.6.0",
+    "@noble/ed25519": "^2.3.0",
+    "dotenv": "^16.6.1"
   },
   "devDependencies": {
-    "@types/node": "^22.10.2",
-    "tsx": "^4.19.2",
-    "typescript": "^5.7.2"
+    "@types/node": "^22.19.15",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
   }
 }

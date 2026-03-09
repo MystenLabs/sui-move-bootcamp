@@ -77,14 +77,14 @@ async function main() {
 
     // Parse events
     const registerEvent = result.events?.find((e) =>
-      e.type.includes("::RobotRegistered"),
+      e.eventType.includes("::RobotRegistered"),
     );
 
     console.log("\n=== Success! ===");
     console.log(`Transaction: ${result.digest}`);
 
     if (registerEvent) {
-      const data = registerEvent.parsedJson as any;
+      const data = registerEvent.json as any;
       console.log(`\nRobot registered:`);
       console.log(`  Name: ${data.name}`);
       console.log(`  Type: ${data.robot_type}`);

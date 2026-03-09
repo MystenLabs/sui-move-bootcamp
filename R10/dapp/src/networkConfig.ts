@@ -1,10 +1,11 @@
 import { createNetworkConfig } from "@mysten/dapp-kit";
-import { getFullnodeUrl } from "@mysten/sui/client";
+import { getJsonRpcFullnodeUrl } from "@mysten/sui/jsonRpc";
 
 const { networkConfig, useNetworkVariable, useNetworkVariables } =
   createNetworkConfig({
     devnet: {
-      url: getFullnodeUrl("devnet"),
+      url: getJsonRpcFullnodeUrl("devnet"),
+      network: "devnet",
       variables: {
         packageId: import.meta.env.VITE_PACKAGE_ID || "",
         faucetId: import.meta.env.VITE_FAUCET_ID || "",
@@ -14,7 +15,8 @@ const { networkConfig, useNetworkVariable, useNetworkVariables } =
       },
     },
     testnet: {
-      url: getFullnodeUrl("testnet"),
+      url: getJsonRpcFullnodeUrl("testnet"),
+      network: "testnet",
       variables: {
         packageId: import.meta.env.VITE_PACKAGE_ID || "",
         faucetId: import.meta.env.VITE_FAUCET_ID || "",
@@ -24,7 +26,8 @@ const { networkConfig, useNetworkVariable, useNetworkVariables } =
       },
     },
     mainnet: {
-      url: getFullnodeUrl("mainnet"),
+      url: getJsonRpcFullnodeUrl("mainnet"),
+      network: "mainnet",
       variables: {
         packageId: import.meta.env.VITE_PACKAGE_ID || "",
         faucetId: import.meta.env.VITE_FAUCET_ID || "",

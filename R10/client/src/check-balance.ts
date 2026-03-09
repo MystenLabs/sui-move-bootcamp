@@ -36,9 +36,7 @@ async function main() {
     console.log(`\nCoins (${coins.length} total):`);
     coins.forEach((coin, i) => {
       console.log(
-        `  ${i + 1}. ${coin.coinObjectId.slice(0, 10)}... = ${
-          coin.balance
-        } TREAT`,
+        `  ${i + 1}. ${coin.objectId.slice(0, 10)}... = ${coin.balance} TREAT`,
       );
     });
   }
@@ -46,14 +44,14 @@ async function main() {
   // Get faucet stats
   try {
     const faucet = await suiClient.getObject({
-      id: FAUCET_ID,
-      options: { showContent: true },
+      objectId: FAUCET_ID,
+      include: { json: true },
     });
 
-    if (faucet.data?.content?.dataType === "moveObject") {
-      const fields = faucet.data.content.fields as any;
+    const faucetFields = faucet.object.json as any;
+    if (faucetFields) {
       const totalSupply =
-        fields.treasury_cap?.fields?.total_supply?.fields?.value;
+        faucetFields.treasury_cap?.fields?.total_supply?.fields?.value;
       if (totalSupply) {
         console.log(`\nFaucet Total Supply: ${totalSupply} TREAT`);
       }

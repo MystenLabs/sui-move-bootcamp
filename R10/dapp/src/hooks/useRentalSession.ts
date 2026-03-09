@@ -1,6 +1,7 @@
 import {
   useCurrentAccount,
   useSignAndExecuteTransaction,
+  useSuiClient,
   useSuiClientQuery,
 } from "@mysten/dapp-kit";
 import { Transaction } from "@mysten/sui/transactions";
@@ -27,8 +28,16 @@ export function useRentalSession(sessionId?: string) {
   const packageId = useNetworkVariable("packageId");
   const registryId = useNetworkVariable("registryId");
   const account = useCurrentAccount();
+  const client = useSuiClient();
   const { mutateAsync: signAndExecute, isPending } =
-    useSignAndExecuteTransaction();
+    useSignAndExecuteTransaction({
+      execute: async ({ bytes, signature }) =>
+        await client.executeTransactionBlock({
+          transactionBlock: bytes,
+          signature,
+          options: { showEvents: true, showEffects: true },
+        }),
+    });
   const { coins, refetch: refetchBalance } = useTreatBalance();
 
   // Fetch session data if sessionId provided
