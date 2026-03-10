@@ -10,7 +10,7 @@ This module teaches you how to secure robot control and introduces **on-chain tu
 
 **Prerequisites**:
 
-- Completed Modules 1-6
+- Completed Modules R1-R6
 - Understanding of digital signatures (we will review!)
 - Sui CLI installed (for Part B)
 
@@ -32,7 +32,7 @@ This module teaches you how to secure robot control and introduces **on-chain tu
 
 ### The Problem: Open Robot Control
 
-In Modules 5 and 6, we built a system where anyone with the URL can control your robot:
+In Modules R5 and R6, we built a system where anyone with the URL can control your robot:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -649,7 +649,7 @@ flowchart TB
 ## Project Structure
 
 ```
-Module7/
+R7/
 ├── README.md                      # This file
 ├── part-a-offchain/               # Simple auth (no blockchain)
 │   ├── package.json
@@ -770,9 +770,9 @@ function checkRateLimit(publicKey: string): boolean {
 
 Now that you understand secure channels, you are ready for:
 
-- **Module 8**: Tokenomics - Add payment flows to tunnels
-- **Module 9**: Multi-robot - Coordinate multiple robots
-- **Module 10**: Full platform - Production-ready system
+- **Module R8**: Tokenomics - Add payment flows to tunnels
+- **Module R9**: Multi-robot - Coordinate multiple robots
+- **Module R10**: Full platform - Production-ready system
 
 ---
 
@@ -785,5 +785,5 @@ Now that you understand secure channels, you are ready for:
 - [noble-ed25519 Library](https://github.com/paulmillr/noble-ed25519)
 - [Part A: Off-Chain Auth](./part-a-offchain/)
 - [Part B: On-Chain Tunnels](./part-b-onchain/)
-- [Module 5: WebSocket + Serial](../Module5%20-%20WebSocket%20+%20Serial/README.md)
-- [Module 6: Tunneling](../Module6/README.md)
+- [Module R5: WebSocket + Serial](../R5/README.md)
+- [Module R6: Tunneling](../R6/README.md)
