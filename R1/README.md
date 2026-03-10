@@ -367,9 +367,9 @@ R1/
 
 Now that you understand serial communication, you are ready for:
 
-- **Module 2**: Add blockchain - queue commands on Sui
-- **Module 3**: Add WebSocket - real-time browser control
-- **Module 4**: Combine serial + blockchain for the first integration
+- **Module R2**: Add blockchain - queue commands on Sui
+- **Module R3**: Add WebSocket - real-time browser control
+- **Module R4**: Combine serial + blockchain for the first integration
 
 ---
 
