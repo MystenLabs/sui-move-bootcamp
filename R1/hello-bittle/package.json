@@ -1,0 +1,19 @@
+{
+  "name": "hello-bittle",
+  "version": "1.0.0",
+  "description": "Minimal example to control Petoi Bittle X via serial",
+  "type": "module",
+  "scripts": {
+    "start": "npx tsx src/index.ts",
+    "demo": "npx tsx src/demo.ts"
+  },
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "serialport": "^12.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.12.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}
