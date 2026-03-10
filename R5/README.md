@@ -638,7 +638,7 @@ Now that you have real-time control, you are ready for:
 
 ## Resources
 
-- [Module 1: Serial Basics](../Module1%20-%20Minimal%20Serial%20Control/README.md)
-- [Module 3: WebSocket Basics](../Module3%20-%20Real-time%20Basics/README.md)
+- [Module 1: Serial Basics](../R1/README.md)
+- [Module 3: WebSocket Basics](../R3/README.md)
 - [ws Library Documentation](https://github.com/websockets/ws)
 - [SerialPort Documentation](https://serialport.io/)
