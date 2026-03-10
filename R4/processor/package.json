@@ -1,0 +1,22 @@
+{
+  "name": "blockchain-robot-processor",
+  "version": "1.0.0",
+  "description": "Polls blockchain for actions and executes them on a Bittle robot",
+  "type": "module",
+  "scripts": {
+    "start": "npx tsx src/processor.ts",
+    "dev": "npx tsx watch src/processor.ts",
+    "test-serial": "npx tsx src/test-serial.ts",
+    "test-blockchain": "npx tsx src/test-blockchain.ts"
+  },
+  "dependencies": {
+    "@mysten/sui": "^2.6.0",
+    "dotenv": "^16.6.1",
+    "serialport": "^12.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.37",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}
