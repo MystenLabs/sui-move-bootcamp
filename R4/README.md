@@ -8,9 +8,9 @@ Connect the Sui blockchain to a physical Petoi Bittle robot. Watch as on-chain t
 
 **Prerequisites**:
 
-- Completed Module 1 (Serial Basics) and Module 2 (Blockchain Basics)
+- Completed Module R1 (Serial Basics) and Module R2 (Blockchain Basics)
 - Petoi Bittle X robot connected via USB
-- Deployed action queue contract from Module 2
+- Deployed action queue contract from Module R2
 
 ---
 
@@ -75,8 +75,8 @@ pnpm test-serial      # Test robot connection
 # 4. Run the processor
 pnpm start
 
-# 5. In another terminal, add actions to the queue (from Module 2)
-cd ../Module2\ -\ Blockchain\ Fundamentals/client
+# 5. In another terminal, add actions to the queue (from Module R2)
+cd ../R2/client
 pnpm add-action wave
 pnpm add-action sit
 pnpm add-action walk_forward
@@ -241,8 +241,8 @@ For learning purposes, polling is ideal. Production systems might use event subs
 
 # Blockchain
 NETWORK=testnet
-PACKAGE_ADDRESS=0x...        # From Module 2 deployment
-QUEUE_ID=0x...               # From Module 2 create-queue
+PACKAGE_ADDRESS=0x...        # From Module R2 deployment
+QUEUE_ID=0x...               # From Module R2 create-queue
 ADMIN_PHRASE="twelve words"  # Must be queue admin
 
 # Robot
@@ -257,10 +257,10 @@ DEBUG=false                  # Enable verbose logging
 
 ### Finding Your Serial Port
 
-Use the detector from Module 1:
+Use the detector from Module R1:
 
 ```bash
-python3 ../Module1\ -\ Minimal\ Serial\ Control/detect-device.py
+python3 ../R1/detect-device.py
 ```
 
 Or manually:
@@ -275,7 +275,7 @@ Or manually:
 ### Step 1: Start the Processor
 
 ```bash
-cd Module4\ -\ First\ Integration
+cd R4
 pnpm start
 ```
 
@@ -310,10 +310,10 @@ Press Ctrl+C to stop
 
 ### Step 2: Add Actions from Another Terminal
 
-Using Module 2's client:
+Using Module R2's client:
 
 ```bash
-cd Module2\ -\ Blockchain\ Fundamentals/client
+cd R2/client
 pnpm add-action wave
 pnpm add-action sit
 pnpm add-action walk_forward
@@ -639,15 +639,15 @@ Only the queue admin can pop actions. Make sure `ADMIN_PHRASE` matches the walle
 
 Now that you have blockchain controlling a robot, you are ready for:
 
-- **Module 5**: Add WebSocket for real-time browser control (Module 1 + 3)
-- **Module 6**: Add tunneling for internet access
-- **Module 7**: Secure the channel with authentication
+- **Module R5**: Add WebSocket for real-time browser control (Module R1 + R3)
+- **Module R6**: Add tunneling for internet access
+- **Module R7**: Secure the channel with authentication
 
 ---
 
 ## Resources
 
-- [Module 1: Serial Basics](../Module1%20-%20Minimal%20Serial%20Control/README.md)
-- [Module 2: Blockchain Fundamentals](../Module2%20-%20Blockchain%20Fundamentals/README.md)
+- [Module R1: Serial Basics](../R1/README.md)
+- [Module R2: Blockchain Fundamentals](../R2/README.md)
 - [Petoi Bittle Documentation](https://docs.petoi.com/)
 - [Sui Developer Documentation](https://docs.sui.io/)
