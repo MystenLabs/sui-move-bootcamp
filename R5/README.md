@@ -8,7 +8,7 @@ Control your Petoi Bittle robot in real-time from a web browser. No blockchain d
 
 **Prerequisites**:
 
-- Completed Module 1 (Serial Basics) and Module 3 (WebSocket Basics)
+- Completed Module R1 (Serial Basics) and Module R3 (WebSocket Basics)
 - Petoi Bittle X robot connected via USB
 - Node.js 18+
 
@@ -39,7 +39,7 @@ Control your Petoi Bittle robot in real-time from a web browser. No blockchain d
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-Compare to Module 4 (blockchain): 5000-10000ms latency
+Compare to Module R4 (blockchain): 5000-10000ms latency
 This module: 10-50ms latency - **100x faster!**
 
 ---
@@ -575,7 +575,7 @@ joystick.addEventListener("touchmove", (e) => {
 ### "Robot not connected"
 
 1. Check USB cable is connected
-2. Find your port: `python3 ../Module1\ -\ Minimal\ Serial\ Control/detect-device.py`
+2. Find your port: `python3 ../R1/detect-device.py`
 3. Set `SERIAL_PORT` in `.env`
 
 ### High latency (>100ms)
@@ -598,21 +598,21 @@ joystick.addEventListener("touchmove", (e) => {
 
 ---
 
-## Comparison: Module 4 vs Module 5
+## Comparison: Module R4 vs Module R5
 
-| Aspect      | Module 4 (Blockchain)     | Module 5 (WebSocket) |
-| ----------- | ------------------------- | -------------------- |
-| Latency     | 5-10 seconds              | 10-50 ms             |
-| Persistence | Forever on-chain          | None (RAM only)      |
-| Multi-user  | Yes (via blockchain)      | Yes (via broadcast)  |
-| Cost        | Gas fees                  | Free                 |
-| Internet    | Required                  | Local network only   |
-| Use case    | Async queue, auditability | Real-time control    |
+| Aspect      | Module R4 (Blockchain)     | Module R5 (WebSocket)|
+| ----------- | -------------------------  | -------------------- |
+| Latency     | 5-10 seconds               | 10-50 ms             |
+| Persistence | Forever on-chain           | None (RAM only)      |
+| Multi-user  | Yes (via blockchain)       | Yes (via broadcast)  |
+| Cost        | Gas fees                   | Free                 |
+| Internet    | Required                   | Local network only   |
+| Use case    | Async queue, auditability  | Real-time control    |
 
 Choose based on your needs:
 
-- **Module 4**: When you need permanent record, global access, or tokenomics
-- **Module 5**: When you need instant response and low latency
+- **Module R4**: When you need permanent record, global access, or tokenomics
+- **Module R5**: When you need instant response and low latency
 
 ---
 
@@ -630,15 +630,15 @@ Choose based on your needs:
 
 Now that you have real-time control, you are ready for:
 
-- **Module 6**: Add tunneling for internet access (control from anywhere!)
-- **Module 7**: Add authentication (secure your robot)
-- **Module 8**: Combine blockchain + WebSocket (best of both worlds)
+- **Module R6**: Add tunneling for internet access (control from anywhere!)
+- **Module R7**: Add authentication (secure your robot)
+- **Module R8**: Combine blockchain + WebSocket (best of both worlds)
 
 ---
 
 ## Resources
 
-- [Module 1: Serial Basics](../R1/README.md)
-- [Module 3: WebSocket Basics](../R3/README.md)
+- [Module R1: Serial Basics](../R1/README.md)
+- [Module R3: WebSocket Basics](../R3/README.md)
 - [ws Library Documentation](https://github.com/websockets/ws)
 - [SerialPort Documentation](https://serialport.io/)
