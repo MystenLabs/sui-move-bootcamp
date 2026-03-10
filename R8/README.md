@@ -8,7 +8,7 @@ Create an economic model for shared robot access using custom tokens on Sui.
 
 **Prerequisites**:
 
-- Completed Module 2 (Blockchain Fundamentals)
+- Completed Module R2 (Blockchain Fundamentals)
 - Sui CLI installed and configured
 - A wallet with testnet SUI
 
@@ -653,8 +653,8 @@ Only the robot creator can pop actions. Use the correct wallet.
 
 Now that you understand tokenomics, you are ready for:
 
-- **Module 9**: Add multi-user fairness and queue limits
-- **Module 10**: Build the complete rental platform with billing
+- **Module R9**: Add multi-user fairness and queue limits
+- **Module R10**: Build the complete rental platform with billing
 
 ---
 
@@ -663,4 +663,4 @@ Now that you understand tokenomics, you are ready for:
 - [Sui Coin Documentation](https://docs.sui.io/concepts/sui-move-concepts/packages/coin)
 - [Sui Clock Documentation](https://docs.sui.io/concepts/sui-move-concepts/clock)
 - [Sui Events](https://docs.sui.io/concepts/sui-move-concepts/events)
-- [Module 2: Blockchain Fundamentals](../Module2%20-%20Blockchain%20Fundamentals/README.md)
+- [Module 2: Blockchain Fundamentals](../R2/README.md)
