@@ -2,10 +2,10 @@ import { decrementTransaction } from '@/lib/counter/counter-transactions';
 import clientConfig from '@/lib/env-config-client';
 import { TransactionError, isUserRejection } from '@/lib/errors';
 import {
+  useCurrentClient,
   useCurrentAccount,
-  useSignAndExecuteTransaction,
-  useSuiClient,
-} from '@mysten/dapp-kit';
+  useDAppKit,
+} from '@mysten/dapp-kit-react';
 import { useMutation } from '@tanstack/react-query';
 
 export interface DecrementDirectParams {
@@ -14,13 +14,12 @@ export interface DecrementDirectParams {
 
 /**
  * Hook for decrementing the counter with direct (non-sponsored) transactions.
- * User pays their own gas fees.
+ * User pays their own gas fees. Execute and wait use Sui gRPC (F1-style).
  */
 export const useDecrementDirect = () => {
-  const client = useSuiClient();
+  const client = useCurrentClient();
   const sender = useCurrentAccount();
-  const { mutateAsync: signAndExecuteTransaction } =
-    useSignAndExecuteTransaction();
+  const dAppKit = useDAppKit();
 
   return useMutation({
     mutationFn: async (params: DecrementDirectParams) => {
@@ -38,12 +37,17 @@ export const useDecrementDirect = () => {
         clientConfig.NEXT_PUBLIC_PACKAGE_ADDRESS,
       );
 
-      // 3. Sign and execute the transaction (user pays gas)
-      let result: Awaited<ReturnType<typeof signAndExecuteTransaction>>;
+      // 3. Sign and execute via gRPC (F1-style write path)
+      let digest: string;
       try {
-        result = await signAndExecuteTransaction({
+        const result = await dAppKit.signAndExecuteTransaction({
           transaction,
         });
+        const txResult =
+          result.$kind === 'Transaction'
+            ? result.Transaction
+            : result.FailedTransaction;
+        digest = txResult.digest;
       } catch (error) {
         if (isUserRejection(error)) {
           throw new TransactionError(
@@ -59,17 +63,14 @@ export const useDecrementDirect = () => {
         );
       }
 
-      // 4. Wait for transaction confirmation
+      // 4. Wait for transaction confirmation via gRPC
       try {
-        const waitedResult = await client.waitForTransaction({
-          digest: result.digest,
-          options: {
-            showEffects: true,
-          },
+        const waitedResult = await client.core.waitForTransaction({
+          digest: digest,
         });
 
         return {
-          digest: result.digest,
+          digest: digest,
           result: waitedResult,
         };
       } catch (error) {

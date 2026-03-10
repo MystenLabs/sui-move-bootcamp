@@ -6,10 +6,10 @@ import {
 import clientConfig from '@/lib/env-config-client';
 import { TransactionError, isUserRejection } from '@/lib/errors';
 import {
+  useCurrentClient,
   useCurrentAccount,
-  useSignTransaction,
-  useSuiClient,
-} from '@mysten/dapp-kit';
+  useDAppKit,
+} from '@mysten/dapp-kit-react';
 import { useMutation } from '@tanstack/react-query';
 
 export interface IncrementParams {
@@ -24,9 +24,9 @@ export interface IncrementParams {
  * a standard wallet in dapp-kit, so the same hooks work for both.
  */
 export const useIncrement = () => {
-  const client = useSuiClient();
+  const client = useCurrentClient();
   const sender = useCurrentAccount();
-  const { mutateAsync: signTransaction } = useSignTransaction();
+  const dAppKit = useDAppKit();
 
   return useMutation({
     mutationFn: async (params: IncrementParams) => {
@@ -47,7 +47,7 @@ export const useIncrement = () => {
         );
 
         txBytes = await transaction.build({
-          client: client,
+          client,
           onlyTransactionKind: true,
         });
       } catch (error) {
@@ -77,7 +77,7 @@ export const useIncrement = () => {
       // This works for both regular wallets AND zkLogin wallets
       let signature: string;
       try {
-        const signResult = await signTransaction({
+        const signResult = await dAppKit.signTransaction({
           transaction: sponsoredTxn.bytes,
         });
         signature = signResult.signature;
@@ -107,13 +107,10 @@ export const useIncrement = () => {
         );
       }
 
-      // 6. Wait for transaction confirmation
+      // 6. Wait for transaction confirmation via gRPC (F1-style)
       try {
-        const waitedResult = await client.waitForTransaction({
+        const waitedResult = await client.core.waitForTransaction({
           digest: result.digest,
-          options: {
-            showEffects: true,
-          },
         });
 
         return {
