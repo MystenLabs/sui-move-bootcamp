@@ -8,7 +8,7 @@ Control your robot from anywhere in the world! No static IP, no port forwarding,
 
 **Prerequisites**:
 
-- Completed Module 5 (WebSocket + Serial server)
+- Completed Module R5 (WebSocket + Serial server)
 - Internet connection
 
 ---
@@ -249,7 +249,7 @@ sequenceDiagram
 ### Step 1: Install cloudflared
 
 ```bash
-cd Module6\ -\ Tunneling\ 101/scripts
+cd R6/scripts
 
 # Run the installer
 ./install-cloudflared.sh
@@ -277,12 +277,12 @@ cloudflared --version
 # cloudflared version 202x.x.x
 ```
 
-### Step 2: Start Module 5 Server
+### Step 2: Start Module R5 Server
 
 In one terminal:
 
 ```bash
-cd ../Module5\ -\ WebSocket\ +\ Serial/server
+cd ../R5/server
 pnpm install
 pnpm start
 ```
@@ -302,7 +302,7 @@ Server running at:
 In another terminal:
 
 ```bash
-cd Module6\ -\ Tunneling\ 101/scripts
+cd R6/scripts
 ./start-tunnel.sh
 ```
 
@@ -328,13 +328,13 @@ Copy that URL and send it to anyone. They can now control your robot from anywhe
 For convenience, start both server and tunnel together:
 
 ```bash
-cd Module6\ -\ Tunneling\ 101/scripts
+cd R6/scripts
 ./start-all.sh
 ```
 
 This starts:
 
-1. Module 5 robot server (port 8080)
+1. Module R5 robot server (port 8080)
 2. Cloudflare tunnel pointing to it
 
 Press `Ctrl+C` to stop both.
@@ -447,7 +447,7 @@ flowchart TB
 
 ## WebSocket Over Tunnel
 
-Module 5 uses WebSocket for real-time control. Good news: **Cloudflare Tunnel supports WebSocket!**
+Module R5 uses WebSocket for real-time control. Good news: **Cloudflare Tunnel supports WebSocket!**
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -473,7 +473,7 @@ Module 5 uses WebSocket for real-time control. Good news: **Cloudflare Tunnel su
 
 | Scenario                   | Latency   | Experience            |
 | -------------------------- | --------- | --------------------- |
-| Local (Module 5)           | 10-50ms   | Instant               |
+| Local (Module R5)           | 10-50ms   | Instant               |
 | Same city via tunnel       | 50-100ms  | Excellent             |
 | Same country via tunnel    | 100-200ms | Good                  |
 | Cross-continent via tunnel | 200-400ms | Noticeable but usable |
@@ -537,7 +537,7 @@ For production use, consider:
 3. **API Keys** - Add to your server code
 4. **Rate Limiting** - Prevent abuse
 
-We will cover authentication in Module 7!
+We will cover authentication in Module R7!
 
 ---
 
@@ -578,7 +578,7 @@ Install cloudflared first:
 - Cloudflare routes to nearest edge server
 - Latency depends on user's location
 - Nothing you can do about physics!
-- Consider latency indicator in UI (Module 5 already has this)
+- Consider latency indicator in UI (Module R5 already has this)
 
 ### WebSocket not connecting
 
@@ -592,7 +592,7 @@ ws = new WebSocket("ws://robot-xyz.trycloudflare.com");
 ws = new WebSocket("wss://robot-xyz.trycloudflare.com");
 ```
 
-The Module 5 HTML already handles this by detecting the protocol.
+The Module R5 HTML already handles this by detecting the protocol.
 
 ---
 
@@ -607,13 +607,13 @@ R6/
     └── start-all.sh             # Start server + tunnel
 ```
 
-Note: This module reuses Module 5's server - no need to duplicate!
+Note: This module reuses Module R5's server - no need to duplicate!
 
 ---
 
-## Comparison: Module 5 vs Module 6
+## Comparison: Module R5 vs Module R6
 
-| Aspect       | Module 5 (Local)  | Module 6 (Tunneled)      |
+| Aspect       | Module R5 (Local)  | Module R6 (Tunneled)      |
 | ------------ | ----------------- | ------------------------ |
 | Access       | Same network only | Anywhere in world        |
 | Setup        | Just run server   | Run server + tunnel      |
@@ -638,9 +638,9 @@ Note: This module reuses Module 5's server - no need to duplicate!
 
 Now that your robot is accessible from anywhere, you might want:
 
-- **Module 7**: Add authentication (secure your robot)
-- **Module 8**: Add tokenomics (pay to play)
-- **Module 9**: Multi-robot coordination
+- **Module R7**: Add authentication (secure your robot)
+- **Module R8**: Add tokenomics (pay to play)
+- **Module R9**: Multi-robot coordination
 
 ---
 
@@ -649,4 +649,4 @@ Now that your robot is accessible from anywhere, you might want:
 - [Cloudflare Tunnel Documentation](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/)
 - [cloudflared GitHub](https://github.com/cloudflare/cloudflared)
 - [NAT Explained (Wikipedia)](https://en.wikipedia.org/wiki/Network_address_translation)
-- [Module 5: WebSocket + Serial](../Module5%20-%20WebSocket%20+%20Serial/README.md)
+- [Module R5: WebSocket + Serial](../R5/README.md)
