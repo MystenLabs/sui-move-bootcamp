@@ -473,7 +473,7 @@ Module R5 uses WebSocket for real-time control. Good news: **Cloudflare Tunnel s
 
 | Scenario                   | Latency   | Experience            |
 | -------------------------- | --------- | --------------------- |
-| Local (Module R5)           | 10-50ms   | Instant               |
+| Local (Module R5)          | 10-50ms   | Instant               |
 | Same city via tunnel       | 50-100ms  | Excellent             |
 | Same country via tunnel    | 100-200ms | Good                  |
 | Cross-continent via tunnel | 200-400ms | Noticeable but usable |
@@ -490,7 +490,7 @@ Module R5 uses WebSocket for real-time control. Good news: **Cloudflare Tunnel s
 │                                                                             │
 │   ✅ Your IP is hidden                                                      │
 │      - Attackers see Cloudflare's IP, not yours                             │
-│      - Cannot DDoS your home connection directly                             │
+│      - Cannot DDoS your home connection directly                            │
 │                                                                             │
 │   ✅ Traffic is encrypted                                                   │
 │      - HTTPS/WSS between users and Cloudflare                               │
@@ -515,7 +515,7 @@ Module R5 uses WebSocket for real-time control. Good news: **Cloudflare Tunnel s
 │   ⚠️  Anyone with the URL can access your robot!                            │
 │      - Quick tunnel URLs are random but public                              │
 │      - No authentication by default                                         │
-│      - Do not share URLs you want to keep private                            │
+│      - Do not share URLs you want to keep private                           │
 │                                                                             │
 │   ⚠️  Your server code is exposed                                           │
 │      - Bugs in your server = bugs exposed to internet                       │
@@ -613,7 +613,7 @@ Note: This module reuses Module R5's server - no need to duplicate!
 
 ## Comparison: Module R5 vs Module R6
 
-| Aspect       | Module R5 (Local)  | Module R6 (Tunneled)      |
+| Aspect       | Module R5 (Local) | Module R6 (Tunneled)     |
 | ------------ | ----------------- | ------------------------ |
 | Access       | Same network only | Anywhere in world        |
 | Setup        | Just run server   | Run server + tunnel      |
