@@ -616,6 +616,6 @@ Only the queue creator (admin) can process actions. Make sure you're using the a
 
 ## Next Steps
 
-- **Module 10**: Advanced game mechanics and tournament systems
+- **Module R10**: Advanced game mechanics and tournament systems
 - Integrate with physical robot control from earlier modules
-- Add payment for priority actions using tokens from Module 8
+- Add payment for priority actions using tokens from Module R8
