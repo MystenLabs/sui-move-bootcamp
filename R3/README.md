@@ -706,9 +706,9 @@ if (ws.readyState === WebSocket.OPEN) {
 
 Now that you understand real-time communication, you are ready for:
 
-- **Module 4**: Combine blockchain queue + serial robot control
-- **Module 5**: Add WebSocket to control a real robot (Module 1 + 3)
-- **Module 6**: Add tunneling for internet access
+- **Module R4**: Combine blockchain queue + serial robot control
+- **Module R5**: Add WebSocket to control a real robot (Module R1 + R3)
+- **Module R6**: Add tunneling for internet access
 
 ---
 
