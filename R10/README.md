@@ -1,10 +1,10 @@
 # Module R10: Robot Rental Platform - Full Stack Capstone
 
-This capstone module combines everything from Modules 1-9 into a complete robot rental platform:
+This capstone module combines everything from Modules R1-R9 into a complete robot rental platform:
 
 - **Discovery**: Browse available robots in a registry
-- **Authentication**: Ed25519 keypairs for secure command signing (from Module 7)
-- **Payment**: TREAT tokens with escrow and automatic refunds (from Module 8)
+- **Authentication**: Ed25519 keypairs for secure command signing (from Module R7)
+- **Payment**: TREAT tokens with escrow and automatic refunds (from Module R8)
 - **Real-time Control**: Off-chain command signing with on-chain settlement (state channels)
 
 ## Table of Contents
@@ -113,7 +113,7 @@ graph LR
 - **Escrow**: Prepaid tokens held until session ends
 - **Settlement**: Automatic calculation and distribution
 
-### 2. Authentication (Building on Module 7)
+### 2. Authentication (Building on Module R7)
 
 ```mermaid
 graph TB
@@ -148,7 +148,7 @@ User → Blockchain → Robot
        ~5 seconds per command 😢
 ```
 
-With state channels (like Module 7's tunnels):
+With state channels (like Module R7's tunnels):
 
 ```
 1. OPEN session on-chain (one transaction)
@@ -462,35 +462,35 @@ This module builds on everything from previous modules:
 
 ```mermaid
 graph TD
-    M1[Module 1<br/>Serial Communication] --> M4
-    M2[Module 2<br/>Blockchain Basics] --> M4
-    M3[Module 3<br/>WebSocket] --> M5
-    M4[Module 4<br/>Blockchain + Serial] --> M5
-    M5[Module 5<br/>WebSocket + Serial] --> M6
-    M6[Module 6<br/>Cloudflare Tunnel] --> M7
-    M7[Module 7<br/>Authentication] --> M10
-    M8[Module 8<br/>Tokenomics] --> M10
-    M9[Module 9<br/>Multiplayer] --> M10
-    M10[Module 10<br/>Full Platform]
+    M1[Module R1<br/>Serial Communication] --> M4
+    M2[Module R2<br/>Blockchain Basics] --> M4
+    M3[Module R3<br/>WebSocket] --> M5
+    M4[Module R4<br/>Blockchain + Serial] --> M5
+    M5[Module R5<br/>WebSocket + Serial] --> M6
+    M6[Module R6<br/>Cloudflare Tunnel] --> M7
+    M7[Module R7<br/>Authentication] --> M10
+    M8[Module R8<br/>Tokenomics] --> M10
+    M9[Module R9<br/>Multiplayer] --> M10
+    M10[Module R10<br/>Full Platform]
 
     style M10 fill:#f96,stroke:#333
 ```
 
 ### What Each Module Contributed
 
-| Module      | Contribution to Module 10                   |
+| Module      | Contribution to Module R10                   |
 | ----------- | ------------------------------------------- |
-| Module 7    | Ed25519 authentication, state channels      |
-| Module 8    | TREAT token, pay-per-action model           |
-| Module 9    | Multi-user patterns, fairness (inspiration) |
-| Modules 1-6 | Serial/WebSocket/Tunneling foundation       |
+| Module R7    | Ed25519 authentication, state channels      |
+| Module R8    | TREAT token, pay-per-action model           |
+| Module R9    | Multi-user patterns, fairness (inspiration) |
+| Modules R1-R6 | Serial/WebSocket/Tunneling foundation       |
 
 ---
 
 ## Project Structure
 
 ```
-Module10 - Full Platform/
+R10 - Full Platform/
 ├── README.md                 # This file
 ├── move/
 │   ├── Move.toml
@@ -562,7 +562,7 @@ After completing this module, you could:
 1. **Add a WebSocket Server**: Implement real-time command relay with signature verification
 2. **Build a React dApp**: User-friendly interface for browsing and renting robots
 3. **Integrate Physical Robot**: Connect to a real Petoi Bittle via serial port
-4. **Add Cloudflare Tunnel**: Make your robot accessible from anywhere (Module 6)
+4. **Add Cloudflare Tunnel**: Make your robot accessible from anywhere (Module R6)
 5. **Implement Sponsorship**: Let operators sponsor user transactions (like the root project)
 
 ---
