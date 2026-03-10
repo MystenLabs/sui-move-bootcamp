@@ -71,6 +71,8 @@ const EInvalidDeposit: u64 = 1;
 const ENotActive: u64 = 2;
 /// Only tunnel participants can call this
 const ENotAuthorized: u64 = 3;
+/// Public key must be 32 bytes (Ed25519)
+const EInvalidPublicKey: u64 = 4;
 
 // ============================================
 // DATA STRUCTURES
@@ -167,8 +169,8 @@ fun create_tunnel_internal(
     ctx: &mut TxContext,
 ): Tunnel {
     // Validate public keys are 32 bytes (Ed25519)
-    assert!(user_public_key.length() == 32, EInvalidDeposit);
-    assert!(operator_public_key.length() == 32, EInvalidDeposit);
+    assert!(user_public_key.length() == 32, EInvalidPublicKey);
+    assert!(operator_public_key.length() == 32, EInvalidPublicKey);
 
     // Convert coins to balances
     let user_balance = coin::into_balance(user_deposit);
@@ -356,7 +358,7 @@ public fun close_tunnel_cooperative(
 
 /// Function for cooperative close.
 /// Transfers refunds to the user and operator addresses stored in the tunnel.
-fun close_cooperative(
+public fun close_cooperative(
     tunnel: Tunnel,
     user_final_balance: u64,
     operator_final_balance: u64,
@@ -426,6 +428,37 @@ public fun claim_penalty(
     tunnel.is_active = false;
 
     coin::from_balance(penalty, ctx)
+}
+
+/// Withdraw remaining deposit after a dispute has been resolved.
+///
+/// After `claim_penalty` deactivates the tunnel, this function allows
+/// each participant to withdraw their remaining deposit balance.
+///
+/// ## Authorization
+/// - User can withdraw user_deposit remainder
+/// - Operator can withdraw operator_deposit remainder
+///
+/// Returns `none` if the caller's deposit is already empty.
+public fun withdraw_after_dispute(tunnel: &mut Tunnel, ctx: &mut TxContext): Option<Coin<SUI>> {
+    // Only callable on deactivated tunnels (after claim_penalty)
+    assert!(!tunnel.is_active, ENotActive);
+
+    let sender = ctx.sender();
+    assert!(sender == tunnel.user_address || sender == tunnel.operator_address, ENotAuthorized);
+
+    let balance = if (sender == tunnel.user_address) {
+        &mut tunnel.user_deposit
+    } else {
+        &mut tunnel.operator_deposit
+    };
+
+    if (balance.value() == 0) {
+        option::none()
+    } else {
+        let remaining = balance.withdraw_all();
+        option::some(coin::from_balance(remaining, ctx))
+    }
 }
 
 // ============================================
