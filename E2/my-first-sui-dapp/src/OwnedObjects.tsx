@@ -1,24 +1,29 @@
-import { useCurrentAccount, useCurrentClient, useCurrentNetwork } from "@mysten/dapp-kit-react";
+import { useCurrentAccount, useCurrentClient } from "@mysten/dapp-kit-react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "./components/ui/card";
+import { Package, Loader2 } from "lucide-react";
 
 export function OwnedObjects() {
   const account = useCurrentAccount();
   const client = useCurrentClient();
-  const network = useCurrentNetwork();
 
   const { data, isPending, error } = useQuery({
-    queryKey: [network, "getOwnedObjects", account?.address],
-    queryFn: () =>
-      client.listOwnedObjects({
-        owner: account!.address,
-        type: "0xc413c2e2c1ac0630f532941be972109eae5d6734e540f20109d75a59a1efea1e::hero::Hero",
-      }),
+    queryKey: ["ownedObjects", account?.address],
+    queryFn: async () => {
+      if (!account) return null;
+
+      const { response } = await client.stateService.listOwnedObjects({
+        owner: account.address,
+        objectType: "0xc413c2e2c1ac0630f532941be972109eae5d6734e540f20109d75a59a1efea1e::hero::Hero"
+      });
+      return response.objects ?? [];
+    },
     enabled: !!account,
   });
 
@@ -26,31 +31,40 @@ export function OwnedObjects() {
     return null;
   }
 
-  if (error) {
-    return <div className="text-destructive-foreground">Error: {error.message}</div>;
-  }
-
-  if (isPending || !data) {
-    return <div className="text-muted-foreground">Loading...</div>;
-  }
-
   return (
     <Card>
       <CardHeader>
-        <CardTitle>
-          {data.objects.length === 0
-            ? "No objects owned by the connected wallet"
-            : "Objects owned by the connected wallet"}
+        <CardTitle className="flex items-center gap-2">
+          <Package className="h-5 w-5" />
+          Owned Objects
         </CardTitle>
+        <CardDescription>Objects owned by the connected wallet</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-2">
-          {data.objects.map((object) => (
-            <p key={object.objectId} className="font-mono text-sm break-all">
-              Object ID: {object.objectId}
-            </p>
-          ))}
-        </div>
+        {error ? (
+          <p className="text-destructive-foreground">
+            Error: {(error as Error)?.message || "Unknown error"}
+          </p>
+        ) : isPending || !data ? (
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Loading objects...
+          </div>
+        ) : data.length === 0 ? (
+          <p className="text-muted-foreground">No objects found</p>
+        ) : (
+          <div className="space-y-2">
+            <div className="pb-2">There is currently <b>{data.length}</b> objects.</div>
+            {data.map((object) => (
+              <div
+                key={object.objectId}
+                className="rounded-md border bg-muted/50 p-3"
+              >
+                <p className="font-mono text-xs break-all">{object.objectId}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

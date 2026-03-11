@@ -5,11 +5,10 @@ import { Transaction } from "@mysten/sui/transactions";
 export const MintNFTForm = () => {
   const client = useCurrentClient();
   const account = useCurrentAccount();
-  const dAppKit = useDAppKit();
+  const { signAndExecuteTransaction } = useDAppKit();
   const queryClient = useQueryClient();
-  const network = useCurrentNetwork();
 
-  const handleMint = () => {
+  const handleMint = async() => {
     if (!account?.address) {
       alert("Wallet not connected!");
       return;
@@ -23,17 +22,16 @@ export const MintNFTForm = () => {
     });
     tx.transferObjects([hero], account?.address);
 
-    dAppKit
-      .signAndExecuteTransaction({
-        transaction: tx,
-      })
+    await signAndExecuteTransaction({
+      transaction: tx,
+    })
       .then(async (resp) => {
         console.log(resp.Transaction?.digest);
         await client.waitForTransaction({ result: resp });
         queryClient.invalidateQueries({
           predicate: (query) =>
-            query.queryKey[0] === network &&
-            query.queryKey[1] === "getOwnedObjects",
+            query.queryKey[0] === "ownedObjects" &&
+            query.queryKey[1] === account.address,
         });
       })
       .catch((err) => {
