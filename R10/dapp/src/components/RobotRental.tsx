@@ -28,7 +28,7 @@ import {
   VALID_ACTIONS,
 } from "../constants";
 import { useRentalSession, useRobotRegistry, useTreatBalance } from "../hooks";
-import { useNetworkVariable } from "../networkConfig";
+import { WS_URL } from "../networkConfig";
 
 // Generate Ed25519 keypair for session authentication
 async function generateEd25519Keypair(): Promise<{
@@ -65,15 +65,14 @@ function WebSocketController({
   sessionId,
   onCommand,
 }: WebSocketControllerProps) {
-  const wsUrl = useNetworkVariable("wsUrl");
   const [connected, setConnected] = useState(false);
   const [ws, setWs] = useState<WebSocket | null>(null);
   const [lastCommand, setLastCommand] = useState<string | null>(null);
 
   const connect = useCallback(() => {
-    if (!wsUrl) return;
+    if (!WS_URL) return;
 
-    const socket = new WebSocket(wsUrl);
+    const socket = new WebSocket(WS_URL);
 
     socket.onopen = () => {
       setConnected(true);
@@ -107,7 +106,7 @@ function WebSocketController({
     };
 
     setWs(socket);
-  }, [wsUrl, sessionId]);
+  }, [sessionId]);
 
   const disconnect = useCallback(() => {
     if (ws) {

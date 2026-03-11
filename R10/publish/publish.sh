@@ -77,7 +77,7 @@ backup_env "../dapp/.env"
 
 # Publish the Move package
 log_info "Publishing Move package..."
-PUBLISH_OUTPUT=$(sui client publish --skip-fetch-latest-git-deps --json ../move 2>&1)
+PUBLISH_OUTPUT=$(sui client publish --gas-budget 100000000 --json ../move 2>&1) || true
 
 # Save output for debugging
 echo "$PUBLISH_OUTPUT" > .publish.res.json
@@ -117,7 +117,7 @@ REGISTRY_OUTPUT=$(sui client call \
     --module robot_registry \
     --function create_registry \
     --gas-budget 10000000 \
-    --json 2>&1)
+    --json 2>&1) || true
 
 # Save registry creation output for debugging
 echo "$REGISTRY_OUTPUT" > .create_registry.res.json
@@ -149,7 +149,7 @@ ROBOT_OUTPUT=$(sui client call \
     --function create_robot \
     --args "\"$ROBOT_NAME\"" \
     --gas-budget 10000000 \
-    --json 2>&1)
+    --json 2>&1) || true
 
 # Save robot creation output for debugging
 echo "$ROBOT_OUTPUT" > .create_robot.res.json

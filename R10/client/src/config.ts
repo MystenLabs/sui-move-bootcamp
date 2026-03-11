@@ -33,15 +33,16 @@ export const NETWORK = (process.env.NETWORK || "testnet") as
 export const PACKAGE_ADDRESS = process.env.PACKAGE_ADDRESS || "";
 export const FAUCET_ID = process.env.FAUCET_ID || "";
 export const REGISTRY_ID = process.env.REGISTRY_ID || "";
+export const ROBOT_PET_ID = process.env.ROBOT_PET_ID || "";
 
 // ============================================
 // SUI CLIENT
 // ============================================
 
 const GRAPHQL_URLS: Record<string, string> = {
-  mainnet: "https://sui-mainnet.mystenlabs.com/graphql",
-  testnet: "https://sui-testnet.mystenlabs.com/graphql",
-  devnet: "https://sui-devnet.mystenlabs.com/graphql",
+  mainnet: "https://graphql.mainnet.sui.io/graphql",
+  testnet: "https://graphql.testnet.sui.io/graphql",
+  devnet: "https://graphql.devnet.sui.io/graphql",
   localnet: "http://127.0.0.1:9125/graphql",
 };
 

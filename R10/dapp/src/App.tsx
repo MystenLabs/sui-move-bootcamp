@@ -1,4 +1,5 @@
-import { ConnectButton, useCurrentAccount } from "@mysten/dapp-kit";
+import { useCurrentAccount } from "@mysten/dapp-kit-react";
+import { ConnectButton } from "@mysten/dapp-kit-react/ui";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
 import {
   Badge,
@@ -14,7 +15,7 @@ import {
 import { useState } from "react";
 import { Faucet, FeedRobot, RobotRental } from "./components";
 import { useTreatBalance } from "./hooks";
-import { useNetworkVariable } from "./networkConfig";
+import { FAUCET_ID, PACKAGE_ID } from "./networkConfig";
 
 function WalletRequired({ children }: { children: React.ReactNode }) {
   const account = useCurrentAccount();
@@ -39,10 +40,7 @@ function WalletRequired({ children }: { children: React.ReactNode }) {
 }
 
 function ConfigWarning() {
-  const packageId = useNetworkVariable("packageId");
-  const faucetId = useNetworkVariable("faucetId");
-
-  if (!packageId || !faucetId) {
+  if (!PACKAGE_ID || !FAUCET_ID) {
     return (
       <Callout.Root color="yellow" size="2" mb="4">
         <Callout.Icon>

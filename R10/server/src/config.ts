@@ -16,9 +16,7 @@ export const config = {
 
   // Sui Network
   network: process.env.NETWORK || "testnet",
-  rpcUrl:
-    process.env.SUI_RPC_URL ||
-    `https://fullnode.${process.env.NETWORK || "testnet"}.sui.io`,
+  graphqlUrl: process.env.SUI_GRAPHQL_URL || "",
 
   // Contract addresses
   packageId: process.env.PACKAGE_ADDRESS || "",
@@ -72,7 +70,8 @@ export function logConfig(): void {
   console.log("Server Configuration:");
   console.log(`  Port: ${config.port}`);
   console.log(`  Network: ${config.network}`);
-  console.log(`  RPC URL: ${config.rpcUrl}`);
+  console.log(`  GraphQL URL: ${config.graphqlUrl || "(default for network)"}`);
+
   console.log(`  Package ID: ${config.packageId}`);
   console.log(`  Registry ID: ${config.registryId}`);
   console.log(`  Simulate Robot: ${config.simulateRobot}`);

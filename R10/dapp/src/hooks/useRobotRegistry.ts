@@ -1,5 +1,6 @@
-import { useSuiClientQuery } from "@mysten/dapp-kit";
-import { useNetworkVariable } from "../networkConfig";
+import { useCurrentClient } from "@mysten/dapp-kit-react";
+import { useQuery } from "@tanstack/react-query";
+import { REGISTRY_ID } from "../networkConfig";
 
 export interface RobotInfo {
   name: string;
@@ -21,45 +22,36 @@ interface RegistryData {
 }
 
 export function useRobotRegistry() {
-  const registryId = useNetworkVariable("registryId");
+  const client = useCurrentClient();
 
-  // Fetch registry data
   const {
-    data: registryObject,
+    data: registryData,
     isLoading,
     refetch: refetchRegistry,
-  } = useSuiClientQuery(
-    "getObject",
-    {
-      id: registryId,
-      options: {
-        showContent: true,
-      },
+  } = useQuery({
+    queryKey: ["registry", REGISTRY_ID],
+    queryFn: async (): Promise<RegistryData | null> => {
+      if (!client || !REGISTRY_ID) return null;
+
+      const obj = await client.core.getObject({
+        objectId: REGISTRY_ID,
+        include: { json: true },
+      });
+
+      const fields = obj.object?.json as Record<string, unknown> | null;
+      if (!fields) return null;
+
+      return {
+        robotNames: (fields.robot_names as string[]) || [],
+        totalRegistered: Number(fields.total_registered || 0),
+        activeCount: Number(fields.active_count || 0),
+      };
     },
-    {
-      enabled: !!registryId,
-    },
-  );
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const parseRegistryData = (fields: any): RegistryData | null => {
-    if (!fields) return null;
-
-    return {
-      robotNames: fields.robot_names || [],
-      totalRegistered: Number(fields.total_registered || 0),
-      activeCount: Number(fields.active_count || 0),
-    };
-  };
-
-  const registryData: RegistryData | null =
-    registryObject?.data?.content?.dataType === "moveObject"
-      ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        parseRegistryData(registryObject.data.content.fields as any)
-      : null;
+    enabled: !!REGISTRY_ID && !!client,
+  });
 
   return {
-    registryData,
+    registryData: registryData ?? null,
     isLoading,
     refetchRegistry,
   };

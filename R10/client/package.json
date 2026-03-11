@@ -5,12 +5,14 @@
   "type": "module",
   "scripts": {
     "request-tokens": "tsx src/request-tokens.ts",
+    "request-treats": "tsx src/request-tokens.ts",
     "check-balance": "tsx src/check-balance.ts",
     "create-registry": "tsx src/create-registry.ts",
     "register-robot": "tsx src/register-robot.ts",
     "list-robots": "tsx src/list-robots.ts",
     "start-session": "tsx src/start-session.ts",
     "end-session": "tsx src/end-session.ts",
+    "feed-robot": "tsx src/feed-robot.ts",
     "demo": "tsx src/demo.ts"
   },
   "dependencies": {

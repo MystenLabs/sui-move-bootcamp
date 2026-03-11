@@ -18,9 +18,9 @@ import type { SessionData } from "./types";
 // ============================================
 
 const GRAPHQL_URLS: Record<string, string> = {
-  mainnet: "https://sui-mainnet.mystenlabs.com/graphql",
-  testnet: "https://sui-testnet.mystenlabs.com/graphql",
-  devnet: "https://sui-devnet.mystenlabs.com/graphql",
+  mainnet: "https://graphql.mainnet.sui.io/graphql",
+  testnet: "https://graphql.testnet.sui.io/graphql",
+  devnet: "https://graphql.devnet.sui.io/graphql",
   localnet: "http://127.0.0.1:9125/graphql",
 };
 
@@ -32,9 +32,9 @@ let suiClient: SuiGraphQLClient | null = null;
 export function getSuiClient(): SuiGraphQLClient {
   if (!suiClient) {
     const network = config.network || "testnet";
-    const rpcUrl =
-      config.rpcUrl || GRAPHQL_URLS[network] || GRAPHQL_URLS.testnet;
-    suiClient = new SuiGraphQLClient({ url: rpcUrl, network });
+    const graphqlUrl =
+      config.graphqlUrl || GRAPHQL_URLS[network] || GRAPHQL_URLS.testnet;
+    suiClient = new SuiGraphQLClient({ url: graphqlUrl, network });
   }
   return suiClient;
 }

@@ -1,10 +1,9 @@
-import {
-  useSignAndExecuteTransaction,
-  useSuiClientQuery,
-} from "@mysten/dapp-kit";
+import { useCurrentClient, useDAppKit } from "@mysten/dapp-kit-react";
 import { Transaction } from "@mysten/sui/transactions";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { RobotAction } from "../constants";
-import { useNetworkVariable } from "../networkConfig";
+import { PACKAGE_ID, ROBOT_PET_ID } from "../networkConfig";
 import { useTreatBalance } from "./useTreatBalance";
 
 interface QueuedAction {
@@ -23,65 +22,55 @@ interface RobotPetData {
 }
 
 export function useRobotPet() {
-  const packageId = useNetworkVariable("packageId");
-  const robotPetId = useNetworkVariable("robotPetId");
-  const { mutateAsync: signAndExecute, isPending } =
-    useSignAndExecuteTransaction();
+  const client = useCurrentClient();
+  const dAppKit = useDAppKit();
   const { coins, refetch: refetchBalance } = useTreatBalance();
+  const [isPending, setIsPending] = useState(false);
 
   // Fetch robot pet data
   const {
-    data: robotPetObject,
+    data: robotPetData,
     isLoading,
     refetch: refetchRobotPet,
-  } = useSuiClientQuery(
-    "getObject",
-    {
-      id: robotPetId,
-      options: {
-        showContent: true,
-      },
-    },
-    {
-      enabled: !!robotPetId,
-    },
-  );
+  } = useQuery({
+    queryKey: ["robotPet", ROBOT_PET_ID],
+    queryFn: async (): Promise<RobotPetData | null> => {
+      if (!client || !ROBOT_PET_ID) return null;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const parseRobotPetData = (fields: any): RobotPetData | null => {
-    if (!fields) return null;
+      const obj = await client.core.getObject({
+        objectId: ROBOT_PET_ID,
+        include: { json: true },
+      });
 
-    // Parse action queue - handle nested "fields" structure from Sui
-    const rawQueue = fields.action_queue || [];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const actionQueue = rawQueue.map((action: any) => {
-      // The action might be wrapped in a "fields" property from Sui's serialization
-      const actionFields = action.fields || action;
+      const fields = obj.object?.json as Record<string, unknown> | null;
+      if (!fields) return null;
+
+      // Parse action queue
+      const rawQueue = (fields.action_queue as unknown[]) || [];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const actionQueue = rawQueue.map((action: any) => {
+        const actionFields = action.fields || action;
+        return {
+          actionName: actionFields.action_name || "",
+          sender: actionFields.sender || "",
+          timestamp: Number(actionFields.timestamp || 0),
+        };
+      });
+
       return {
-        actionName: actionFields.action_name || "",
-        sender: actionFields.sender || "",
-        timestamp: Number(actionFields.timestamp || 0),
+        name: fields.name as string,
+        actionQueue,
+        totalActionsQueued: Number(fields.total_actions_queued || 0),
+        totalActionsProcessed: Number(fields.total_actions_processed || 0),
+        totalTreatsCollected: Number(fields.total_treats_collected || 0),
+        admin: fields.admin as string,
       };
-    });
-
-    return {
-      name: fields.name,
-      actionQueue,
-      totalActionsQueued: Number(fields.total_actions_queued || 0),
-      totalActionsProcessed: Number(fields.total_actions_processed || 0),
-      totalTreatsCollected: Number(fields.total_treats_collected || 0),
-      admin: fields.admin,
-    };
-  };
-
-  const robotPetData: RobotPetData | null =
-    robotPetObject?.data?.content?.dataType === "moveObject"
-      ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        parseRobotPetData(robotPetObject.data.content.fields as any)
-      : null;
+    },
+    enabled: !!ROBOT_PET_ID && !!client,
+  });
 
   const feedRobot = async (actionName: RobotAction) => {
-    if (!packageId || !robotPetId) {
+    if (!PACKAGE_ID || !ROBOT_PET_ID) {
       throw new Error("Package ID or Robot Pet ID not configured");
     }
 
@@ -89,40 +78,43 @@ export function useRobotPet() {
       throw new Error("No TREAT tokens available. Request from faucet first.");
     }
 
-    const tx = new Transaction();
-
-    // Find a coin with enough balance, or merge coins
     const coinToUse = coins.find((c) => c.balance >= 1n);
-
     if (!coinToUse) {
       throw new Error("No TREAT tokens available. Request from faucet first.");
     }
 
-    // Split 1 TREAT from the coin for payment
-    const [paymentCoin] = tx.splitCoins(tx.object(coinToUse.objectId), [1]);
+    setIsPending(true);
+    try {
+      const tx = new Transaction();
 
-    tx.moveCall({
-      target: `${packageId}::robot_pet::feed`,
-      arguments: [
-        tx.object(robotPetId),
-        paymentCoin,
-        tx.pure.string(actionName),
-        tx.object("0x6"), // Clock object
-      ],
-    });
+      // Split 1 TREAT from the coin for payment
+      const [paymentCoin] = tx.splitCoins(tx.object(coinToUse.objectId), [1]);
 
-    const result = await signAndExecute({
-      transaction: tx,
-    });
+      tx.moveCall({
+        target: `${PACKAGE_ID}::robot_pet::feed`,
+        arguments: [
+          tx.object(ROBOT_PET_ID),
+          paymentCoin,
+          tx.pure.string(actionName),
+          tx.object("0x6"), // Clock object
+        ],
+      });
 
-    // Refetch data after successful transaction
-    await Promise.all([refetchBalance(), refetchRobotPet()]);
+      const result = await dAppKit.signAndExecuteTransaction({
+        transaction: tx,
+      });
 
-    return result;
+      // Refetch data after successful transaction
+      await Promise.all([refetchBalance(), refetchRobotPet()]);
+
+      return result;
+    } finally {
+      setIsPending(false);
+    }
   };
 
   return {
-    robotPetData,
+    robotPetData: robotPetData ?? null,
     isLoading,
     feedRobot,
     isPending,

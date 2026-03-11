@@ -478,11 +478,11 @@ graph TD
 
 ### What Each Module Contributed
 
-| Module      | Contribution to Module R10                   |
-| ----------- | ------------------------------------------- |
-| Module R7    | Ed25519 authentication, state channels      |
-| Module R8    | TREAT token, pay-per-action model           |
-| Module R9    | Multi-user patterns, fairness (inspiration) |
+| Module        | Contribution to Module R10                  |
+| ------------- | ------------------------------------------- |
+| Module R7     | Ed25519 authentication, state channels      |
+| Module R8     | TREAT token, pay-per-action model           |
+| Module R9     | Multi-user patterns, fairness (inspiration) |
 | Modules R1-R6 | Serial/WebSocket/Tunneling foundation       |
 
 ---
@@ -490,7 +490,7 @@ graph TD
 ## Project Structure
 
 ```
-R10 - Full Platform/
+R10/
 ├── README.md                 # This file
 ├── move/
 │   ├── Move.toml

@@ -6,7 +6,7 @@
   "main": "dist/server.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/server.js",
+    "start": "tsx src/server.ts",
     "dev": "tsx watch src/server.ts",
     "tunnel": "./scripts/start-tunnel.sh",
     "start:tunnel": "./scripts/start-all.sh"
