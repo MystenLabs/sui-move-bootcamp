@@ -91,44 +91,44 @@ if (is_priority) {
 
 ```
 R9/
-├── move/                      # Smart contracts
-│   ├── Move.toml             # Package configuration
+├── move/                             # Smart contracts
+│   ├── Move.toml                     # Package configuration
 │   └── sources/
 │       └── multiplayer_queue.move    # Main contract
 │
-├── publish/                  # Deployment script
-│   └── publish.sh            # Auto-deploy & generate .env files
+├── publish/                          # Deployment script
+│   └── publish.sh                    # Auto-deploy & generate .env files
 │
-├── server/                   # WebSocket server
+├── server/                           # WebSocket server
 │   ├── package.json
 │   ├── tsconfig.json
 │   └── src/
-│       ├── server.ts         # WebSocket server
-│       ├── blockchain.ts     # Event listener
-│       ├── types.ts          # TypeScript types
-│       └── demo-client.ts    # Test client
+│       ├── server.ts                 # WebSocket server
+│       ├── blockchain.ts             # Event listener
+│       ├── types.ts                  # TypeScript types
+│       └── demo-client.ts            # Test client
 │
-├── client/                   # CLI tools (admin operations)
+├── client/                           # CLI tools (admin operations)
 │   ├── package.json
 │   ├── tsconfig.json
 │   └── src/
-│       ├── config.ts         # Configuration
-│       ├── create-queue.ts   # Create queue (admin)
-│       ├── queue-action.ts   # Queue action (CLI)
-│       ├── process-action.ts # Process action (admin)
-│       ├── check-status.ts   # Check queue status
-│       └── demo.ts           # Full demo
+│       ├── config.ts                 # Configuration
+│       ├── create-queue.ts           # Create queue (admin)
+│       ├── queue-action.ts           # Queue action (CLI)
+│       ├── process-action.ts         # Process action (admin)
+│       ├── check-status.ts           # Check queue status
+│       └── demo.ts                   # Full demo
 │
-├── dapp/                     # React dApp with wallet integration
+├── dapp/                             # React dApp with wallet integration
 │   ├── package.json
-│   ├── .env.example          # Environment template
+│   ├── .env.example                  # Environment template
 │   └── src/
-│       ├── App.tsx           # Main app component
-│       ├── main.tsx          # React entry point
-│       ├── networkConfig.ts  # Sui network configuration
-│       └── MultiplayerQueue.tsx  # Queue dashboard & actions
+│       ├── App.tsx                   # Main app component
+│       ├── main.tsx                  # React entry point
+│       ├── networkConfig.ts          # Sui network configuration
+│       └── MultiplayerQueue.tsx      # Queue dashboard & actions
 │
-└── README.md                 # This file
+└── README.md                         # This file
 ```
 
 ## Quick Start
@@ -539,7 +539,7 @@ SUI_RPC_URL=https://fullnode.testnet.sui.io
 ```env
 PACKAGE_ADDRESS=0x...
 QUEUE_ID=0x...
-SUI_GRAPHQL_URL=https://sui-testnet.mystenlabs.com/graphql
+SUI_GRAPHQL_URL=https://graphql.testnet.sui.io/graphql
 WEBSOCKET_PORT=8080
 POLL_INTERVAL_MS=2000
 ```

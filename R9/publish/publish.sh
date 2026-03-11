@@ -76,7 +76,7 @@ backup_env "../dapp/.env"
 
 # Publish the Move package
 log_info "Publishing Move package..."
-PUBLISH_OUTPUT=$(sui client publish --skip-fetch-latest-git-deps --json ../move 2>&1)
+PUBLISH_OUTPUT=$(sui client publish --gas-budget 100000000 --json ../move 2>&1) || true
 
 # Save output for debugging
 echo "$PUBLISH_OUTPUT" > .publish.res.json
@@ -108,7 +108,7 @@ QUEUE_OUTPUT=$(sui client call \
     --function create_queue \
     --args "\"$QUEUE_NAME\"" \
     --gas-budget 10000000 \
-    --json 2>&1)
+    --json 2>&1) || true
 
 # Save queue creation output for debugging
 echo "$QUEUE_OUTPUT" > .create_queue.res.json
@@ -173,8 +173,8 @@ QUEUE_ID=$QUEUE_ID
 WEBSOCKET_PORT=8080
 POLL_INTERVAL_MS=2000
 
-# Optional: Custom RPC URL
-# SUI_RPC_URL=https://fullnode.testnet.sui.io
+# Optional: Custom GraphQL URL
+# SUI_GRAPHQL_URL=https://graphql.testnet.sui.io/graphql
 EOF
 chmod 600 "../server/.env"
 log_success "Generated ../server/.env"

@@ -26,7 +26,7 @@
  * # Set environment variables
  * export PACKAGE_ADDRESS=0x...
  * export QUEUE_ID=0x...
- * export SUI_GRAPHQL_URL=https://sui-testnet.mystenlabs.com/graphql
+ * export SUI_GRAPHQL_URL=https://graphql.testnet.sui.io/graphql
  * export WEBSOCKET_PORT=8080
  *
  * # Start server
@@ -34,6 +34,7 @@
  * ```
  */
 
+import "dotenv/config";
 import { WebSocket, WebSocketServer } from "ws";
 import { BlockchainEventListener } from "./blockchain.js";
 import type {
@@ -52,7 +53,7 @@ import type {
 const PACKAGE_ADDRESS = process.env.PACKAGE_ADDRESS || "";
 const QUEUE_ID = process.env.QUEUE_ID || "";
 const SUI_GRAPHQL_URL =
-  process.env.SUI_GRAPHQL_URL || "https://sui-testnet.mystenlabs.com/graphql";
+  process.env.SUI_GRAPHQL_URL || "https://graphql.testnet.sui.io/graphql";
 const WEBSOCKET_PORT = parseInt(process.env.WEBSOCKET_PORT || "8080");
 const POLL_INTERVAL_MS = parseInt(process.env.POLL_INTERVAL_MS || "2000");
 

@@ -85,12 +85,11 @@ async function main(): Promise<void> {
     console.log("2. Pending Actions");
     console.log("-".repeat(30));
 
-    const actions = fields.actions as Array<{ fields: QueuedAction }>;
+    const actions = fields.actions as QueuedAction[] | null;
     if (!actions || actions.length === 0) {
       console.log("   Queue is empty");
     } else {
-      actions.forEach((action, i) => {
-        const a = action.fields;
+      actions.forEach((a, i) => {
         const sender = a.sender.slice(0, 10) + "...";
         const priority = a.is_priority ? " [PRIORITY]" : "";
         console.log(`   ${i + 1}. ${a.action_name} by ${sender}${priority}`);
@@ -109,7 +108,7 @@ async function main(): Promise<void> {
 
       // Count pending actions for this user
       const pendingCount =
-        actions?.filter((a) => a.fields.sender === address).length ?? 0;
+        actions?.filter((a) => a.sender === address).length ?? 0;
 
       console.log(`   Pending Actions: ${pendingCount}`);
 
@@ -142,8 +141,7 @@ async function main(): Promise<void> {
     }
 
     // Priority action count
-    const priorityCount =
-      actions?.filter((a) => a.fields.is_priority).length ?? 0;
+    const priorityCount = actions?.filter((a) => a.is_priority).length ?? 0;
     if (actions && actions.length > 0) {
       const priorityPercent = ((priorityCount / actions.length) * 100).toFixed(
         1,
