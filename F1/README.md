@@ -8,7 +8,6 @@ We will initially build a simple version of the dApp, and we are going to keep b
 ## Tech Stack
 
 - Smart Contracts (Sui Move)
-- Integration tests/scripts (Typescript)
 - User Interface (React)
 
 ## Business Description
@@ -30,19 +29,12 @@ As a user, I can:
 - The contracts already contain the basic scaffold in the [move](./move/) directory. The structs are already built for you in the [hero.move](./move/hero/sources/hero.move) file, but the Move functions lack implementation.
 - The Move tests are already implemented in the [hero_tests.move](./move/hero/tests/hero_tests.move) file.
 - For this part of the exercise, we have to add the implementation of the functions of the [hero.move](./move/hero/sources/hero.move) module, so that the tests pass.
-- After completing that part, you can 
+- After completing that part, you can
 Please read the corresponding [README.md](./move/README.MD) for the detailed instructions.
 
-### 2. Typescript Integration Scripts / Tests
+### 2. User Interface
 
-- The Typescript integration code is already scaffolded in the [typescript](./typescript/) directory. It follows the Typescript scaffold we have been using in all of the exercises of the bootcamp until now.
-- As usual, for this part of the exercise, we have to fill the implementations of the helper methods, so that the all of the tests in the [e2e.test.ts](./typescript/src/tests/e2e.test.ts) succeed.
-
-Please read the corresponding [README.md](./typescript/README.md) for the detailed instructions.
-
-### 3. User Interface
-
-- For the final part of this e2e exercise, we will have to build the UI that interacts with the smart contracts, using the Typescript integration scripts that we built in the previous step.
-- As we did in the exercise [E2](../E2/), we will be using the CLI tool [@mysten/create-dapp](https://sdk.mystenlabs.com/dapp-kit/create-dapp) to bootstrap our application, and utilize [Sui dApp Kit](https://sdk.mystenlabs.com/dapp-kit) to handle wallet connections
+- For this part of the exercise, we will have to build the UI that interacts with the smart contracts.
+- As we did in exercise [E2](../E2/), we will bootstrap our application and use [`@mysten/dapp-kit-react`](https://docs.sui.io/references/ts-sdk/dapp-kit-react) for wallet connections and Sui interactions
 
 Please read the corresponding [README.md](./app/README.md) for the detailed instructions.
