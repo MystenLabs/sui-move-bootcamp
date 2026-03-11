@@ -1,9 +1,6 @@
-import { getFullnodeUrl, SuiClient } from "@mysten/sui/client";
 import { CONFIG } from "../config";
 import { useAppContext } from "../contexts/AppContext";
 import { getOauthUrl } from "../utils/oauth";
-
-export const suiClient = new SuiClient({ url: getFullnodeUrl(CONFIG.app.network) });
 
 export const useOauthConfig = () => {
     const { oauth, ephemeral } = useAppContext();

@@ -24,12 +24,24 @@ const LiveTransaction = () => {
 
     const handleSend = async () => {
         if (!sendAmount || !isAddressConfirmed) return;
+        const amount = parseFloat(sendAmount);
+        if (!Number.isFinite(amount) || amount <= 0) {
+            toast.error('Please enter a valid SUI amount greater than 0.', TOAST_OPTIONS);
+            return;
+        }
+
         setIsSending(true);
-        await sendSui(parseFloat(sendAmount), recipientAddress);
-        await refreshBalance();
-        await refreshRecipientBalance();
-        setIsSending(false);
-        toast.success('Transaction sent successfully! Balances updated.', TOAST_OPTIONS);
+        try {
+            await sendSui(amount, recipientAddress);
+            await refreshBalance();
+            await refreshRecipientBalance();
+            toast.success('Transaction sent successfully! Balances updated.', TOAST_OPTIONS);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Transaction failed.';
+            toast.error(message, TOAST_OPTIONS);
+        } finally {
+            setIsSending(false);
+        }
     };
 
     const handleConfirmAddress = async () => {
@@ -38,16 +50,28 @@ const LiveTransaction = () => {
             return;
         }
         setIsConfirming(true);
-        onSetRecipientAddress(recipientAddress);
-        setIsAddressConfirmed(true);
-        setIsConfirming(false);
-        toast.success('Recipient address confirmed! Balance loaded.', TOAST_OPTIONS);
+        try {
+            await onSetRecipientAddress(recipientAddress);
+            setIsAddressConfirmed(true);
+            toast.success('Recipient address confirmed! Balance loaded.', TOAST_OPTIONS);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Unable to fetch recipient balance.';
+            toast.error(message, TOAST_OPTIONS);
+        } finally {
+            setIsConfirming(false);
+        }
     };
 
     const handleRefreshMyBalance = async () => {
         setIsRefreshingMyBalance(true);
-        await refreshBalance();
-        setIsRefreshingMyBalance(false);
+        try {
+            await refreshBalance();
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Unable to refresh wallet balance.';
+            toast.error(message, TOAST_OPTIONS);
+        } finally {
+            setIsRefreshingMyBalance(false);
+        }
     };
 
     const resetRecipient = () => {

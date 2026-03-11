@@ -1,8 +1,5 @@
-import { getFullnodeUrl, SuiClient } from "@mysten/sui/client";
 import { CONFIG } from "../config";
 import { useAppContext } from "../contexts/AppContext";
-
-export const suiClient = new SuiClient({ url: getFullnodeUrl(CONFIG.app.network) });
 
 export const useAppConfig = () => {
     const { network, salt } = useAppContext();

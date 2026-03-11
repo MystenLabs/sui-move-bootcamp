@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { Transaction } from "@mysten/sui/transactions";
 import { getZkLoginSignature } from "@mysten/sui/zklogin";
 import { useAppContext } from "../contexts/AppContext";
-import { suiClient } from "./useAppConfig";
+import { suiReadClient, suiWriteClient } from "../services/sui";
 
 export const useLiveTransaction = () => {
     const { wallet, ephemeral, zkProof, liveTransaction } = useAppContext();
@@ -15,32 +14,29 @@ export const useLiveTransaction = () => {
     const [isConfirming, setIsConfirming] = useState(false);
     const [isSending, setIsSending] = useState(false);
 
-    const onSetRecipientAddress = (address: string) => {
+    const onSetRecipientAddress = async (address: string) => {
         liveTransaction.setRecipientAddress(address);
-        refreshRecipientBalance(address);
+        await refreshRecipientBalance(address);
     }
 
     const refreshRecipientBalance = async (_address?: string) => {
         const address = _address ?? liveTransaction.recipientAddress!;
         setIsRefreshing(true);
-
-        const balance = await suiClient.getBalance({ owner: address }); // use suiClient to get balance
-
-        liveTransaction.setRecipientBalance(balance.totalBalance.toString());
-        setIsRefreshing(false);
+        try {
+            const balance = await suiReadClient.getSuiBalance(address);
+            liveTransaction.setRecipientBalance(balance);
+        } finally {
+            setIsRefreshing(false);
+        }
     }
 
     const sendSui = async (amount: number, recipientAddress: string) => {
-        // prepare transaction
-        const tx = new Transaction();
-        tx.setSender(wallet.address!);
-        const [coin] = tx.splitCoins(tx.gas, [amount * 10 ** 9]); 
-        tx.transferObjects([coin], recipientAddress);
-
-        const { bytes: txBytes, signature: userSignature } = await tx.sign({
-            client: suiClient,
-            signer: ephemeral.keypair!,
-        });
+        const { bytes: txBytes, signature: userSignature } = await suiWriteClient.buildAndSignTransfer(
+            wallet.address!,
+            recipientAddress,
+            Math.floor(amount * 10 ** 9),
+            ephemeral.keypair!,
+        );
 
         const zkLoginSignature = getZkLoginSignature({
             inputs: {
@@ -51,10 +47,7 @@ export const useLiveTransaction = () => {
             userSignature: userSignature,
         });
 
-        return await suiClient.executeTransactionBlock({
-            transactionBlock: txBytes,
-            signature: zkLoginSignature,
-        });
+        return await suiWriteClient.executeZkLoginTransaction(txBytes, zkLoginSignature);
     }
 
     const resetLiveTransaction = () => {

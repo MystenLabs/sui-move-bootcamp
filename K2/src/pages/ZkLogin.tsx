@@ -17,7 +17,7 @@ const ZkLogin = () => {
         currentStep.set(1);
     }, [currentStep.set]);
 
-    const handleNext = () => {
+    const handleNext = async () => {
         if (currentStep.value < 4) {
             currentStep.set(currentStep.value + 1);
         }

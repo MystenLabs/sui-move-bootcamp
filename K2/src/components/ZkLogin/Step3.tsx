@@ -1,4 +1,4 @@
-import { FaLock, FaCog, FaCode, FaDatabase, FaServer, FaCloud, FaDocker, FaArrowRight, FaCheckCircle } from 'react-icons/fa';
+import { FaLock, FaCog, FaCode, FaDatabase, FaServer, FaCloud, FaDocker } from 'react-icons/fa';
 import { useStep3 } from '../../hooks/steps/useStep3';
 
 interface Step3Props {
@@ -6,7 +6,7 @@ interface Step3Props {
 }
 
 const Step3 = ({ onNext }: Step3Props) => {
-    const { proceedButton } = useStep3(onNext);
+    const { proceedButton, error } = useStep3(onNext);
 
     return (
         <div className="space-y-6">
@@ -92,6 +92,9 @@ const Step3 = ({ onNext }: Step3Props) => {
                     </div>
 
                     <div className="text-center pt-4">
+                        {error && (
+                            <p className="text-sm text-red-500 mb-3">{error}</p>
+                        )}
                         {proceedButton}
                     </div>
                 </div>

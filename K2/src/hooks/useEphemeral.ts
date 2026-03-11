@@ -1,13 +1,12 @@
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 import { generateNonce, generateRandomness } from "@mysten/sui/zklogin";
 import { useAppContext } from "../contexts/AppContext";
-import { suiClient } from "./useAppConfig";
+import { suiReadClient } from "../services/sui";
 import { CONFIG } from "../config";
 
 // Get the current epoch for the given network
 const getEpoch = async () => {
-    const { epoch } = await suiClient.getLatestSuiSystemState(); // get epoch from sui client "getLatestSuiSystemState"
-    return Number(epoch);
+    return suiReadClient.getCurrentEpoch();
 }
 
 export const useEphemeral = () => {

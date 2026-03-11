@@ -1,6 +1,6 @@
 import { genAddressSeed, jwtToAddress } from "@mysten/sui/zklogin";
 import { useAppContext } from "../contexts/AppContext";
-import { suiClient } from "./useAppConfig";
+import { suiReadClient } from "../services/sui";
 
 export const useWallet = () => {
     const { wallet, jwt, salt } = useAppContext();
@@ -16,8 +16,8 @@ export const useWallet = () => {
 
     const refreshBalance = async (_address?: string) => {
         const address = _address ?? wallet.address!;
-        const balance = await suiClient.getBalance({ owner: address }); // use suiClient to get balance
-        wallet.setBalance(balance.totalBalance.toString());
+        const balance = await suiReadClient.getSuiBalance(address);
+        wallet.setBalance(balance);
     }
 
     const resetWallet = () => {

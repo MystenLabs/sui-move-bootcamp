@@ -8,7 +8,7 @@ interface Step1Props {
 
 const Step1 = ({ onNext }: Step1Props) => {
 
-    const { proceedButton } = useStep1(onNext);
+    const { proceedButton, error } = useStep1(onNext);
 
     return (
         <div className="space-y-6">
@@ -104,6 +104,9 @@ const Step1 = ({ onNext }: Step1Props) => {
                     </div>
 
                     <div className="text-center pt-4">
+                        {error && (
+                            <p className="text-sm text-red-500 mb-3">{error}</p>
+                        )}
                         {proceedButton}
                     </div>
                 </div>
