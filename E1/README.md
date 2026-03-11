@@ -63,4 +63,4 @@ npm run test
 - Modify the [getHeroSwordIds.ts](./mint-hero/src/helpers/getHeroSwordIds.ts) function, so that you can extract the object IDs of the Swords that are attached to a Hero object:
   - You should use the `suiClient.listDynamicFields` function to get the dynamic fields that are attached to the Hero.
   - You should filter them by the objects type, to keep only the Swords.
-  - You should use the `suiClient.getDynamicObjectField` function for every object, to get the object ids of the attached swords.
+  - You should return the underlying object IDs of the filtered objects, which are referred as `childId`(s).
