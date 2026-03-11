@@ -58,3 +58,7 @@ fun foo(): u64 {
 ```
 The total expected CC of the above will be:
 1000 + 1110 + 404 = 2514 CU
+
+---
+
+[Back to index](../README.md) | Prev: [01 - Overview](./01-overview.md) | Next: [03 - Storage Gas Cost](./03-storage-gas-cost.md)

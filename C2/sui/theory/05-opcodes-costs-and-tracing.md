@@ -93,3 +93,7 @@ zstdcat traces/<trace-file>.zst
 ```
 Once decompressed, the trace output shows you the full sequence of OPCodes executed, along with their gas consumption, giving you a complete picture of what happened under the hood during your test execution.
 This way, you can actually verify at a very low level the exact operations that occurred, see the gas cost per instruction, and understand the full lifecycle of your function calls.
+
+---
+
+[Back to index](../README.md) | Prev: [04 - Estimating Costs](./04-estimating-costs.md)

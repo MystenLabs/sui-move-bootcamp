@@ -39,3 +39,7 @@ SP usually reflects the off-chain dollar($) cost of data storage and it is updat
 Storage Rebate represents the amount of SUI tokens a user can earn by deleting on-chain data.
 At the time of the writing of this document, storage rebate on an object is equivalent to 99.9% of the fees paid to create it.
 This means that, if at some point some objects become unused or not necessary, developers and users who own them can actually delete them from the blockchain, and earn SUI back!
+
+---
+
+[Back to index](../README.md) | Prev: [02 - Computation Gas Cost](./02-computation-gas-cost.md) | Next: [04 - Estimating Costs](./04-estimating-costs.md)

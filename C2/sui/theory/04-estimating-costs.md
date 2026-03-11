@@ -24,3 +24,7 @@ An example of this can be found in [practice/simulating-transactions.md](../prac
 - **Validation**: Verify transaction logic without spending SUI
 - **Debugging**: Identify errors before execution
 - **Cost optimization**: Compare different approaches to minimize fees
+
+---
+
+[Back to index](../README.md) | Prev: [03 - Storage Gas Cost](./03-storage-gas-cost.md) | Next: [05 - OPCodes, Costs & Tracing](./05-opcodes-costs-and-tracing.md)

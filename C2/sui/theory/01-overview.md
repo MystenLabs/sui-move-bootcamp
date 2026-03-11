@@ -66,3 +66,7 @@ At the end of the epoch:
 - Every other validator will earn accordingly based on their stake.
 
 Learn more at: https://www.sui.io/validators
+
+---
+
+[Back to index](../README.md) | Next: [02 - Computation Gas Cost](./02-computation-gas-cost.md)
