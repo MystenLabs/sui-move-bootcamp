@@ -207,9 +207,8 @@ public fun feed(
     clock: &Clock,
     ctx: &mut TxContext,
 ) {
-    // Verify payment amount
-    let payment_amount = payment.value();
-    assert!(payment_amount >= ACTION_COST, EInsufficientPayment);
+    // Verify payment is exactly ACTION_COST
+    assert!(payment.value() == ACTION_COST, EInsufficientPayment);
 
     // Verify action is supported
     assert!(is_valid_action(&action_name), EUnsupportedAction);
@@ -228,7 +227,7 @@ public fun feed(
     let queue_position = robot.action_queue.length();
     robot.action_queue.push_back(action);
     robot.total_actions_queued = robot.total_actions_queued + 1;
-    robot.total_cookies_collected = robot.total_cookies_collected + payment_amount;
+    robot.total_cookies_collected = robot.total_cookies_collected + ACTION_COST;
 
     // Emit event for off-chain systems
     event::emit(ActionQueued {
