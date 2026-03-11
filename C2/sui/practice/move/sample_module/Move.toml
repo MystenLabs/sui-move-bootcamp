@@ -1,0 +1,5 @@
+[package]
+name = "sample_module"
+edition = "2024"
+
+[dependencies]

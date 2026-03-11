@@ -1,0 +1,16 @@
+{
+	"name": "walrus-practice-estimation",
+	"version": "1.0.0",
+	"description": "Estimate gas costs for storage with Walrus SDK",
+	"type": "module",
+	"scripts": {
+		"dev": "ts-node src/estimate.ts"
+	},
+	"dependencies": {
+		"@mysten/sui": "^2.2.0",
+		"@mysten/walrus": "^1.0.1",
+		"@types/node": "^25.2.0",
+		"ts-node": "^10.9.2",
+		"typescript": "^5.9.3"
+	}
+}
