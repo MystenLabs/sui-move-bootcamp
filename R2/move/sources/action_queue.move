@@ -53,7 +53,11 @@ public struct ActionQueue has key {
     id: UID,
     /// List of pending actions (FIFO - first in, first out)
     actions: vector<Action>,
-    /// Counter for total actions ever added
+    /// Counter for total actions ever added (including cleared/processed).
+    /// Note: In production, historical counters like this are better tracked
+    /// off-chain via an indexer. Kept here as a teaching example of on-chain
+    /// state counters. Do not use this to iterate `actions` — use
+    /// `actions.length()` for the current pending count instead.
     total_actions_added: u64,
     /// Counter for total actions ever processed
     total_actions_processed: u64,
