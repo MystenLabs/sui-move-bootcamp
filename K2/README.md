@@ -18,12 +18,14 @@ ZKLogin enables users to authenticate using familiar OAuth providers (Google, Fa
 ## ✨ Features
 
 ### Interactive 4-Step Demo
+
 1. **Step 1**: Ephemeral Keypair Generation & App Configuration
 2. **Step 2**: OAuth Authentication (Google/Facebook/etc.)
 3. **Step 3**: ZK Proof Generation
 4. **Step 4**: Wallet Creation & Live Transaction
 
 ### Educational Components
+
 - 📊 **Debug Panel**: Real-time state inspection
 - 🔍 **Step-by-step Explanations**: Detailed descriptions of each process
 - 📱 **Responsive UI**: Modern, accessible interface
@@ -32,24 +34,29 @@ ZKLogin enables users to authenticate using familiar OAuth providers (Google, Fa
 ## 🛠️ Tech Stack
 
 ### Frontend Framework
+
 - **React 19** - Latest React with modern hooks
 - **TypeScript** - Type-safe development
 - **Vite** - Fast build tool and dev server
 
 ### Blockchain Integration
+
 - **@mysten/sui** - Official Sui SDK for blockchain interactions
 - **ZKLogin** - Zero-knowledge authentication system
 
 ### Styling & UI
+
 - **TailwindCSS 4** - Utility-first CSS framework
 - **React Icons** - Icon library
 - **CSS Variables** - Dynamic theming system
 
 ### State Management
+
 - **React Context** - Global state management
 - **Custom Hooks** - Modular business logic
 
 ### Additional Tools
+
 - **jwt-decode** - JWT token parsing
 - **react-toastify** - User notifications
 - **react-router** - Client-side routing
@@ -82,12 +89,14 @@ src/
 The application uses a modular hook architecture:
 
 #### Step Hooks (`src/hooks/steps/`)
+
 - `useStep1.tsx` - Ephemeral keypair & app config
 - `useStep2.tsx` - OAuth flow management
 - `useStep3.tsx` - ZK proof generation
 - `useStep4.tsx` - Wallet creation & transactions
 
 #### Utility Hooks (`src/hooks/`)
+
 - `useAppConfig.tsx` - App configuration management
 - `useEphemeral.ts` - Ephemeral keypair operations
 - `useOauthConfig.tsx` - OAuth provider configuration
@@ -97,6 +106,7 @@ The application uses a modular hook architecture:
 - `useLiveTransaction.tsx` - Transaction execution
 
 #### Context (`src/contexts/`)
+
 - `AppContext.tsx` - Global application state management
 
 ## 🚧 Implementation Status
@@ -106,40 +116,53 @@ The application uses a modular hook architecture:
 The following functions contain placeholder implementations that you need to complete:
 
 #### 1. App Configuration (`src/hooks/useAppConfig.tsx`)
+
 ```typescript
-`src/hooks/useAppConfig.tsx`
+`src/hooks/useAppConfig.tsx`;
 ```
 
 #### 2. Ephemeral Key Generation (`src/hooks/useEphemeral.ts`)
+
 ```typescript
-`src/hooks/useEphemeral.ts`
+`src/hooks/useEphemeral.ts`;
 ```
 
 #### 3. OAuth Configuration
+
 ```typescript
-`src/hooks/useOauthConfig.tsx`
+`src/hooks/useOauthConfig.tsx`;
 ```
 
 #### 4. Wallet Address Derivation
+
 ```typescript
-`src/hooks/useWallet.ts`
+`src/hooks/useWallet.ts`;
 ```
 
 #### 5. ZK Proof Payload
+
 ```typescript
-`src/hooks/useZkProof.ts`
+`src/hooks/useZkProof.ts`;
+```
+
+#### 6. ZK Write Client
+
+```typescript
+`src/services/sui/writeClient.ts`;
 ```
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 18+ 
+
+- Node.js 18+
 - npm, yarn, or pnpm
 - Google Cloud account (for OAuth configuration)
 
 ### Installation
 
 1. **Clone and install dependencies**
+
    ```bash
    cd zklogin-demo-sui-unimplemented
    npm install
@@ -149,11 +172,13 @@ The following functions contain placeholder implementations that you need to com
 
 2. **Set up environment variables**
    Create a `.env` file in the root directory:
+
    ```typescript
    Check the `.env.example` file for the required environment variables
    ```
 
 3. **Start development server**
+
    ```bash
    npm run dev
    # or
@@ -168,6 +193,7 @@ The following functions contain placeholder implementations that you need to com
 To complete the implementation, you'll need to edit these key files:
 
 ### Primary Implementation Files
+
 1. **`src/hooks/useAppConfig.tsx`** - App configuration setup
 2. **`src/hooks/useEphemeral.ts`** - Ephemeral keypair generation
 3. **`src/hooks/useOauthConfig.tsx`** - OAuth provider configuration
@@ -175,11 +201,13 @@ To complete the implementation, you'll need to edit these key files:
 5. **`src/hooks/useZkProof.ts`** - ZK proof payload preparation
 
 ### Helper Files (Reference)
+
 - **`src/utils/zk.ts`** - ZK proof utilities (already implemented)
 - **`src/utils/oauth.tsx`** - OAuth helper functions
 - **`src/config/index.ts`** - Configuration constants
 
 ### Environment Configuration
+
 - **`.env`** - Environment variables (create this file)
 
 ## 🎓 Learning Path
@@ -187,36 +215,48 @@ To complete the implementation, you'll need to edit these key files:
 ### Recommended Implementation Order
 
 1. **Start with App Config** (`useAppConfig.tsx`)
+
    - Simple configuration setup
    - Understand the CONFIG object structure
 
 2. **Implement OAuth Config** (`useOauthConfig.tsx`)
+
    - Learn OAuth provider setup
    - Understand client ID configuration
 
 3. **Generate Ephemeral Keys** (`useEphemeral.ts`)
+
    - Learn Ed25519 keypair generation
    - Understand nonce derivation
    - Work with Sui SDK cryptography
 
 4. **Derive Wallet Address** (`useWallet.ts`)
+
    - Learn address derivation from JWT
    - Understand address seed generation
    - Connect OAuth identity to blockchain address
 
 5. **Complete ZK Proof** (`useZkProof.ts`)
+
    - Integrate all previous components
    - Prepare payload for proof generation
    - Understand zero-knowledge proof concepts
 
+6. **Implement Write Client** (`src/services/sui/writeClient.ts`)
+   - Build and sign transfer transactions with the ephemeral signer
+   - Split SUI coins and transfer to recipient
+   - Execute zkLogin transaction through the gRPC client
+
 ## 🔧 Development Tips
 
 ### Debugging
+
 - Use the **Debug Panel** to inspect application state
 - Check browser console for detailed error messages
 - Use React DevTools for component inspection
 
 ### Testing
+
 - Test each step individually using the interactive demo
 - Verify state changes in the Debug Panel
 - Test OAuth flow with real providers
@@ -224,22 +264,26 @@ To complete the implementation, you'll need to edit these key files:
 ## 📚 Resources
 
 ### Sui Documentation
+
 - [Sui ZKLogin Guide](https://docs.sui.io/guides/developer/cryptography/zklogin-integration)
 - [Sui SDK Documentation](https://sdk.mystenlabs.com/)
 
 ### ZKLogin Resources
+
 - [ZKLogin Overview](https://docs.sui.io/concepts/cryptography/zklogin)
 - [OAuth Integration](https://docs.sui.io/guides/developer/cryptography/zklogin-integration#oauth-flow)
 
 ## 🤝 Contributing
 
 This is an educational project. Feel free to:
+
 - Submit improvements to the learning experience
 - Add more detailed explanations
 - Enhance the UI/UX
 - Add additional OAuth providers
 
 ## 📄 License
+
 ```code
 MIT
 ```

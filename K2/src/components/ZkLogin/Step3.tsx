@@ -1,4 +1,4 @@
-import { FaLock, FaCog, FaCode, FaDatabase, FaServer, FaCloud, FaDocker, FaArrowRight, FaCheckCircle } from 'react-icons/fa';
+import { FaLock, FaCog, FaCode, FaDatabase, FaServer, FaCloud, FaDocker } from 'react-icons/fa';
 import { useStep3 } from '../../hooks/steps/useStep3';
 
 interface Step3Props {

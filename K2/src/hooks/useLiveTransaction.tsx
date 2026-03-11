@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { Transaction } from "@mysten/sui/transactions";
 import { getZkLoginSignature } from "@mysten/sui/zklogin";
 import { useAppContext } from "../contexts/AppContext";
-import { suiClient } from "./useAppConfig";
+import { suiWriteClient } from "../services/sui";
 
 export const useLiveTransaction = () => {
     const { wallet, ephemeral, zkProof, liveTransaction } = useAppContext();
@@ -15,61 +14,44 @@ export const useLiveTransaction = () => {
     const [isConfirming, setIsConfirming] = useState(false);
     const [isSending, setIsSending] = useState(false);
 
-    const onSetRecipientAddress = (address: string) => {
+    const onSetRecipientAddress = async (address: string) => {
         liveTransaction.setRecipientAddress(address);
-        refreshRecipientBalance(address);
+        await refreshRecipientBalance(address);
     }
 
     const refreshRecipientBalance = async (_address?: string) => {
         const address = _address ?? liveTransaction.recipientAddress!;
+        void address;
         setIsRefreshing(true);
 
-        const balance = { totalBalance: 0 }; // use suiClient to get balance
+        const balance = { totalBalance: 0 }; // use suiReadClient.getSuiBalance(address)
 
         liveTransaction.setRecipientBalance(balance.totalBalance.toString());
         setIsRefreshing(false);
     }
 
     const sendSui = async (amount: number, recipientAddress: string) => {
-        // prepare transaction
-        console.log("0. Prepare the transaction object");
-        // const tx = ?
+        const { bytes: txBytes, signature: userSignature } =
+            await suiWriteClient.buildAndSignTransfer(
+                wallet.address!,
+                recipientAddress,
+                Math.floor(amount * 10 ** 9),
+                ephemeral.keypair!,
+            );
 
-        console.log("1. Set sender of tx: the wallet");
-        // tx.ACTION(_SENDER_);
+        const zkLoginSignature = getZkLoginSignature({
+            inputs: {
+                ...zkProof.value!,
+                addressSeed: wallet.addressSeed!,
+            },
+            maxEpoch: ephemeral.maxEpoch!.toString(),
+            userSignature,
+        });
 
-        console.log("2. Add call: Split SUI Coins using tx.gas as coin, and amount * 10 ** 9 as amount; output the first [coin] as const");
-        // const [coin] = tx.ACTION(COIN, AMOUNT);
-
-        console.log("3. Add call: Transfer Objects to transfer the coin");
-        // tx.ACTION([coin], recipientAddress);
-
-        console.log("4. Sign Tx via Ephemeral Key Pair");
-        /*
-            const { bytes: txBytes, signature: userSignature } = await tx.sign({
-                client: ?,
-                signer: ?,
-            });
-        */
-        console.log("5. Get the zkLogin signature");
-        /*
-            const zkLoginSignature = FUNCTION({
-                inputs: {
-                    ...?,
-                    addressSeed: ?,
-                },
-                maxEpoch: ?,
-                userSignature: ?,
-            });
-        */
-
-        console.log("6. Execute Tx and return");
-        /*
-            return await ?.executeTransactionBlock({
-                transactionBlock: ?,
-                signature: ?,
-            });
-        */
+        return await suiWriteClient.executeZkLoginTransaction(
+            txBytes,
+            zkLoginSignature,
+        );
     }
 
     const resetLiveTransaction = () => {

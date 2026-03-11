@@ -1,5 +1,5 @@
 import { BiHash, BiLinkExternal } from 'react-icons/bi';
-import { FaArrowRight, FaGoogle, FaRandom, FaUserSecret } from 'react-icons/fa';
+import { FaGoogle, FaUserSecret } from 'react-icons/fa';
 import { HiCube } from 'react-icons/hi';
 import { useStep2 } from '../../hooks/steps/useStep2';
 
