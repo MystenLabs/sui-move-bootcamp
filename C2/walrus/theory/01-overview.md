@@ -40,3 +40,7 @@ For details about Sui gas costs, refer to the `sui` folder of this module
 - Uploading blobs consumes **WAL**
 - Storing blobs requires **Sui transactions and gas**
 - Blobs live on-chain as **Sui objects**, with most SUI costs refundable
+
+---
+
+[Back to README](../README.md) | Next: [02 - Operations Details](02-operations-details.md)

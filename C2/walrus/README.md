@@ -25,6 +25,17 @@ walrus/
 
 ---
 
+## Theory Files
+
+| File | Description |
+|------|-------------|
+| [01-overview.md](theory/01-overview.md) | Dual-token model (WAL + SUI), storage units, and a high-level breakdown of what drives costs in Walrus |
+| [02-operations-details.md](theory/02-operations-details.md) | Per-operation cost breakdown: storage resources, file storage (encoded size), upload fees, and Sui blockchain transactions |
+| [03-optimizing-costs.md](theory/03-optimizing-costs.md) | Practical strategies to reduce spending: Quilt for small blobs, bulk storage purchases, PTB batching, and storage rebates |
+| [04-estimating-costs.md](theory/04-estimating-costs.md) | How to estimate costs before committing — using `walrus info`, `--dry-run` CLI flag, and the `@mysten/walrus` SDK |
+
+---
+
 ## What You'll Learn
 
 - Why Walrus needs two tokens: WAL for storage, SUI for metadata

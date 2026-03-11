@@ -66,3 +66,7 @@ Each of these transactions consumes **SUI**.
 Just as mentioned in the `sui` part of this module, freeing data from the blockchain gives a refund to the user in SUI.  
 The same happens when burning a Blob in Walrus.  
 When a blob is burned, its data will be freed from the Sui Blockchain, although still remaining on Walrus.
+
+---
+
+[Back to README](../README.md) | Prev: [01 - Overview](01-overview.md) | Next: [03 - Optimizing Costs](03-optimizing-costs.md)

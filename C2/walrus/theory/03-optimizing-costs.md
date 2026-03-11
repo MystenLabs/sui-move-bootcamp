@@ -75,3 +75,7 @@ Blob objects are only useful if you still want to:
 If you’re done with all that, burn the object and move on.
 
 In some cases, it’s actually cheaper to burn a long-lived blob object and re-register the blob near the end of its lifetime instead of extending it — especially depending on SUI vs WAL prices.
+
+---
+
+[Back to README](../README.md) | Prev: [02 - Operations Details](02-operations-details.md) | Next: [04 - Estimating Costs](04-estimating-costs.md)
