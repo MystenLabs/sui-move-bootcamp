@@ -14,7 +14,7 @@ The `SuiClient` (JSON-RPC, gRPC, etc.) provides two methods for simulation:
 - `dryRunTransactionBlock` - Simulates execution and returns gas usage and effects
 - `devInspectTransactionBlock` - Provides more detailed inspection, including return values and requires a sender address
 
-Both methods execute the transaction locally(without committing to the blockchain) and show outputs and gas costs, similar to the CLI's `--dry-run` flag.
+Both methods execute the transaction locally (without committing to the blockchain) and show outputs and gas costs, similar to the CLI's `--dry-run` flag.
 
 An example of this can be found in [practice/simulating-transactions.md](../practice/simulating-transactions.md) (under "Using @mysten/sui SDK")
 
