@@ -67,6 +67,9 @@ const ENotAdmin: u64 = 303;
 /// Invalid action name
 const EInvalidAction: u64 = 304;
 
+/// Queue is paused, no new actions can be queued
+const EQueuePaused: u64 = 305;
+
 // ============================================
 // SUPPORTED ACTIONS
 // ============================================
@@ -287,6 +290,9 @@ fun queue_action_internal(
     clock: &Clock,
     ctx: &mut TxContext,
 ) {
+    // Reject new actions while paused
+    assert!(!queue.is_paused, EQueuePaused);
+
     let sender = ctx.sender();
     let current_time = clock.timestamp_ms();
 

@@ -57,15 +57,55 @@ Which sets up:
 - [React](https://react.dev/) - UI framework
 - [Vite](https://vitejs.dev/) - Build tool
 - [TypeScript](https://www.typescriptlang.org/) - Type safety
-- [@mysten/dapp-kit](https://sdk.mystenlabs.com/dapp-kit) - Sui wallet
-  integration
+- [@mysten/dapp-kit-react](https://sdk.mystenlabs.com/dapp-kit) - Sui wallet
+  integration using `SuiGrpcClient`
 - [@mysten/sui](https://sdk.mystenlabs.com/typescript) - Sui TypeScript SDK
 - [@radix-ui/themes](https://www.radix-ui.com/) - UI components
 - [@tanstack/react-query](https://tanstack.com/query) - Data fetching
+
+## Client Setup
+
+The dApp uses `@mysten/dapp-kit-react` with `SuiGrpcClient` for network
+communication:
+
+```typescript
+import { createDAppKit, DAppKitProvider } from "@mysten/dapp-kit-react";
+import { SuiGrpcClient } from "@mysten/sui/grpc";
+
+const dAppKit = createDAppKit({
+  networks: ["devnet", "testnet", "mainnet"],
+  defaultNetwork: "testnet",
+  createClient(network) {
+    return new SuiGrpcClient({
+      network,
+      baseUrl:
+        network === "mainnet"
+          ? "https://fullnode.mainnet.sui.io:443"
+          : network === "testnet"
+            ? "https://fullnode.testnet.sui.io:443"
+            : "https://fullnode.devnet.sui.io:443",
+    });
+  },
+});
+```
+
+Then use the `useCurrentClient` hook to access the gRPC client:
+
+```typescript
+import { useCurrentClient } from "@mysten/dapp-kit-react";
+
+const client = useCurrentClient();
+
+// Read object state
+const obj = await client.core.getObject({
+  objectId: queueId,
+  include: { json: true },
+});
+```
 
 ## Key Files
 
 - `src/App.tsx` - Main app layout with wallet connection
 - `src/MultiplayerQueue.tsx` - Queue dashboard and action buttons
-- `src/networkConfig.ts` - Network configuration with contract addresses
-- `src/main.tsx` - React entry point with providers
+- `src/networkConfig.ts` - Contract address configuration
+- `src/main.tsx` - React entry point with DAppKitProvider setup

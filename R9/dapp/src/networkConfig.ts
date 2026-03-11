@@ -1,33 +1,9 @@
-import { createNetworkConfig } from "@mysten/dapp-kit";
-import { getJsonRpcFullnodeUrl } from "@mysten/sui/jsonRpc";
+/**
+ * Contract addresses from environment variables.
+ *
+ * Network configuration is handled by createDAppKit in main.tsx
+ * using @mysten/dapp-kit-react with SuiGrpcClient.
+ */
 
-const { networkConfig, useNetworkVariable, useNetworkVariables } =
-  createNetworkConfig({
-    devnet: {
-      url: getJsonRpcFullnodeUrl("devnet"),
-      network: "devnet",
-      variables: {
-        packageId: "",
-        queueId: "",
-      },
-    },
-    testnet: {
-      url: getJsonRpcFullnodeUrl("testnet"),
-      network: "testnet",
-      variables: {
-        // Update these after deploying the contract
-        packageId: import.meta.env.VITE_PACKAGE_ID || "",
-        queueId: import.meta.env.VITE_QUEUE_ID || "",
-      },
-    },
-    mainnet: {
-      url: getJsonRpcFullnodeUrl("mainnet"),
-      network: "mainnet",
-      variables: {
-        packageId: "",
-        queueId: "",
-      },
-    },
-  });
-
-export { networkConfig, useNetworkVariable, useNetworkVariables };
+export const PACKAGE_ID = import.meta.env.VITE_PACKAGE_ID || "";
+export const QUEUE_ID = import.meta.env.VITE_QUEUE_ID || "";

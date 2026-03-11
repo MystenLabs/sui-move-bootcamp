@@ -26,7 +26,7 @@
  * # Set environment variables
  * export PACKAGE_ADDRESS=0x...
  * export QUEUE_ID=0x...
- * export SUI_RPC_URL=https://fullnode.testnet.sui.io
+ * export SUI_GRAPHQL_URL=https://sui-testnet.mystenlabs.com/graphql
  * export WEBSOCKET_PORT=8080
  *
  * # Start server
@@ -51,8 +51,8 @@ import type {
 
 const PACKAGE_ADDRESS = process.env.PACKAGE_ADDRESS || "";
 const QUEUE_ID = process.env.QUEUE_ID || "";
-const SUI_RPC_URL =
-  process.env.SUI_RPC_URL || "https://fullnode.testnet.sui.io";
+const SUI_GRAPHQL_URL =
+  process.env.SUI_GRAPHQL_URL || "https://sui-testnet.mystenlabs.com/graphql";
 const WEBSOCKET_PORT = parseInt(process.env.WEBSOCKET_PORT || "8080");
 const POLL_INTERVAL_MS = parseInt(process.env.POLL_INTERVAL_MS || "2000");
 
@@ -344,7 +344,7 @@ async function main(): Promise<void> {
   console.log("Configuration:");
   console.log(`  Package: ${PACKAGE_ADDRESS || "(not set)"}`);
   console.log(`  Queue ID: ${QUEUE_ID || "(not set)"}`);
-  console.log(`  RPC URL: ${SUI_RPC_URL}`);
+  console.log(`  GraphQL URL: ${SUI_GRAPHQL_URL}`);
   console.log(`  WebSocket Port: ${WEBSOCKET_PORT}`);
   console.log(`  Poll Interval: ${POLL_INTERVAL_MS}ms`);
   console.log("");
@@ -354,15 +354,19 @@ async function main(): Promise<void> {
 
   // Start blockchain listener if configured
   if (PACKAGE_ADDRESS) {
-    const listener = new BlockchainEventListener(SUI_RPC_URL, PACKAGE_ADDRESS, {
-      onActionQueued,
-      onActionProcessed,
-      onUserStatsUpdated,
-      onQueueStateChanged,
-      onError: (error) => {
-        console.error("[Blockchain] Error:", error);
+    const listener = new BlockchainEventListener(
+      SUI_GRAPHQL_URL,
+      PACKAGE_ADDRESS,
+      {
+        onActionQueued,
+        onActionProcessed,
+        onUserStatsUpdated,
+        onQueueStateChanged,
+        onError: (error) => {
+          console.error("[Blockchain] Error:", error);
+        },
       },
-    });
+    );
 
     await listener.start(POLL_INTERVAL_MS);
 

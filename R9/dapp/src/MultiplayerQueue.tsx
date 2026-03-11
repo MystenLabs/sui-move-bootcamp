@@ -1,8 +1,8 @@
 import {
   useCurrentAccount,
-  useSignAndExecuteTransaction,
-  useSuiClient,
-} from "@mysten/dapp-kit";
+  useCurrentClient,
+  useDAppKit,
+} from "@mysten/dapp-kit-react";
 import { Transaction } from "@mysten/sui/transactions";
 import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui/utils";
 import {
@@ -17,7 +17,7 @@ import {
   Text,
 } from "@radix-ui/themes";
 import { useCallback, useEffect, useState } from "react";
-import { useNetworkVariable } from "./networkConfig";
+import { PACKAGE_ID, QUEUE_ID } from "./networkConfig";
 
 // Valid actions that can be queued
 const VALID_ACTIONS = [
@@ -60,23 +60,22 @@ interface EventLogEntry {
 
 export function MultiplayerQueue() {
   const account = useCurrentAccount();
-  const client = useSuiClient();
-  const packageId = useNetworkVariable("packageId");
-  const queueId = useNetworkVariable("queueId");
+  const client = useCurrentClient();
 
   const [queueState, setQueueState] = useState<QueueState | null>(null);
   const [pendingActions, setPendingActions] = useState<QueuedAction[]>([]);
   const [eventLog, setEventLog] = useState<EventLogEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(true);
   const [wsConnected, setWsConnected] = useState(false);
   const [wsUrl] = useState(
     import.meta.env.VITE_WS_URL || "ws://localhost:8080",
   );
   const [cooldownEndTime, setCooldownEndTime] = useState<number | null>(null);
   const [cooldownRemaining, setCooldownRemaining] = useState(0);
+  const [isTxPending, setIsTxPending] = useState(false);
 
-  const { mutate: signAndExecute, isPending: isTxPending } =
-    useSignAndExecuteTransaction();
+  const dAppKit = useDAppKit();
 
   // Add event to log
   const addEvent = useCallback((type: string, message: string) => {
@@ -86,22 +85,20 @@ export function MultiplayerQueue() {
     ]);
   }, []);
 
-  // Fetch queue state from blockchain
+  // Fetch queue state from blockchain using gRPC client
   const fetchQueueState = useCallback(async () => {
-    if (!queueId || !client) return;
+    if (!QUEUE_ID || !client) return;
 
     try {
-      const obj = await client.getObject({
-        id: queueId,
-        options: { showContent: true },
+      const obj = await client.core.getObject({
+        objectId: QUEUE_ID,
+        include: { json: true },
       });
 
-      if (obj.data?.content?.dataType === "moveObject") {
-        const fields = obj.data.content.fields as Record<string, unknown>;
+      const fields = obj.object?.json as Record<string, unknown> | null;
+      if (fields) {
         setQueueState({
-          queueLength: Number(
-            (fields.actions as { length?: number })?.length || 0,
-          ),
+          queueLength: Number((fields.actions as unknown[])?.length ?? 0),
           uniqueUsers: Number(fields.unique_users || 0),
           totalQueued: Number(fields.total_queued || 0),
           totalProcessed: Number(fields.total_processed || 0),
@@ -114,8 +111,10 @@ export function MultiplayerQueue() {
       }
     } catch (error) {
       console.error("Failed to fetch queue state:", error);
+    } finally {
+      setIsSyncing(false);
     }
-  }, [queueId, client]);
+  }, [client]);
 
   // Connect to WebSocket for real-time updates
   useEffect(() => {
@@ -177,6 +176,7 @@ export function MultiplayerQueue() {
               message.data.pendingActions as unknown as QueuedAction[],
             );
           }
+          setIsSyncing(false);
           addEvent("queue_state", `Queue: ${message.data.queueLength} pending`);
           break;
 
@@ -261,40 +261,39 @@ export function MultiplayerQueue() {
 
   // Queue an action
   const queueAction = async (actionName: string, isPriority: boolean) => {
-    if (!account || !packageId || !queueId) return;
+    if (!account || !PACKAGE_ID || !QUEUE_ID) return;
 
     setIsLoading(true);
+    setIsTxPending(true);
 
     try {
       const tx = new Transaction();
 
       tx.moveCall({
-        target: `${packageId}::multiplayer_queue::${isPriority ? "queue_priority_action" : "queue_action"}`,
+        target: `${PACKAGE_ID}::multiplayer_queue::${isPriority ? "queue_priority_action" : "queue_action"}`,
         arguments: [
-          tx.object(queueId),
+          tx.object(QUEUE_ID),
           tx.pure.string(actionName),
           tx.object(SUI_CLOCK_OBJECT_ID), // Clock
         ],
       });
 
-      signAndExecute(
-        { transaction: tx },
-        {
-          onSuccess: (result) => {
-            addEvent(
-              "success",
-              `${actionName} queued! Tx: ${result.digest.slice(0, 8)}...`,
-            );
-            fetchQueueState();
-            // Start cooldown timer
-            const cooldownMs = queueState?.cooldownMs || 30000;
-            setCooldownEndTime(Date.now() + cooldownMs);
-          },
-          onError: (error) => {
-            addEvent("error", `Failed to queue: ${error.message}`);
-          },
-        },
-      );
+      const result = await dAppKit.signAndExecuteTransaction({
+        transaction: tx,
+      });
+
+      if (result.$kind === "Transaction") {
+        addEvent(
+          "success",
+          `${actionName} queued! Tx: ${result.Transaction.digest.slice(0, 8)}...`,
+        );
+        fetchQueueState();
+        // Start cooldown timer
+        const cooldownMs = queueState?.cooldownMs || 30000;
+        setCooldownEndTime(Date.now() + cooldownMs);
+      } else {
+        addEvent("error", "Transaction failed on-chain");
+      }
     } catch (error) {
       addEvent(
         "error",
@@ -302,6 +301,7 @@ export function MultiplayerQueue() {
       );
     } finally {
       setIsLoading(false);
+      setIsTxPending(false);
     }
   };
 
@@ -312,15 +312,14 @@ export function MultiplayerQueue() {
   };
 
   // Check if configuration is complete
-  if (!packageId || !queueId) {
+  if (!PACKAGE_ID || !QUEUE_ID) {
     return (
       <Card>
         <Heading size="4" mb="2">
           Configuration Required
         </Heading>
         <Text>
-          Please set VITE_PACKAGE_ID and VITE_QUEUE_ID in your .env file, or
-          update networkConfig.ts with the deployed contract addresses.
+          Please set VITE_PACKAGE_ID and VITE_QUEUE_ID in your .env file.
         </Text>
         <Box mt="3">
           <Text size="2" color="gray">
@@ -463,7 +462,16 @@ export function MultiplayerQueue() {
         <Heading size="3" mb="3">
           Current Queue
         </Heading>
-        {pendingActions.length === 0 ? (
+        {isSyncing ? (
+          <Text color="gray">Syncing queue state...</Text>
+        ) : pendingActions.length === 0 &&
+          queueState &&
+          queueState.queueLength > 0 ? (
+          <Text color="gray">
+            {queueState.queueLength} action(s) pending — waiting for live
+            updates...
+          </Text>
+        ) : pendingActions.length === 0 ? (
           <Text color="gray">Queue is empty</Text>
         ) : (
           <Flex direction="column" gap="2">

@@ -539,7 +539,7 @@ SUI_RPC_URL=https://fullnode.testnet.sui.io
 ```env
 PACKAGE_ADDRESS=0x...
 QUEUE_ID=0x...
-SUI_RPC_URL=https://fullnode.testnet.sui.io
+SUI_GRAPHQL_URL=https://sui-testnet.mystenlabs.com/graphql
 WEBSOCKET_PORT=8080
 POLL_INTERVAL_MS=2000
 ```

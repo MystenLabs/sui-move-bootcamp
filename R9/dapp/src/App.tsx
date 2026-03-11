@@ -1,4 +1,5 @@
-import { ConnectButton, useCurrentAccount } from "@mysten/dapp-kit";
+import { useCurrentAccount } from "@mysten/dapp-kit-react";
+import { ConnectButton } from "@mysten/dapp-kit-react/ui";
 import { Box, Container, Flex, Heading, Text } from "@radix-ui/themes";
 import { MultiplayerQueue } from "./MultiplayerQueue";
 
