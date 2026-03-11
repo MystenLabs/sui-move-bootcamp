@@ -1,4 +1,4 @@
-# Module R2: My First Move Contract - Blockchain Fundamentals
+# Module 2: My First Move Contract - Blockchain Fundamentals
 
 Build a simple action queue on the Sui blockchain. No tokens, no complexity - just the fundamentals.
 
@@ -325,7 +325,7 @@ sui client balance
 ### Step 2: Build the Contract
 
 ```bash
-cd R2/move
+cd Module2/move
 sui move build
 ```
 
@@ -460,7 +460,7 @@ sequenceDiagram
     Q->>Q: Remove first action (FIFO)
     Q->>N: Emit ActionProcessed event
     N-->>A: Action details
-    A->>R: Execute action (Module R4!)
+    A->>R: Execute action (Module 4!)
 ```
 
 ---
@@ -628,8 +628,8 @@ Check the error codes in the contract:
 
 Now that you understand blockchain basics, you are ready for:
 
-- **Module R3**: Add WebSocket for real-time browser control
-- **Module R4**: Combine blockchain + serial for the first robot integration
+- **Module 3**: Add WebSocket for real-time browser control
+- **Module 4**: Combine blockchain + serial for the first robot integration
 
 ---
 

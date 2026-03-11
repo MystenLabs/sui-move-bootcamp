@@ -189,9 +189,8 @@ public fun pop_action(queue: &mut ActionQueue, ctx: &TxContext) {
 public fun clear_queue(queue: &mut ActionQueue, ctx: &TxContext) {
     assert!(ctx.sender() == queue.admin, ENotAuthorized);
 
-    while (!queue.actions.is_empty()) {
-        queue.actions.pop_back();
-    };
+    // Action has `drop`, so we can replace the vector directly
+    queue.actions = vector[];
 }
 
 // ============================================

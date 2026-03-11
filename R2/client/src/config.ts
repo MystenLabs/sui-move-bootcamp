@@ -7,6 +7,7 @@
  * - Setting up a keypair from a mnemonic phrase
  */
 
+import { decodeSuiPrivateKey } from "@mysten/sui/cryptography";
 import { SuiGraphQLClient } from "@mysten/sui/graphql";
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 import { Transaction } from "@mysten/sui/transactions";
@@ -26,9 +27,9 @@ const network = (process.env.NETWORK || "testnet") as
   | "mainnet";
 
 const GRAPHQL_URLS: Record<string, string> = {
-  mainnet: "https://sui-mainnet.mystenlabs.com/graphql",
-  testnet: "https://sui-testnet.mystenlabs.com/graphql",
-  devnet: "https://sui-devnet.mystenlabs.com/graphql",
+  mainnet: "https://graphql.mainnet.sui.io/graphql",
+  testnet: "https://graphql.testnet.sui.io/graphql",
+  devnet: "https://graphql.devnet.sui.io/graphql",
   localnet: "http://127.0.0.1:9125/graphql",
 };
 
@@ -47,17 +48,25 @@ console.log(`Connected to Sui ${network}`);
 // WALLET CONFIGURATION
 // ============================================
 
-// Create keypair from mnemonic phrase
+// Create keypair from mnemonic phrase or private key
 const phrase = process.env.ADMIN_PHRASE;
+const privateKey = process.env.ADMIN_PRIVATE_KEY;
 
-if (!phrase) {
-  console.error("Error: ADMIN_PHRASE not set in .env file");
-  console.error("Please copy .env.example to .env and add your phrase");
+if (!phrase && !privateKey) {
+  console.error(
+    "Error: ADMIN_PHRASE or ADMIN_PRIVATE_KEY not set in .env file",
+  );
+  console.error("Please copy .env.example to .env and add your credentials");
+  console.error(
+    "  Export private key: sui keytool export --key-identity <ADDRESS>",
+  );
   process.exit(1);
 }
 
-// Derive keypair from the mnemonic
-export const keypair = Ed25519Keypair.deriveKeypair(phrase);
+// Derive keypair from mnemonic or private key
+export const keypair = phrase
+  ? Ed25519Keypair.deriveKeypair(phrase)
+  : Ed25519Keypair.fromSecretKey(decodeSuiPrivateKey(privateKey!).secretKey);
 
 // Get the address from the keypair
 export const address = keypair.getPublicKey().toSuiAddress();

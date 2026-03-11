@@ -66,7 +66,7 @@ fi
 
 # Publish the Move package
 log_info "Publishing Move package..."
-PUBLISH_OUTPUT=$(sui client publish --skip-fetch-latest-git-deps --json ../move 2>&1)
+PUBLISH_OUTPUT=$(sui client publish --gas-budget 100000000 --json ../move 2>&1) || true
 
 # Save output for debugging
 echo "$PUBLISH_OUTPUT" > .publish.res.json
@@ -98,11 +98,16 @@ cat > "$ENV_FILE" <<EOF
 # Options: devnet, testnet, mainnet
 NETWORK=$NETWORK
 
-# Your wallet's secret recovery phrase (12 or 24 words)
+# Your wallet credentials (use ONE of the following)
 # WARNING: Never commit this file with real credentials!
+
+# Option A: Secret recovery phrase (12 or 24 words)
 ADMIN_PHRASE="your twelve word recovery phrase goes here"
 
-# After deploying the contract, add the package address here
+# Option B: Private key (exported via: sui keytool export --key-identity <ADDRESS>)
+# ADMIN_PRIVATE_KEY=suiprivkey1...
+
+# Package address (from sui client publish)
 PACKAGE_ADDRESS=$PACKAGE_ADDRESS
 
 # After creating a queue, add the queue object ID here
