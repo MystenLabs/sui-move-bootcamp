@@ -1,0 +1,5 @@
+[package]
+name = "robot_tokenomics"
+edition = "2024"
+
+[dependencies]
