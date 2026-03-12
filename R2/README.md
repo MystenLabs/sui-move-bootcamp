@@ -325,7 +325,7 @@ sui client balance
 ### Step 2: Build the Contract
 
 ```bash
-cd Module2/move
+cd R2/move
 sui move build
 ```
 
@@ -460,7 +460,7 @@ sequenceDiagram
     Q->>Q: Remove first action (FIFO)
     Q->>N: Emit ActionProcessed event
     N-->>A: Action details
-    A->>R: Execute action (Module 4!)
+    A->>R: Execute action (Module R4!)
 ```
 
 ---
