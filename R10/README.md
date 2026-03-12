@@ -267,9 +267,11 @@ graph TD
         TREAT[treat.move<br/>Token + Faucet]
         REG[robot_registry.move<br/>Robot Discovery]
         SESS[rental_session.move<br/>Session + Billing]
+        PET[robot_pet.move<br/>Pay-Per-Action]
     end
 
     TREAT -->|TREAT token| SESS
+    TREAT -->|TREAT token| PET
     REG -->|Robot info| SESS
 ```
 
@@ -380,16 +382,18 @@ public fun verify_user_signature(
 
 ## Client Scripts
 
-| Script            | Description                  | Usage                                  |
-| ----------------- | ---------------------------- | -------------------------------------- |
-| `request-tokens`  | Get TREAT from faucet        | `pnpm request-tokens [amount]`         |
-| `check-balance`   | View TREAT balance           | `pnpm check-balance`                   |
-| `create-registry` | Create robot registry (once) | `pnpm create-registry`                 |
-| `register-robot`  | Register a robot             | `pnpm register-robot`                  |
-| `list-robots`     | List all robots              | `pnpm list-robots`                     |
-| `start-session`   | Start rental                 | `pnpm start-session <robot> <minutes>` |
-| `end-session`     | End rental                   | `pnpm end-session <session-id>`        |
-| `demo`            | Full workflow demo           | `pnpm demo`                            |
+| Script            | Description                   | Usage                                  |
+| ----------------- | ----------------------------- | -------------------------------------- |
+| `request-tokens`  | Get TREAT from faucet         | `pnpm request-tokens [amount]`         |
+| `request-treats`  | Alias for request-tokens      | `pnpm request-treats [amount]`         |
+| `check-balance`   | View TREAT balance            | `pnpm check-balance`                   |
+| `create-registry` | Create robot registry (once)  | `pnpm create-registry`                 |
+| `register-robot`  | Register a robot              | `pnpm register-robot`                  |
+| `list-robots`     | List all robots               | `pnpm list-robots`                     |
+| `feed-robot`      | Queue a robot action (Mode 1) | `pnpm feed-robot <action>`             |
+| `start-session`   | Start rental (Mode 2)         | `pnpm start-session <robot> <minutes>` |
+| `end-session`     | End rental                    | `pnpm end-session <session-id>`        |
+| `demo`            | Full workflow demo            | `pnpm demo`                            |
 
 ---
 
@@ -491,32 +495,50 @@ graph TD
 
 ```
 R10/
-├── README.md                 # This file
+├── README.md                     # This file
 ├── move/
 │   ├── Move.toml
-│   └── sources/
-│       ├── treat.move        # TREAT token + faucet
-│       ├── robot_registry.move   # Robot discovery
-│       └── rental_session.move   # Session + billing
+│   ├── sources/
+│   │   ├── treat.move            # TREAT token + faucet
+│   │   ├── robot_registry.move   # Robot discovery
+│   │   ├── rental_session.move   # Session + billing
+│   │   └── robot_pet.move        # Pay-per-action mode
+│   └── tests/
+│       ├── treat_tests.move
+│       ├── robot_registry_tests.move
+│       ├── rental_session_tests.move
+│       └── robot_pet_tests.move
+├── publish/
+│   └── publish.sh                # Deploy & generate .env files
 ├── client/
 │   ├── package.json
 │   ├── tsconfig.json
 │   ├── .env.example
 │   └── src/
-│       ├── config.ts         # Configuration + helpers
+│       ├── config.ts              # Configuration + helpers
 │       ├── request-tokens.ts
 │       ├── check-balance.ts
 │       ├── create-registry.ts
 │       ├── register-robot.ts
 │       ├── list-robots.ts
+│       ├── feed-robot.ts          # Queue robot action (Mode 1)
 │       ├── start-session.ts
 │       ├── end-session.ts
-│       └── demo.ts           # Full workflow demo
-├── server/                   # (Optional) WebSocket server
+│       └── demo.ts                # Full workflow demo
+├── server/                        # WebSocket server for Mode 2
 │   └── src/
-│       └── ...
-└── frontend/                 # (Optional) Web UI
-    └── index.html
+│       ├── server.ts
+│       ├── config.ts
+│       ├── blockchain.ts
+│       ├── crypto.ts
+│       ├── robot.ts
+│       └── types.ts
+└── dapp/                          # React dApp (wallet integration)
+    └── src/
+        ├── main.tsx
+        ├── App.tsx
+        ├── networkConfig.ts
+        └── components/
 ```
 
 ---

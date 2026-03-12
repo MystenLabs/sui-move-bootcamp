@@ -196,7 +196,7 @@ A progressive, project-based series that teaches Sui development through buildin
 #### Full-Stack Applications
 
 - [R9: Multiplayer Robot — Shared State](./R9/)
-  On-chain fairness queue, React dApp with wallet integration (`@mysten/dapp-kit`), and WebSocket broadcast server.
+  On-chain fairness queue, React dApp with wallet integration (`@mysten/dapp-kit-react`), and WebSocket broadcast server.
 - [R10: Robot Rental Platform — Capstone](./R10/)
   Complete platform: TREAT token escrow, robot registry, Ed25519 command signing, time-based billing, and rental receipts.
 
@@ -214,16 +214,16 @@ A progressive, project-based series that teaches Sui development through buildin
 
 ## Technology Stack
 
-| Layer      | Technologies                         |
-| ---------- | ------------------------------------ |
-| Blockchain | Sui, Move 2024 edition               |
-| Backend    | Node.js, TypeScript                  |
-| Frontend   | React, Vite, `@mysten/dapp-kit`      |
-| Real-time  | WebSocket (`ws` library)             |
-| Hardware   | `serialport` library, Petoi Bittle X |
-| Networking | Cloudflare Tunnel                    |
-| Crypto     | Ed25519 (`@noble/ed25519`)           |
-| Monitoring | Prometheus, Grafana, Docker Compose  |
+| Layer      | Technologies                          |
+| ---------- | ------------------------------------- |
+| Blockchain | Sui, Move 2024 edition                |
+| Backend    | Node.js, TypeScript                   |
+| Frontend   | React, Vite, `@mysten/dapp-kit-react` |
+| Real-time  | WebSocket (`ws` library)              |
+| Hardware   | `serialport` library, Petoi Bittle X  |
+| Networking | Cloudflare Tunnel                     |
+| Crypto     | Ed25519 (`@noble/ed25519`)            |
+| Monitoring | Prometheus, Grafana, Docker Compose   |
 
 ## Resources
 
