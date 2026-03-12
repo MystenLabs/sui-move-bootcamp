@@ -11,7 +11,7 @@ By completing this module, you will understand:
 - **Event-Driven Architecture**: Using blockchain events for real-time updates
 - **Table Storage**: Efficient per-user data tracking in Move
 - **WebSocket Broadcasting**: Real-time dashboard updates to all connected clients
-- **Sui dApp Development**: Creating React apps with wallet integration using `@mysten/dapp-kit`
+- **Sui dApp Development**: Creating React apps with wallet integration using `@mysten/dapp-kit-react`
 
 ## Architecture Overview
 
@@ -226,56 +226,67 @@ pnpm create @mysten/dapp
 
 This creates a new React + Vite project with:
 
-- `@mysten/dapp-kit` - Wallet connection and Sui hooks
-- `@mysten/sui` - Sui TypeScript SDK
+- `@mysten/dapp-kit-react` - Wallet connection and Sui hooks
+- `@mysten/sui` - Sui TypeScript SDK (includes `SuiGrpcClient`)
 - `@radix-ui/themes` - UI components
 - `@tanstack/react-query` - Data fetching
 
-### Step 2: Configure Networks
+### Step 2: Configure the dApp Kit
 
-Edit `src/networkConfig.ts` to add your contract addresses:
+Edit `src/main.tsx` to set up the dApp Kit with `SuiGrpcClient`:
 
 ```typescript
-import { getFullnodeUrl } from "@mysten/sui/client";
-import { createNetworkConfig } from "@mysten/dapp-kit";
+import { createDAppKit, DAppKitProvider } from "@mysten/dapp-kit-react";
+import { SuiGrpcClient } from "@mysten/sui/grpc";
 
-const { networkConfig, useNetworkVariable } = createNetworkConfig({
-  testnet: {
-    url: getFullnodeUrl("testnet"),
-    variables: {
-      packageId: import.meta.env.VITE_PACKAGE_ID || "",
-      queueId: import.meta.env.VITE_QUEUE_ID || "",
-    },
+const dAppKit = createDAppKit({
+  networks: ["devnet", "testnet", "mainnet"],
+  defaultNetwork: "testnet",
+  createClient(network) {
+    return new SuiGrpcClient({
+      network,
+      baseUrl:
+        network === "mainnet"
+          ? "https://fullnode.mainnet.sui.io:443"
+          : network === "testnet"
+            ? "https://fullnode.testnet.sui.io:443"
+            : "https://fullnode.devnet.sui.io:443",
+    });
   },
 });
+```
 
-export { useNetworkVariable, networkConfig };
+Contract addresses are configured via environment variables in `src/networkConfig.ts`:
+
+```typescript
+export const PACKAGE_ID = import.meta.env.VITE_PACKAGE_ID || "";
+export const QUEUE_ID = import.meta.env.VITE_QUEUE_ID || "";
 ```
 
 ### Step 3: Use dApp Kit Hooks
 
-The dApp kit provides powerful hooks for interacting with Sui:
+The dApp kit provides hooks for interacting with Sui:
 
 ```typescript
 import {
   useCurrentAccount, // Get connected wallet
-  useSuiClient, // Get Sui client for queries
-  useSignAndExecuteTransaction, // Sign and execute transactions
-} from "@mysten/dapp-kit";
+  useCurrentClient, // Get gRPC client for queries
+  useDAppKit, // Sign and execute transactions
+} from "@mysten/dapp-kit-react";
 import { Transaction } from "@mysten/sui/transactions";
 
 // Get wallet address
 const account = useCurrentAccount();
 
 // Query blockchain
-const client = useSuiClient();
-const obj = await client.getObject({
-  id: queueId,
-  options: { showContent: true },
+const client = useCurrentClient();
+const obj = await client.core.getObject({
+  objectId: queueId,
+  include: { json: true },
 });
 
 // Execute transaction
-const { mutate: signAndExecute } = useSignAndExecuteTransaction();
+const dAppKit = useDAppKit();
 
 const tx = new Transaction();
 tx.moveCall({
@@ -287,13 +298,10 @@ tx.moveCall({
   ],
 });
 
-signAndExecute(
-  { transaction: tx },
-  {
-    onSuccess: (result) => console.log("Success:", result.digest),
-    onError: (error) => console.error("Error:", error),
-  },
-);
+const result = await dAppKit.signAndExecuteTransaction({
+  transaction: tx,
+});
+console.log("Success:", result.digest);
 ```
 
 ### Step 4: Add Wallet Connection
@@ -301,7 +309,7 @@ signAndExecute(
 The dApp kit provides a ready-to-use connect button:
 
 ```tsx
-import { ConnectButton } from "@mysten/dapp-kit";
+import { ConnectButton } from "@mysten/dapp-kit-react/ui";
 
 function App() {
   return (
@@ -531,7 +539,7 @@ USER_PHRASE="twelve word mnemonic phrase"
 USER_PRIVATE_KEY=suiprivkey1...
 
 # Optional
-SUI_RPC_URL=https://fullnode.testnet.sui.io
+SUI_GRAPHQL_URL=https://graphql.testnet.sui.io/graphql
 ```
 
 ### Server (.env)
