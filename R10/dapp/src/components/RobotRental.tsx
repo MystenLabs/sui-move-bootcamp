@@ -60,7 +60,7 @@ function buildCommandMessage(
   sessionId: string,
   sequence: number,
   action: string,
-): Uint8Array {
+): Uint8Array<ArrayBuffer> {
   const sessionIdHex = sessionId.startsWith("0x")
     ? sessionId.slice(2)
     : sessionId;
