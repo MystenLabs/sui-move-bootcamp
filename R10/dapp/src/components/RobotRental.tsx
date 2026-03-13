@@ -19,7 +19,7 @@ import {
   Text,
   TextField,
 } from "@radix-ui/themes";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ACTION_INFO,
   MAX_RENTAL_MINUTES,
@@ -30,10 +30,13 @@ import {
 import { useRentalSession, useRobotRegistry, useTreatBalance } from "../hooks";
 import { WS_URL } from "../networkConfig";
 
-// Generate Ed25519 keypair for session authentication
+// Generate Ed25519 keypair for session authentication.
+// We keep the CryptoKey for signing (not PKCS8 export) because
+// crypto.subtle.sign("Ed25519") produces standard 64-byte signatures
+// compatible with @noble/ed25519 verification on the server.
 async function generateEd25519Keypair(): Promise<{
   publicKey: Uint8Array;
-  privateKey: Uint8Array;
+  privateKey: CryptoKey;
 }> {
   const keyPair = await crypto.subtle.generateKey({ name: "Ed25519" }, true, [
     "sign",
@@ -44,30 +47,66 @@ async function generateEd25519Keypair(): Promise<{
     "raw",
     keyPair.publicKey,
   );
-  const privateKeyBuffer = await crypto.subtle.exportKey(
-    "pkcs8",
-    keyPair.privateKey,
-  );
 
   return {
     publicKey: new Uint8Array(publicKeyBuffer),
-    privateKey: new Uint8Array(privateKeyBuffer),
+    privateKey: keyPair.privateKey,
   };
+}
+
+// Build the command message for signing (matches Move contract format).
+// Format: session_id (32 bytes) || sequence_number (8 bytes, big-endian) || action (UTF-8)
+function buildCommandMessage(
+  sessionId: string,
+  sequence: number,
+  action: string,
+): Uint8Array {
+  const sessionIdHex = sessionId.startsWith("0x")
+    ? sessionId.slice(2)
+    : sessionId;
+  const sessionIdBytes = new Uint8Array(sessionIdHex.length / 2);
+  for (let i = 0; i < sessionIdBytes.length; i++) {
+    sessionIdBytes[i] = parseInt(sessionIdHex.slice(i * 2, i * 2 + 2), 16);
+  }
+
+  const sequenceBytes = new Uint8Array(8);
+  const view = new DataView(sequenceBytes.buffer);
+  view.setBigUint64(0, BigInt(sequence), false);
+
+  const actionBytes = new TextEncoder().encode(action);
+
+  const message = new Uint8Array(
+    sessionIdBytes.length + sequenceBytes.length + actionBytes.length,
+  );
+  message.set(sessionIdBytes, 0);
+  message.set(sequenceBytes, sessionIdBytes.length);
+  message.set(actionBytes, sessionIdBytes.length + sequenceBytes.length);
+
+  return message;
+}
+
+function bytesToHex(bytes: Uint8Array): string {
+  return Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 interface WebSocketControllerProps {
   sessionId: string;
   operatorPublicKey: string;
+  userPrivateKey: CryptoKey;
   onCommand: (action: RobotAction) => void;
 }
 
 function WebSocketController({
   sessionId,
+  userPrivateKey,
   onCommand,
 }: WebSocketControllerProps) {
   const [connected, setConnected] = useState(false);
   const [ws, setWs] = useState<WebSocket | null>(null);
   const [lastCommand, setLastCommand] = useState<string | null>(null);
+  const sequenceRef = useRef(0);
 
   const connect = useCallback(() => {
     if (!WS_URL) return;
@@ -97,8 +136,12 @@ function WebSocketController({
     socket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
+        if (data.type === "auth_response" && data.success && data.session) {
+          // Initialize sequence from server's current value
+          sequenceRef.current = data.session.sequenceNumber;
+        }
         if (data.type === "ack") {
-          setLastCommand(data.command);
+          setLastCommand(data.action);
         }
       } catch {
         // Ignore parse errors
@@ -117,19 +160,36 @@ function WebSocketController({
   }, [ws]);
 
   const sendCommand = useCallback(
-    (action: RobotAction) => {
+    async (action: RobotAction) => {
       if (ws && connected) {
+        const nextSequence = sequenceRef.current + 1;
+
+        // Build the message matching server/Move contract format
+        const message = buildCommandMessage(sessionId, nextSequence, action);
+
+        // Sign with Web Crypto Ed25519 (produces standard 64-byte signature)
+        const sigBuffer = await crypto.subtle.sign(
+          "Ed25519",
+          userPrivateKey,
+          message,
+        );
+        const signature = bytesToHex(new Uint8Array(sigBuffer));
+
         ws.send(
           JSON.stringify({
             type: "command",
             action,
+            sequence: nextSequence,
+            signature,
             timestamp: Date.now(),
           }),
         );
+
+        sequenceRef.current = nextSequence;
         onCommand(action);
       }
     },
-    [ws, connected, onCommand],
+    [ws, connected, onCommand, sessionId, userPrivateKey],
   );
 
   useEffect(() => {
@@ -171,7 +231,7 @@ function WebSocketController({
             size="2"
             variant="outline"
             disabled={!connected}
-            onClick={() => sendCommand(action)}
+            onClick={() => void sendCommand(action)}
           >
             {ACTION_INFO[action].label}
           </Button>
@@ -187,7 +247,7 @@ export function RobotRental() {
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [userKeyPair, setUserKeyPair] = useState<{
     publicKey: Uint8Array;
-    privateKey: Uint8Array;
+    privateKey: CryptoKey;
   } | null>(null);
   const [status, setStatus] = useState<{
     type: "success" | "error";
@@ -213,18 +273,49 @@ export function RobotRental() {
         robotName,
         userKeyPair.publicKey,
         minutes,
+        pricePerMinute ?? undefined,
       );
 
-      // Extract session ID from transaction events
+      // Extract session ID from transaction result.
+      // Try events first, then fall back to created objects.
+      let foundSessionId: string | null = null;
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const events = (result as any)?.events || [];
       const sessionEvent = events.find(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (e: any) => e.type?.includes("SessionStarted"),
+        (e: any) =>
+          e.type?.includes("SessionStarted") ||
+          e.eventType?.includes("SessionStarted"),
       );
 
       if (sessionEvent?.parsedJson?.session_id) {
-        setActiveSessionId(sessionEvent.parsedJson.session_id);
+        foundSessionId = sessionEvent.parsedJson.session_id;
+      } else if (sessionEvent?.json?.session_id) {
+        foundSessionId = sessionEvent.json.session_id;
+      }
+
+      // Fallback: extract from created objects
+      if (!foundSessionId) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const effects = (result as any)?.effects;
+        const created = effects?.changedObjects?.filter(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (c: any) => c.idOperation === "Created",
+        );
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const sessionObj = created?.find((c: any) => {
+          const objType =
+            effects?.objectTypes?.[c.objectId] || c.objectType || "";
+          return objType.includes("RentalSession");
+        });
+        if (sessionObj) {
+          foundSessionId = sessionObj.objectId;
+        }
+      }
+
+      if (foundSessionId) {
+        setActiveSessionId(foundSessionId);
         setStatus({
           type: "success",
           message: `Rental session started for ${minutes} minutes!`,
@@ -232,7 +323,8 @@ export function RobotRental() {
       } else {
         setStatus({
           type: "success",
-          message: "Session started! Check your owned objects for the session.",
+          message:
+            "Session started but could not extract session ID. Check your owned objects to find the RentalSession.",
         });
       }
     } catch (error) {
@@ -264,8 +356,9 @@ export function RobotRental() {
     }
   };
 
-  const pricePerMinute = 1; // Default assumption
-  const totalCost = pricePerMinute * minutes;
+  const pricePerMinute =
+    registryData?.robotPrices?.[robotName] ?? null;
+  const totalCost = (pricePerMinute ?? 1) * minutes;
   const canStart =
     totalBalance >= BigInt(totalCost) &&
     robotName.trim() !== "" &&
@@ -340,13 +433,17 @@ export function RobotRental() {
               </Flex>
             </Box>
 
-            <Callout.Root color="blue" size="1">
+            <Callout.Root
+              color={pricePerMinute !== null ? "blue" : "orange"}
+              size="1"
+            >
               <Callout.Icon>
                 <InfoCircledIcon />
               </Callout.Icon>
               <Callout.Text>
-                {pricePerMinute} TREAT per minute. Unused time is refunded when
-                you end the session.
+                {pricePerMinute !== null
+                  ? `${pricePerMinute} TREAT per minute. Unused time is refunded when you end the session.`
+                  : "Select a registered robot to see its price. Cost estimate shown may not match the on-chain price."}
               </Callout.Text>
             </Callout.Root>
           </>
@@ -389,6 +486,7 @@ export function RobotRental() {
               <WebSocketController
                 sessionId={activeSessionId}
                 operatorPublicKey={sessionData?.operatorPublicKey || ""}
+                userPrivateKey={userKeyPair!.privateKey}
                 onCommand={(action) => {
                   refetchSession();
                   console.log("Command sent:", action);

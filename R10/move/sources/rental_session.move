@@ -1,7 +1,7 @@
 /// # Rental Session - Secure Robot Control with Escrow
 ///
 /// This module manages rental sessions with:
-/// - Ed25519 authentication (from Module 7)
+/// - Ed25519 authentication (from R7)
 /// - Time-based billing with escrow
 /// - Automatic refunds for unused time
 ///
@@ -11,7 +11,7 @@
 /// - Ed25519 signature verification
 /// - Time-based billing calculations
 ///
-/// ## Architecture (Building on Module 7)
+/// ## Architecture (Building on R7)
 ///
 /// ```
 /// ┌─────────────────────────────────────────────────────────────────┐
@@ -36,8 +36,8 @@
 /// └─────────────────────────────────────────────────────────────────┘
 /// ```
 ///
-/// ## Key Difference from Module 7
-/// Module 7's tunnel is for generic state channels.
+/// ## Key Difference from R7
+/// R7's tunnel is for generic state channels.
 /// This module is specialized for robot rental with:
 /// - TREAT token payments (not SUI deposits)
 /// - Time-based billing (not penalty-based)
@@ -464,7 +464,7 @@ public fun end_timed_out_session(
 }
 
 // ============================================
-// SIGNATURE VERIFICATION (From Module 7)
+// SIGNATURE VERIFICATION (From R7)
 // ============================================
 
 /// Verify a user's Ed25519 signature.

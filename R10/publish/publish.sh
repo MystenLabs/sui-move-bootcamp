@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Module 10 - Full Platform (Robot Rental Platform)
+# R10 - Full Platform (Robot Rental Platform)
 # Publish script for the robot rental platform contracts
 #
 # Usage: ./publish.sh [robot_name]
@@ -43,6 +43,15 @@ for dep in sui jq; do
         exit 1
     fi
 done
+
+# Verify Move.toml has [environments] (required by Sui CLI v1.64+)
+if ! grep -q '^\[environments\]' ../move/Move.toml 2>/dev/null; then
+    log_error "Move.toml is missing [environments] section (required by Sui CLI v1.64+)"
+    log_error "Add the following to ../move/Move.toml:"
+    log_error "  [environments]"
+    log_error "  devnet = \"01accae1\""
+    exit 1
+fi
 
 # Get current network from sui client
 NETWORK=$(sui client active-env 2>/dev/null || echo "unknown")

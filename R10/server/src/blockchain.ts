@@ -153,22 +153,49 @@ export function getElapsedMinutes(session: SessionData): number {
 // ============================================
 
 /**
- * Convert hex string to Uint8Array.
- * Handles both "0x" prefixed and raw hex strings.
+ * Convert a public key field to Uint8Array.
+ *
+ * Handles multiple formats that Sui clients may return for vector<u8>:
+ * - number[]: JSON array of byte values (common from gRPC/GraphQL)
+ * - "0x..." prefixed hex string
+ * - Raw hex string
+ * - Base64 encoded string (some SDK versions)
  */
-function hexToBytes(hex: string | number[]): Uint8Array {
-  // If it's already an array, convert directly
-  if (Array.isArray(hex)) {
-    return new Uint8Array(hex);
+function hexToBytes(value: string | number[]): Uint8Array {
+  // If it's already an array of numbers, convert directly
+  if (Array.isArray(value)) {
+    return new Uint8Array(value);
   }
 
   // Remove 0x prefix if present
-  const cleanHex = hex.startsWith("0x") ? hex.slice(2) : hex;
+  if (value.startsWith("0x") || value.startsWith("0X")) {
+    const cleanHex = value.slice(2);
+    return hexStringToBytes(cleanHex);
+  }
 
-  // Convert hex string to bytes
-  const bytes = new Uint8Array(cleanHex.length / 2);
+  // Check if it looks like hex (only hex chars, even length)
+  if (/^[0-9a-fA-F]+$/.test(value) && value.length % 2 === 0) {
+    return hexStringToBytes(value);
+  }
+
+  // Try base64 decoding as fallback
+  try {
+    const binary = atob(value);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes;
+  } catch {
+    // If all else fails, treat as hex
+    return hexStringToBytes(value);
+  }
+}
+
+function hexStringToBytes(hex: string): Uint8Array {
+  const bytes = new Uint8Array(hex.length / 2);
   for (let i = 0; i < bytes.length; i++) {
-    bytes[i] = parseInt(cleanHex.slice(i * 2, i * 2 + 2), 16);
+    bytes[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
   }
   return bytes;
 }

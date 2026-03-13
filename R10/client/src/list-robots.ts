@@ -91,8 +91,8 @@ async function main() {
           console.log("");
         }
       } catch (error) {
-        // If we can't read the dynamic field, just show the name
         console.log(`  ${robotName} (details unavailable)`);
+        console.error(`    Error: ${error instanceof Error ? error.message : error}`);
       }
     }
   } catch (error: any) {

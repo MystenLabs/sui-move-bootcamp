@@ -19,6 +19,9 @@
 /// Anyone can request tokens from the faucet, but with limits:
 /// - Maximum 10 TREAT per request
 /// - Maximum 100 TREAT per day per user
+// coin::create_currency is deprecated in favor of coin::create_currency_with_metadata_cap,
+// which returns an unfreezable CoinMetadata capability. We use the deprecated version here
+// for simplicity since we freeze metadata immediately and don't need mutation control.
 #[allow(deprecated_usage)]
 module robot_rental_platform::treat;
 
