@@ -374,12 +374,13 @@ You should see your published module.
 ### Setting Up
 
 ```typescript
-import { SuiClient, getFullnodeUrl } from "@mysten/sui/client";
+import { SuiGraphQLClient } from "@mysten/sui/graphql";
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 
 // Connect to the network
-const client = new SuiClient({
-  url: getFullnodeUrl("testnet"),
+const client = new SuiGraphQLClient({
+  url: "https://graphql.testnet.sui.io/graphql",
+  network: "testnet",
 });
 
 // Create keypair from mnemonic
@@ -418,12 +419,12 @@ const result = await client.signAndExecuteTransaction({
 ```typescript
 // Fetch object from chain
 const response = await client.getObject({
-  id: queueId,
-  options: { showContent: true },
+  objectId: queueId,
+  include: { json: true },
 });
 
 // Parse the data
-const fields = response.data.content.fields;
+const fields = response.object?.json;
 console.log("Pending actions:", fields.actions.length);
 ```
 
