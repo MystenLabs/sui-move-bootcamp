@@ -1,0 +1,3 @@
+# Publish output files (contain transaction details)
+.publish.res.json
+.create_queue.res.json

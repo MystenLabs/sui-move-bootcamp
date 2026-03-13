@@ -1,0 +1,23 @@
+{
+  "name": "multiplayer-robot-server",
+  "version": "1.0.0",
+  "description": "WebSocket server for real-time multiplayer robot queue updates",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "tsx watch src/server.ts",
+    "demo": "tsx src/demo-client.ts"
+  },
+  "dependencies": {
+    "@mysten/sui": "^2.6.0",
+    "dotenv": "^16.6.1",
+    "ws": "^8.19.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.37",
+    "@types/ws": "^8.18.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}

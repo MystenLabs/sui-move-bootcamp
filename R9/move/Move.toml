@@ -1,0 +1,5 @@
+[package]
+name = "multiplayer_robot"
+edition = "2024"
+
+[dependencies]

@@ -1,0 +1,23 @@
+{
+  "name": "multiplayer-robot-client",
+  "version": "1.0.0",
+  "description": "TypeScript client for interacting with the multiplayer robot queue",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "create-queue": "tsx src/create-queue.ts",
+    "queue-action": "tsx src/queue-action.ts",
+    "process-action": "tsx src/process-action.ts",
+    "check-status": "tsx src/check-status.ts",
+    "demo": "tsx src/demo.ts"
+  },
+  "dependencies": {
+    "@mysten/sui": "^2.6.0",
+    "dotenv": "^16.6.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.37",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}
