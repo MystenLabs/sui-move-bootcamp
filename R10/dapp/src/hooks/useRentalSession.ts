@@ -69,14 +69,15 @@ export function useRentalSession(sessionId?: string) {
     robotName: string,
     userPublicKey: Uint8Array,
     minutes: number,
+    pricePerMinute?: number,
   ) => {
     if (!PACKAGE_ID || !REGISTRY_ID) {
       throw new Error("Package ID or Registry ID not configured");
     }
 
-    // Calculate total cost
-    const pricePerMinute = 1; // Default assumption
-    const totalCost = pricePerMinute * minutes;
+    // Use actual price from registry, or fall back to 1 with a warning
+    const price = pricePerMinute ?? 1;
+    const totalCost = price * minutes;
 
     // Find coins with enough balance
     const totalBalance = coins.reduce((sum, c) => sum + c.balance, 0n);
@@ -86,51 +87,37 @@ export function useRentalSession(sessionId?: string) {
       );
     }
 
+    if (coins.length === 0) {
+      throw new Error("No TREAT tokens available");
+    }
+
     setIsPending(true);
     try {
       const tx = new Transaction();
 
-      // If we have multiple coins, merge them first
+      // Prepare payment coin: merge if multiple, then split exact amount
+      const primaryCoinId = coins[0].objectId;
       if (coins.length > 1) {
-        const [primaryCoin, ...restCoins] = coins;
         tx.mergeCoins(
-          tx.object(primaryCoin.objectId),
-          restCoins.map((c) => tx.object(c.objectId)),
+          tx.object(primaryCoinId),
+          coins.slice(1).map((c) => tx.object(c.objectId)),
         );
-        const [paymentCoin] = tx.splitCoins(tx.object(primaryCoin.objectId), [
-          totalCost,
-        ]);
-
-        tx.moveCall({
-          target: `${PACKAGE_ID}::rental_session::start_session`,
-          arguments: [
-            tx.object(REGISTRY_ID),
-            tx.pure.string(robotName),
-            tx.pure.vector("u8", Array.from(userPublicKey)),
-            paymentCoin,
-            tx.pure.u64(minutes),
-            tx.object("0x6"), // Clock object
-          ],
-        });
-      } else if (coins.length === 1) {
-        const [paymentCoin] = tx.splitCoins(tx.object(coins[0].objectId), [
-          totalCost,
-        ]);
-
-        tx.moveCall({
-          target: `${PACKAGE_ID}::rental_session::start_session`,
-          arguments: [
-            tx.object(REGISTRY_ID),
-            tx.pure.string(robotName),
-            tx.pure.vector("u8", Array.from(userPublicKey)),
-            paymentCoin,
-            tx.pure.u64(minutes),
-            tx.object("0x6"), // Clock object
-          ],
-        });
-      } else {
-        throw new Error("No TREAT tokens available");
       }
+      const [paymentCoin] = tx.splitCoins(tx.object(primaryCoinId), [
+        totalCost,
+      ]);
+
+      tx.moveCall({
+        target: `${PACKAGE_ID}::rental_session::start_session`,
+        arguments: [
+          tx.object(REGISTRY_ID),
+          tx.pure.string(robotName),
+          tx.pure.vector("u8", Array.from(userPublicKey)),
+          paymentCoin,
+          tx.pure.u64(minutes),
+          tx.object("0x6"), // Clock object
+        ],
+      });
 
       const result = await dAppKit.signAndExecuteTransaction({
         transaction: tx,

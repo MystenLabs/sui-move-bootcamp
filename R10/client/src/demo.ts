@@ -333,6 +333,13 @@ async function main() {
   console.log(
     "- State channel pattern (on-chain open/close, off-chain commands)\n",
   );
+
+  console.log(
+    `Note: Demo robot "${DEMO_ROBOT_NAME}" remains registered in the registry.`,
+  );
+  console.log(
+    "To clean up, unregister it via: pnpm unregister-robot <name>\n",
+  );
 }
 
 main().catch(console.error);

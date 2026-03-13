@@ -92,10 +92,20 @@ async function main() {
     }
 
     // Output private key for server use
-    console.log("\n=== IMPORTANT: Save this private key for your server! ===");
+    console.log(
+      "\n=== IMPORTANT: Save this private key for your server! ===",
+    );
+    console.warn(
+      "WARNING: The following private key controls your robot's command authentication.",
+    );
+    console.warn(
+      "         Do not share it or leave it in terminal history/logs.",
+    );
     console.log(`OPERATOR_COMMAND_PRIVATE_KEY=0x${bytesToHex(privateKey)}`);
     console.log(`OPERATOR_COMMAND_PUBLIC_KEY=0x${bytesToHex(publicKey)}`);
-    console.log("\nKeep the private key secret! It's used to verify commands.");
+    console.log(
+      "\nCopy these values to your server's .env file immediately.",
+    );
   } catch (error: any) {
     console.error("\nTransaction failed:", error.message);
 

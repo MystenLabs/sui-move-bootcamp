@@ -68,8 +68,8 @@ async function main() {
   }
   const robotsTableId = fields.robots?.fields?.id?.id;
 
-  // Get robot price
-  let pricePerMinute = 2; // Default
+  // Get robot price from registry (no silent fallback)
+  let pricePerMinute: number;
   try {
     const robotField = await suiClient.getDynamicField({
       parentId: robotsTableId,
@@ -85,14 +85,27 @@ async function main() {
       include: { json: true },
     });
     const fieldJson = fieldObject.object.json as any;
-    if (fieldJson) {
-      const robotData = fieldJson.value;
-      pricePerMinute = parseInt(robotData.price_per_minute, 10);
+    if (!fieldJson?.value) {
+      console.error(
+        `Could not read robot data for "${robotName}" from registry.`,
+      );
+      console.error("Check that the registry is correctly deployed.");
+      process.exit(1);
+    }
 
-      if (!robotData.is_available) {
-        console.error(`Robot "${robotName}" is not available for rent.`);
-        process.exit(1);
-      }
+    const robotData = fieldJson.value;
+    pricePerMinute = parseInt(robotData.price_per_minute, 10);
+
+    if (isNaN(pricePerMinute)) {
+      console.error(
+        `Invalid price_per_minute for "${robotName}": ${robotData.price_per_minute}`,
+      );
+      process.exit(1);
+    }
+
+    if (!robotData.is_available) {
+      console.error(`Robot "${robotName}" is not available for rent.`);
+      process.exit(1);
     }
   } catch (error) {
     console.error(`Robot "${robotName}" not found in registry.`);
@@ -123,23 +136,17 @@ async function main() {
   // Build transaction
   const tx = new Transaction();
 
-  // Find a coin with enough balance (or merge coins)
-  const coinToUse = coins.find((c) => BigInt(c.balance) >= BigInt(totalCost));
-
-  let paymentCoin;
-  if (coinToUse) {
-    // Split exact amount from this coin
-    const [payment] = tx.splitCoins(tx.object(coinToUse.objectId), [
-      tx.pure.u64(totalCost),
-    ]);
-    paymentCoin = payment;
-  } else {
-    // Need to merge coins first
-    // For simplicity, we'll use the first coin and assume it has enough
-    // In production, you'd merge multiple coins
-    console.error("Please merge your TREAT coins or get a larger single coin.");
-    process.exit(1);
+  // Prepare payment: merge coins if needed, then split exact amount
+  const primaryCoinId = coins[0].objectId;
+  if (coins.length > 1) {
+    tx.mergeCoins(
+      tx.object(primaryCoinId),
+      coins.slice(1).map((c) => tx.object(c.objectId)),
+    );
   }
+  const [paymentCoin] = tx.splitCoins(tx.object(primaryCoinId), [
+    tx.pure.u64(totalCost),
+  ]);
 
   tx.moveCall({
     target: `${PACKAGE_ADDRESS}::rental_session::start_session`,
@@ -187,6 +194,12 @@ async function main() {
 
     // Output keys for WebSocket connection
     console.log("\n=== Connection Info (save this!) ===");
+    console.warn(
+      "WARNING: The following private key controls your rental session commands.",
+    );
+    console.warn(
+      "         Do not share it or leave it in terminal history/logs.",
+    );
     console.log(`SESSION_ID=${createdSession?.objectId || ""}`);
     console.log(`USER_COMMAND_PRIVATE_KEY=0x${bytesToHex(privateKey)}`);
     console.log(`USER_COMMAND_PUBLIC_KEY=0x${bytesToHex(publicKey)}`);

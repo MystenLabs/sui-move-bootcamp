@@ -407,6 +407,10 @@ EOF
 cloudflared tunnel run robot-rental
 ```
 
+## SDK Client Note
+
+The server and CLI use `SuiGraphQLClient` (`@mysten/sui/graphql`) while the dApp uses `SuiGrpcClient` (`@mysten/sui/grpc`), which is required by `@mysten/dapp-kit-react`. These clients may return object fields in slightly different formats (e.g., `vector<u8>` serialization). The server's `hexToBytes()` handles multiple formats (hex, number arrays, base64) to accommodate this.
+
 ## Development
 
 ### Project Structure
