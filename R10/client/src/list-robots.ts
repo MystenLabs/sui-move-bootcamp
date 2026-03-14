@@ -44,7 +44,8 @@ async function main() {
 
     // Get robot details from the Table
     // Note: Reading Table entries requires dynamic field queries
-    const robotsTableId = fields.robots?.fields?.id?.id;
+    // GraphQL json returns flat structure (robots.id), not JSON-RPC nested (robots.fields.id.id)
+    const robotsTableId = fields.robots?.id ?? fields.robots?.fields?.id?.id;
 
     if (!robotsTableId) {
       // Just list names if we can't access the Table

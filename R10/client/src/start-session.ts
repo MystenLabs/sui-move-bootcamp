@@ -66,7 +66,13 @@ async function main() {
     console.error("Could not read registry");
     process.exit(1);
   }
-  const robotsTableId = fields.robots?.fields?.id?.id;
+  // GraphQL json returns flat structure (robots.id), not JSON-RPC nested (robots.fields.id.id)
+  const robotsTableId = fields.robots?.id ?? fields.robots?.fields?.id?.id;
+  if (!robotsTableId) {
+    console.error("Could not read robots table from registry.");
+    console.error("Debug: fields.robots =", JSON.stringify(fields.robots));
+    process.exit(1);
+  }
 
   // Get robot price from registry (no silent fallback)
   let pricePerMinute: number;
