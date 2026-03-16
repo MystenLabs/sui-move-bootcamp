@@ -1,0 +1,28 @@
+{
+  "name": "robot-rental-client",
+  "version": "1.0.0",
+  "description": "TypeScript client for Robot Rental Platform",
+  "type": "module",
+  "scripts": {
+    "request-tokens": "tsx src/request-tokens.ts",
+    "request-treats": "tsx src/request-tokens.ts",
+    "check-balance": "tsx src/check-balance.ts",
+    "create-registry": "tsx src/create-registry.ts",
+    "register-robot": "tsx src/register-robot.ts",
+    "list-robots": "tsx src/list-robots.ts",
+    "start-session": "tsx src/start-session.ts",
+    "end-session": "tsx src/end-session.ts",
+    "feed-robot": "tsx src/feed-robot.ts",
+    "demo": "tsx src/demo.ts"
+  },
+  "dependencies": {
+    "@mysten/sui": "^2.6.0",
+    "@noble/ed25519": "^2.3.0",
+    "dotenv": "^16.6.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.15",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "name": "robot-rental-server",
+  "version": "1.0.0",
+  "description": "WebSocket server for robot rental with Ed25519 authentication",
+  "type": "module",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "tsx src/server.ts",
+    "dev": "tsx watch src/server.ts",
+    "tunnel": "./scripts/start-tunnel.sh",
+    "start:tunnel": "./scripts/start-all.sh"
+  },
+  "keywords": [
+    "websocket",
+    "robot",
+    "sui",
+    "ed25519",
+    "rental"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@mysten/sui": "^2.6.0",
+    "@noble/ed25519": "^2.3.0",
+    "@noble/hashes": "^1.8.0",
+    "dotenv": "^16.6.1",
+    "ws": "^8.19.0"
+  },
+  "optionalDependencies": {
+    "serialport": "^12.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.15",
+    "@types/ws": "^8.18.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}
