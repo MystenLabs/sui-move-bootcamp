@@ -93,7 +93,9 @@ async function main() {
         }
       } catch (error) {
         console.log(`  ${robotName} (details unavailable)`);
-        console.error(`    Error: ${error instanceof Error ? error.message : error}`);
+        console.error(
+          `  Error: ${error instanceof Error ? error.message : error}`,
+        );
       }
     }
   } catch (error: any) {

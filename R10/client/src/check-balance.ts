@@ -57,7 +57,10 @@ async function main() {
       }
     }
   } catch (error) {
-    console.error("Could not read faucet stats:", error instanceof Error ? error.message : error);
+    console.error(
+      "Could not read faucet stats:",
+      error instanceof Error ? error.message : error,
+    );
   }
 }
 

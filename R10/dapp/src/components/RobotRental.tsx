@@ -356,8 +356,7 @@ export function RobotRental() {
     }
   };
 
-  const pricePerMinute =
-    registryData?.robotPrices?.[robotName] ?? null;
+  const pricePerMinute = registryData?.robotPrices?.[robotName] ?? null;
   const totalCost = (pricePerMinute ?? 1) * minutes;
   const canStart =
     totalBalance >= BigInt(totalCost) &&

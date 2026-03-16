@@ -464,7 +464,7 @@ public fun end_timed_out_session(
 }
 
 // ============================================
-// SIGNATURE VERIFICATION (From R7)
+// SIGNATURE VERIFICATION (From Module R7)
 // ============================================
 
 /// Verify a user's Ed25519 signature.
