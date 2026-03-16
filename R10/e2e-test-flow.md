@@ -32,6 +32,7 @@ chmod +x publish.sh
 ```
 
 Verify the output shows:
+
 - Package published
 - Faucet created
 - RobotRegistry created
@@ -142,7 +143,7 @@ wscat -c ws://localhost:8080
 Once connected, send an auth message:
 
 ```json
-{"type":"auth","sessionId":"<SESSION_ID_FROM_STEP_5>"}
+{ "type": "auth", "sessionId": "<SESSION_ID_FROM_STEP_5>" }
 ```
 
 You should get an `auth_response`. Type `Ctrl+C` to exit.

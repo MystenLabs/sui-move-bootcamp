@@ -337,9 +337,7 @@ async function main() {
   console.log(
     `Note: Demo robot "${DEMO_ROBOT_NAME}" remains registered in the registry.`,
   );
-  console.log(
-    "To clean up, unregister it via: pnpm unregister-robot <name>\n",
-  );
+  console.log("To clean up, unregister it via: pnpm unregister-robot <name>\n");
 }
 
 main().catch(console.error);
