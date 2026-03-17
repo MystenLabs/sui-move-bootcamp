@@ -6,6 +6,7 @@
   "scripts": {
     "start": "npx tsx src/processor.ts",
     "dev": "npx tsx watch src/processor.ts",
+    "sim": "npx tsx src/sim.ts",
     "test-serial": "npx tsx src/test-serial.ts",
     "test-blockchain": "npx tsx src/test-blockchain.ts"
   },

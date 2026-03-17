@@ -1,0 +1,164 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Inter+Tight:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --sui-sea: #4da2ff;
+  --sui-ocean: #011829;
+  --sui-aqua: #c0e6ff;
+  --sui-deep-ocean: #030f1c;
+  --sui-cloud: #ffffff;
+  --sui-paper: #f4f8fc;
+  --sui-shell: #eef5fb;
+  --sui-line: #d7e6f4;
+  --sui-line-strong: #bfd6ea;
+  --sui-ink: #16314b;
+  --sui-muted: #5d7893;
+  --sui-success: #1f8f6f;
+  --sui-warm: #f4a34f;
+  --background: #ffffff;
+  --foreground: #011829;
+  --primary: #4da2ff;
+  --primary-foreground: #ffffff;
+  --secondary: #f4f8fc;
+  --secondary-foreground: #16314b;
+  --border: #d7e6f4;
+  --accent: #eef5fb;
+  --accent-foreground: #17324d;
+  --muted: #f8fbff;
+  --muted-foreground: #5d7893;
+  --popover: #ffffff;
+  --popover-foreground: #011829;
+  --ring: #4da2ff;
+  --radius: 999px;
+  --font-sans: 'Google Sans', 'Google Sans Text', ui-sans-serif, system-ui, sans-serif;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-main: 'Google Sans', 'Google Sans Text', ui-sans-serif, system-ui, sans-serif;
+  --font-brand: 'TWK Everett', 'Inter Tight', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background:
+    radial-gradient(circle at top left, rgba(77, 162, 255, 0.1), transparent 28%),
+    radial-gradient(circle at top right, rgba(192, 230, 255, 0.28), transparent 32%),
+    linear-gradient(180deg, #f8fbff 0%, #eef5fb 100%);
+  color: var(--sui-ink);
+  font-family: var(--font-main);
+  overflow: hidden;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(77, 162, 255, 0.35) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(77, 162, 255, 0.28);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(77, 162, 255, 0.46);
+}
+
+.font-brand {
+  font-family: var(--font-brand);
+}
+
+.font-mono-ui {
+  font-family: var(--font-mono);
+}
+
+.surface-panel {
+  @apply rounded-[28px] border shadow-[0_12px_36px_rgba(1,24,41,0.05)] backdrop-blur;
+  background: rgba(255, 255, 255, 0.92);
+  border-color: var(--sui-line);
+}
+
+.surface-subtle {
+  @apply rounded-[24px] border backdrop-blur;
+  background: rgba(255, 255, 255, 0.74);
+  border-color: rgba(191, 214, 234, 0.75);
+}
+
+.surface-muted {
+  background: rgba(244, 248, 252, 0.9);
+  border: 1px solid rgba(191, 214, 234, 0.7);
+}
+
+.lesson-chip {
+  @apply inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-medium;
+  background: rgba(255, 255, 255, 0.82);
+  color: #49637d;
+  border: 1px solid rgba(191, 214, 234, 0.72);
+}
+
+.lesson-eyebrow {
+  @apply text-[11px] font-medium uppercase tracking-[0.22em];
+  color: #6f8ba6;
+}
+
+.prose-light p,
+.prose-light li {
+  color: #4b6781;
+}
+
+.prose-light h1,
+.prose-light h2,
+.prose-light h3,
+.prose-light strong {
+  color: var(--sui-ocean);
+}
+
+mysten-dapp-kit-connect-button,
+mysten-dapp-kit-connect-modal {
+  --background: #ffffff;
+  --foreground: #011829;
+  --primary: #4da2ff;
+  --primary-foreground: #ffffff;
+  --secondary: #f4f8fc;
+  --secondary-foreground: #16314b;
+  --border: #d7e6f4;
+  --accent: #eef5fb;
+  --accent-foreground: #17324d;
+  --muted: #f8fbff;
+  --muted-foreground: #5d7893;
+  --popover: #ffffff;
+  --popover-foreground: #011829;
+  --ring: #4da2ff;
+  --font-sans: var(--font-main);
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+}
+
+mysten-dapp-kit-connect-button {
+  display: inline-flex;
+  --radius: 999px;
+}
+
+mysten-dapp-kit-connect-modal {
+  --radius: 1.1rem;
+}
