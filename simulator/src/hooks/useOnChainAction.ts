@@ -5,6 +5,7 @@ import { DAppKitContext, useWalletConnection, useDAppKit } from '@mysten/dapp-ki
 import { Transaction } from '@mysten/sui/transactions';
 import { useSimulator } from '@/hooks/useSimulator';
 import { SUI_CONTRACT, isOnChainConfigured } from '@/lib/sui-dapp-kit';
+import { showToast } from '@/components/Toast';
 
 const SUI_CLOCK_OBJECT = '0x6';
 
@@ -19,20 +20,17 @@ export function useOnChainAction() {
   const hasDAppKit = useContext(DAppKitContext) !== null;
 
   if (!hasDAppKit) {
-    // During SSR or when provider is missing, fall back to local-only
     return { ...FALLBACK, sendActionWithChain: useSimulatorFallback() };
   }
 
   return useOnChainActionInner();
 }
 
-/** Bare local-only fallback that only needs SimulatorProvider */
 function useSimulatorFallback() {
   const { sendAction } = useSimulator();
   return useCallback((action: string) => sendAction(action), [sendAction]);
 }
 
-/** Full implementation — only called when DAppKitContext is available */
 function useOnChainActionInner() {
   const { sendAction, addTerminalLog } = useSimulator();
   const connection = useWalletConnection();
@@ -43,13 +41,14 @@ function useOnChainActionInner() {
 
   const sendActionWithChain = useCallback(
     (action: string) => {
-      // Path A: WebSocket (immediate)
-      sendAction(action);
+      // No wallet or contract not configured — local-only, animate immediately
+      if (!connection.account || !configured) {
+        sendAction(action);
+        return;
+      }
 
-      // Path B: On-chain (async, non-blocking)
-      if (!connection.account || !configured) return;
-
-      addTerminalLog('info', `\u26D3 Submitting "${action}"...`);
+      // Wallet connected: sign tx FIRST, then animate on success
+      addTerminalLog('info', `\u26D3 Signing "${action}"...`);
       pendingRef.current += 1;
       setPendingTxCount(pendingRef.current);
 
@@ -68,14 +67,20 @@ function useOnChainActionInner() {
         .then((result) => {
           if (result.$kind === 'FailedTransaction') {
             addTerminalLog('error', `\u2717 Transaction failed on-chain`);
+            showToast('error', `Transaction failed`);
             return;
           }
+
+          // Tx confirmed — now animate the robot
+          sendAction(action);
           const short = result.Transaction.digest.slice(0, 10);
           addTerminalLog('ok', `\u2713 Confirmed: ${short}...`);
+          showToast('success', `${action} confirmed on-chain`);
         })
         .catch((err: unknown) => {
           const msg = err instanceof Error ? err.message : String(err);
           addTerminalLog('error', `\u2717 Failed: ${msg}`);
+          showToast('error', msg.length > 60 ? msg.slice(0, 60) + '...' : msg);
         })
         .finally(() => {
           pendingRef.current -= 1;

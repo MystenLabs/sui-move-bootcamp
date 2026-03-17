@@ -133,32 +133,17 @@ a {
   color: var(--sui-ocean);
 }
 
-mysten-dapp-kit-connect-button,
-mysten-dapp-kit-connect-modal {
-  --background: #ffffff;
-  --foreground: #011829;
-  --primary: #4da2ff;
-  --primary-foreground: #ffffff;
-  --secondary: #f4f8fc;
-  --secondary-foreground: #16314b;
-  --border: #d7e6f4;
-  --accent: #eef5fb;
-  --accent-foreground: #17324d;
-  --muted: #f8fbff;
-  --muted-foreground: #5d7893;
-  --popover: #ffffff;
-  --popover-foreground: #011829;
-  --ring: #4da2ff;
-  --font-sans: var(--font-main);
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
-mysten-dapp-kit-connect-button {
-  display: inline-flex;
-  --radius: 999px;
-}
-
-mysten-dapp-kit-connect-modal {
-  --radius: 1.1rem;
+.animate-slide-in {
+  animation: slide-in-right 0.25s ease-out;
 }

@@ -3,6 +3,7 @@ import './globals.css';
 import { SimulatorProvider } from '@/hooks/useSimulator';
 import Navbar from '@/components/Navbar';
 import SuiWalletProvider from '@/components/SuiWalletProvider';
+import { ToastContainer } from '@/components/Toast';
 
 export const metadata: Metadata = {
   title: 'SuiBotics Playground | Sui Testnet Robotics Lessons',
@@ -25,6 +26,7 @@ export default function RootLayout({
                 {children}
               </main>
             </div>
+            <ToastContainer />
           </SimulatorProvider>
         </SuiWalletProvider>
       </body>
