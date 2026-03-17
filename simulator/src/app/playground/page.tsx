@@ -3,9 +3,13 @@
 import Link from 'next/link';
 import ControlPanel from '@/components/ControlPanel';
 import RobotViewport from '@/components/RobotViewport';
+import Terminal from '@/components/Terminal';
 import { ArrowRightIcon } from '@/components/icons';
+import { useOnChainAction } from '@/hooks/useOnChainAction';
 
 export default function PlaygroundPage() {
+  const { isWalletConnected } = useOnChainAction();
+
   return (
     <div className="flex h-full flex-col overflow-y-auto pb-4">
       <section className="mb-3 rounded-2xl border border-gray-200 bg-white px-4 py-5 sm:px-5 lg:px-6">
@@ -16,8 +20,8 @@ export default function PlaygroundPage() {
               Drive the Unitree GO1.
             </h1>
             <p className="mt-4 max-w-2xl text-[14px] leading-7 text-gray-500 sm:text-[15px]">
-              The focused control surface for the robot. Every action is an on-chain
-              transaction when your wallet is connected.
+              Connect your Sui wallet to control the robot. Every action is a real
+              on-chain transaction signed by you.
             </p>
           </div>
 
@@ -43,10 +47,37 @@ export default function PlaygroundPage() {
         </div>
       </section>
 
-      <section className="grid items-start gap-3 xl:grid-cols-[minmax(0,1fr)_288px]">
-        <RobotViewport />
-        <ControlPanel />
-      </section>
+      {isWalletConnected ? (
+        <>
+          <section className="grid items-start gap-3 xl:grid-cols-[minmax(0,1fr)_288px]">
+            <RobotViewport />
+            <ControlPanel />
+          </section>
+          <Terminal />
+        </>
+      ) : (
+        <section className="flex flex-1 items-center justify-center rounded-2xl border border-gray-200 bg-white">
+          <div className="px-6 py-20 text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-7 w-7 text-gray-400">
+                <rect x="2" y="6" width="20" height="14" rx="3" />
+                <path d="M2 10h20" />
+                <path d="M6 14h.01" />
+              </svg>
+            </div>
+            <h2 className="mt-5 text-[1.4rem] font-medium tracking-[-0.02em] text-black">
+              Connect your wallet to begin
+            </h2>
+            <p className="mx-auto mt-2 max-w-sm text-[14px] leading-6 text-gray-500">
+              The robot simulator requires a connected Sui wallet. Every action you
+              perform is signed and submitted as a real testnet transaction.
+            </p>
+            <div className="mt-6 text-[13px] text-gray-400">
+              Use the Connect wallet button in the top right
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   );
 }
