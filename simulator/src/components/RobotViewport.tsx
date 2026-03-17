@@ -5,7 +5,7 @@ import { useSimulator, type JointAngles } from '@/hooks/useSimulator';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { CameraResetIcon, GridIcon, SuiDropletIcon } from '@/components/icons';
+import { CameraResetIcon, GridIcon } from '@/components/icons';
 
 function deg2rad(deg: number): number {
   return (deg * Math.PI) / 180;
@@ -444,13 +444,10 @@ export default function RobotViewport() {
 
       <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 border-b border-[#d7e6f4] px-4 py-3 sm:px-5">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-[14px] border border-[#d7e6f4] bg-white text-[#4DA2FF] shadow-[0_8px_16px_rgba(1,24,41,0.05)]">
-            <SuiDropletIcon className="h-5 w-5" />
-          </div>
           <div>
-            <div className="lesson-eyebrow">Powered by Sui</div>
+            <div className="lesson-eyebrow">Simulator</div>
             <h2 className="font-brand mt-1 text-[15px] font-medium tracking-[-0.03em] text-[#011829] sm:text-[17px]">
-              Unitree GO1 simulator
+              Unitree GO1
             </h2>
           </div>
           <span className="rounded-full border border-[#d7e6f4] bg-white/85 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-[#6f8ba6]">

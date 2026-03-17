@@ -32,6 +32,15 @@ export function getSuiDAppKit() {
   return suiDAppKitSingleton;
 }
 
+export const SUI_CONTRACT = {
+  packageId: process.env.NEXT_PUBLIC_SUI_PACKAGE_ID ?? '',
+  queueId: process.env.NEXT_PUBLIC_SUI_QUEUE_ID ?? '',
+} as const;
+
+export function isOnChainConfigured(): boolean {
+  return SUI_CONTRACT.packageId.length > 0 && SUI_CONTRACT.queueId.length > 0;
+}
+
 declare module '@mysten/dapp-kit-react' {
   interface Register {
     dAppKit: ReturnType<typeof getSuiDAppKit>;

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSimulator, type TerminalEntry } from '@/hooks/useSimulator';
+import { useOnChainAction } from '@/hooks/useOnChainAction';
 import { TerminalIcon } from '@/components/icons';
 
 const TYPE_COLORS: Record<TerminalEntry['type'], string> = {
@@ -14,7 +15,8 @@ const TYPE_COLORS: Record<TerminalEntry['type'], string> = {
 };
 
 export default function Terminal() {
-  const { terminalLogs, sendCommand, sendAction, addTerminalLog, clearTerminalLogs } = useSimulator();
+  const { terminalLogs, sendCommand, addTerminalLog, clearTerminalLogs } = useSimulator();
+  const { sendActionWithChain } = useOnChainAction();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [input, setInput] = useState('');
   const [history, setHistory] = useState<string[]>([]);
@@ -48,12 +50,12 @@ export default function Terminal() {
         addTerminalLog('system', 'Commands: k<action>, clear, help');
         addTerminalLog('system', 'Actions: sit, balance, up, rest, hi, wkF, bk, trF, jmp, pu, pd, str, bf, wkL, wkR');
       } else {
-        sendAction(trimmed);
+        sendActionWithChain(trimmed);
       }
 
       setInput('');
     },
-    [addTerminalLog, clearTerminalLogs, sendAction, sendCommand],
+    [addTerminalLog, clearTerminalLogs, sendActionWithChain, sendCommand],
   );
 
   const handleKeyDown = useCallback(

@@ -21,11 +21,11 @@ function BaseIcon({ children, className, viewBox = '0 0 24 24', ...props }: Icon
   );
 }
 
-export function SuiDropletIcon(props: IconProps) {
+export function ChainIcon(props: IconProps) {
   return (
     <BaseIcon {...props}>
-      <path d="M12 2.75C9.15 6.22 6.6 8.94 5.58 12.15A6.42 6.42 0 0 0 12 21.25a6.42 6.42 0 0 0 6.42-9.1C17.4 8.94 14.85 6.22 12 2.75Z" />
-      <path d="M9.6 14.5c.35 1.4 1.38 2.1 3.1 2.1 1.05 0 1.93-.3 2.65-.9" />
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
     </BaseIcon>
   );
 }
