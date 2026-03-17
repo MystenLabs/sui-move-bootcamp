@@ -19,3 +19,4 @@ target
 # claude
 CLAUDE.md
 .claude/
+worktrees/
