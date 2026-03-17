@@ -350,6 +350,7 @@ export default function RobotViewport() {
 
         rig.root.updateMatrixWorld(true);
 
+        // Find the lowest point across all feet
         let minFootY = Number.POSITIVE_INFINITY;
         for (const foot of rig.feet) {
           foot.getWorldPosition(footPosition);
@@ -358,10 +359,12 @@ export default function RobotViewport() {
           }
         }
 
-        const groundOffset = minFootY < 0 ? -minFootY + 0.004 : 0;
-        targetRootPosition.copy(rig.baseRootPosition);
-        targetRootPosition.y += groundOffset;
-        rig.root.position.lerp(targetRootPosition, blend);
+        // Lift the entire model so no geometry goes below y=0
+        if (minFootY < 0.004) {
+          const correction = -minFootY + 0.004;
+          rig.root.position.y += correction;
+          rig.root.updateMatrixWorld(true);
+        }
       }
 
       controls.update();
