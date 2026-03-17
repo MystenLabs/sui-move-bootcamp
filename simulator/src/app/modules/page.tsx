@@ -16,15 +16,14 @@ export default function ModulesPage() {
 
   return (
     <div className="flex h-full flex-col overflow-y-auto pb-5">
-      <section className="surface-panel mb-4 px-5 py-5 sm:px-6">
+      <section className="mb-4 rounded-2xl border border-gray-200 bg-white px-5 py-5 sm:px-6">
         <div className="max-w-3xl">
           <div className="lesson-eyebrow">Lesson index</div>
-          <h1 className="font-brand mt-2 text-[1.7rem] font-medium tracking-[-0.05em] text-[#011829] sm:text-[2.05rem]">
-            The robotics track, ordered cleanly from R1 to R10.
+          <h1 className="mt-2 text-[1.7rem] font-medium tracking-[-0.03em] text-black sm:text-[2.05rem]">
+            The robotics track, R1 to R10.
           </h1>
-          <p className="mt-3 text-[14px] leading-6 text-[#5d7893] sm:text-[15px]">
-            Use this page as the full curriculum index. Each section preserves the real lesson sequence instead of
-            restarting the numbering inside each phase.
+          <p className="mt-3 text-[14px] leading-6 text-gray-500 sm:text-[15px]">
+            The full curriculum index. Each section preserves the real lesson sequence.
           </p>
         </div>
 
@@ -33,10 +32,10 @@ export default function ModulesPage() {
             <button
               key={option}
               onClick={() => setFilter(option)}
-              className={`shrink-0 rounded-full border px-3 py-2 text-[12px] font-medium transition ${
+              className={`shrink-0 rounded-full px-3 py-2 text-[12px] font-medium transition ${
                 filter === option
-                  ? 'border-[#c9def1] bg-white text-[#17324d]'
-                  : 'border-[#d7e6f4] bg-[#f8fbff] text-[#5d7893]'
+                  ? 'bg-black text-white'
+                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
               }`}
             >
               {option}
@@ -47,22 +46,20 @@ export default function ModulesPage() {
 
       <div className="space-y-4">
         {groupedModules.map(({ category, meta, modules }) => {
-          if (modules.length === 0) {
-            return null;
-          }
+          if (modules.length === 0) return null;
 
           return (
-            <section key={category} className="surface-panel px-5 py-5 sm:px-6">
+            <section key={category} className="rounded-2xl border border-gray-200 bg-white px-5 py-5 sm:px-6">
               <div className="mb-4 flex items-end justify-between gap-3">
                 <div>
                   <div className="lesson-eyebrow">{meta.eyebrow}</div>
-                  <h2 className="font-brand mt-1 text-[1.1rem] font-medium tracking-[-0.04em] text-[#011829]">
+                  <h2 className="mt-1 text-[1.1rem] font-medium tracking-[-0.02em] text-black">
                     {category}
                   </h2>
-                  <p className="mt-1 text-[13px] leading-5 text-[#6f8ba6]">{meta.description}</p>
+                  <p className="mt-1 text-[13px] leading-5 text-gray-500">{meta.description}</p>
                 </div>
-                <div className="rounded-full border border-[#d7e6f4] bg-[#f8fbff] px-3 py-1.5 text-[11px] text-[#6f8ba6]">
-                  {modules[0]?.id} to {modules[modules.length - 1]?.id}
+                <div className="rounded-full bg-gray-100 px-3 py-1.5 text-[11px] font-medium text-gray-500">
+                  {modules[0]?.id} - {modules[modules.length - 1]?.id}
                 </div>
               </div>
 

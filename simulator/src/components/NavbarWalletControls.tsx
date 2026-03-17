@@ -21,7 +21,7 @@ export default function NavbarWalletControls() {
     <>
       <button
         onClick={() => setModalOpen(true)}
-        className="rounded-full bg-[#011829] px-5 py-2.5 text-[13px] font-medium text-white transition hover:bg-[#17324d]"
+        className="rounded-full bg-[#4da2ff] px-5 py-2.5 text-[13px] font-medium text-white transition hover:bg-[#3b8de6]"
       >
         Connect wallet
       </button>
@@ -45,13 +45,13 @@ function ConnectedControls({ address }: { address: string }) {
 
   return (
     <div className="flex items-center gap-2">
-      <div className="hidden rounded-full border border-[#d7e6f4] bg-white px-3 py-2 text-[11px] text-[#5d7893] lg:inline-flex">
+      <div className="hidden rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[11px] font-medium text-white/70 lg:inline-flex">
         {shortenAddress(address)}
       </div>
       <button
         onClick={handleDisconnect}
         disabled={disconnecting}
-        className="rounded-full border border-[#d7e6f4] bg-white px-4 py-2 text-[12px] font-medium text-[#5d7893] transition hover:border-[#bfd6ea] hover:text-[#17324d] disabled:opacity-50"
+        className="rounded-full border border-white/20 px-4 py-1.5 text-[12px] font-medium text-white/70 transition hover:border-white/40 hover:text-white disabled:opacity-50"
       >
         {disconnecting ? 'Disconnecting...' : 'Disconnect'}
       </button>
@@ -109,23 +109,23 @@ function ConnectModal({ onClose }: { onClose: () => void }) {
       {/* Backdrop — full-page blur overlay */}
       <div
         style={{ position: 'absolute', inset: 0, zIndex: 0 }}
-        className="bg-[#011829]/50 backdrop-blur-md"
+        className="bg-black/50 backdrop-blur-md"
         onClick={onClose}
       />
 
       {/* Modal card */}
       <div
         style={{ position: 'relative', zIndex: 1 }}
-        className="mx-4 w-full max-w-[460px] rounded-[24px] border border-[#d7e6f4] bg-white shadow-[0_32px_80px_rgba(1,24,41,0.28)]"
+        className="mx-4 w-full max-w-[460px] rounded-2xl border border-gray-200 bg-white shadow-[0_32px_80px_rgba(0,0,0,0.25)]"
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#d7e6f4] px-6 py-5">
-          <h2 className="text-[18px] font-medium tracking-[-0.03em] text-[#011829]">
+        <div className="flex items-center justify-between border-b border-gray-200 px-6 py-5">
+          <h2 className="text-[18px] font-medium tracking-[-0.02em] text-black">
             Connect a Wallet
           </h2>
           <button
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-[#d7e6f4] bg-[#f8fbff] text-[#5d7893] transition hover:border-[#bfd6ea] hover:text-[#17324d]"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition hover:bg-gray-200 hover:text-black"
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <path d="M1 1l12 12M13 1 1 13" />
@@ -136,7 +136,7 @@ function ConnectModal({ onClose }: { onClose: () => void }) {
         {/* Wallet list */}
         <div className="px-4 py-4">
           {wallets.length === 0 ? (
-            <div className="py-8 text-center text-[13px] text-[#6f8ba6]">
+            <div className="py-8 text-center text-[13px] text-gray-400">
               No wallets detected. Install a Sui wallet extension to continue.
             </div>
           ) : (
@@ -148,7 +148,7 @@ function ConnectModal({ onClose }: { onClose: () => void }) {
                     key={wallet.name}
                     onClick={() => handleConnect(wallet)}
                     disabled={connecting !== null}
-                    className="flex w-full items-center gap-4 rounded-[16px] border border-transparent px-4 py-3.5 text-left transition hover:border-[#d7e6f4] hover:bg-[#f8fbff] disabled:opacity-50"
+                    className="flex w-full items-center gap-4 rounded-xl border border-transparent px-4 py-3.5 text-left transition hover:bg-gray-50 disabled:opacity-50"
                   >
                     {wallet.icon ? (
                       <img
@@ -159,15 +159,15 @@ function ConnectModal({ onClose }: { onClose: () => void }) {
                         className="h-9 w-9 rounded-[10px]"
                       />
                     ) : (
-                      <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-[#e8f0f8] text-[14px] font-medium text-[#5d7893]">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-gray-100 text-[14px] font-medium text-gray-500">
                         {wallet.name.charAt(0)}
                       </div>
                     )}
-                    <span className="flex-1 text-[15px] font-medium text-[#011829]">
+                    <span className="flex-1 text-[15px] font-medium text-black">
                       {wallet.name}
                     </span>
                     {isConnecting && (
-                      <span className="text-[12px] text-[#6f8ba6]">Connecting...</span>
+                      <span className="text-[12px] text-gray-400">Connecting...</span>
                     )}
                   </button>
                 );
@@ -176,7 +176,7 @@ function ConnectModal({ onClose }: { onClose: () => void }) {
           )}
 
           {error && (
-            <div className="mt-3 rounded-[12px] border border-[#f5d0d3] bg-[#fef5f5] px-4 py-3 text-[12px] text-[#d15b64]">
+            <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-[12px] text-red-600">
               {error}
             </div>
           )}

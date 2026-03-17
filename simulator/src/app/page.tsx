@@ -1,117 +1,162 @@
 import Link from 'next/link';
-import { ArrowRightIcon, ClockIcon } from '@/components/icons';
-import { CATEGORY_ORDER, getCurriculumPhases, getModuleOrder, MODULES } from '@/lib/modules';
+import { ArrowRightIcon } from '@/components/icons';
+import { getCurriculumPhases, getModuleOrder, MODULES } from '@/lib/modules';
 
 const PHASES = getCurriculumPhases(MODULES);
 
+const FEATURES_LEFT = [
+  { title: 'No hardware required', desc: 'Virtual Bittle simulator replaces the physical robot for every lesson.' },
+  { title: 'Real on-chain transactions', desc: 'Every robot action is signed and submitted to Sui testnet.' },
+  { title: 'Full R1-R10 curriculum', desc: '10 sequenced lessons from serial control to rental-platform capstone.' },
+  { title: 'TCP serial bridge', desc: 'R modules connect to the simulator via the same serial protocol.' },
+];
+
+const FEATURES_RIGHT = [
+  { title: '3D robot viewport', desc: 'Three.js animated Unitree GO1 with walk cycles, poses, and physics.' },
+  { title: 'Wallet-gated actions', desc: 'Connect any Sui wallet to sign transactions before the robot moves.' },
+  { title: 'Live on-chain status', desc: 'Queue length, total actions, and pending transactions in real time.' },
+  { title: 'Module browser', desc: 'Architecture diagrams, rendered README content, and run instructions.' },
+];
+
 export default function HomePage() {
   return (
-    <div className="flex h-full flex-col overflow-y-auto pb-4">
-      <section className="surface-panel mb-3 px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_330px] lg:gap-8">
-          <div className="max-w-5xl">
-            <div className="lesson-eyebrow">Sui robotics playground</div>
-            <h1 className="mt-3 max-w-4xl text-[2.45rem] font-medium leading-[0.94] tracking-[-0.075em] text-[#011829] sm:text-[3.35rem] lg:text-[4.6rem]">
-              Learn the full R1-R10 robotics track in one clean workspace.
-            </h1>
-            <p className="mt-5 max-w-2xl text-[15px] leading-7 text-[#5d7893] sm:text-[16px]">
-              Start with serial control in R1, move into Move contracts and real-time transport, and finish with the
-              complete rental-platform capstone in R10. The simulator stays separate so the lessons stay readable.
-            </p>
+    <div className="flex h-full flex-col overflow-y-auto">
+      {/* Hero */}
+      <section className="border-b border-gray-200 bg-white px-6 pb-20 pt-16 lg:px-12">
+        <div className="text-center">
+          <h1 className="text-[3rem] font-medium leading-[0.95] tracking-[-0.04em] text-black sm:text-[4.5rem] lg:text-[5.5rem]">
+            Blockchain robotics,<br />built on Sui.
+          </h1>
+          <p className="mx-auto mt-6 max-w-2xl text-[17px] leading-7 text-gray-500">
+            Learn the full R1-R10 robotics track in one workspace. Every robot action is a real
+            Sui testnet transaction — no hardware needed.
+          </p>
 
-            <div className="mt-6 flex flex-wrap gap-2.5">
-              <Link
-                href="/module/R1"
-                className="inline-flex items-center gap-2 rounded-full border border-[#c9def1] bg-white px-4 py-2.5 text-[13px] font-medium text-[#17324d] transition hover:border-[#9fc9ef]"
-              >
-                Start R1
-                <ArrowRightIcon className="h-4 w-4" />
-              </Link>
-              <Link
-                href="/modules"
-                className="inline-flex items-center gap-2 rounded-full border border-[#d7e6f4] bg-[#f8fbff] px-4 py-2.5 text-[13px] font-medium text-[#5d7893] transition hover:border-[#bfd6ea]"
-              >
-                Browse all lessons
-              </Link>
-              <Link
-                href="/playground"
-                className="inline-flex items-center gap-2 rounded-full border border-[#d7e6f4] bg-[#f8fbff] px-4 py-2.5 text-[13px] font-medium text-[#5d7893] transition hover:border-[#bfd6ea]"
-              >
-                Open playground
-              </Link>
-            </div>
-
-            <div className="mt-6 flex flex-wrap gap-2">
-              {PHASES.map(({ category, meta, modules }) => (
-                <div
-                  key={category}
-                  className="inline-flex items-center gap-2 rounded-full border border-[#d7e6f4] bg-[#fbfdff] px-3 py-2 text-[11px] text-[#5d7893]"
-                >
-                  <span className="font-brand text-[11px] font-medium text-[#17324d]">{meta.eyebrow}</span>
-                  <span>{category}</span>
-                  <span className="text-[#8ca2b8]">·</span>
-                  <span>{modules.length} lessons</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="surface-muted rounded-[24px] p-4">
-            <div className="lesson-eyebrow">At a glance</div>
-
-            <div className="mt-3 grid gap-2 sm:grid-cols-3 lg:grid-cols-1">
-              <div className="rounded-[16px] border border-[#d7e6f4] bg-white px-3 py-3">
-                <div className="text-[10px] uppercase tracking-[0.18em] text-[#6f8ba6]">Track length</div>
-                <div className="mt-1 text-[18px] font-medium tracking-[-0.04em] text-[#17324d]">{MODULES.length}</div>
-                <div className="mt-1 text-[12px] text-[#6f8ba6]">sequenced lessons</div>
-              </div>
-              <div className="rounded-[16px] border border-[#d7e6f4] bg-white px-3 py-3">
-                <div className="text-[10px] uppercase tracking-[0.18em] text-[#6f8ba6]">Curriculum shape</div>
-                <div className="mt-1 text-[18px] font-medium tracking-[-0.04em] text-[#17324d]">{CATEGORY_ORDER.length}</div>
-                <div className="mt-1 text-[12px] text-[#6f8ba6]">phases</div>
-              </div>
-              <div className="rounded-[16px] border border-[#d7e6f4] bg-white px-3 py-3">
-                <div className="text-[10px] uppercase tracking-[0.18em] text-[#6f8ba6]">Build mode</div>
-                <div className="mt-1 text-[18px] font-medium tracking-[-0.04em] text-[#17324d]">Sim</div>
-                <div className="mt-1 text-[12px] text-[#6f8ba6]">simulator-first flow</div>
-              </div>
-            </div>
-
-            <div className="mt-4 space-y-2">
-              {PHASES.map(({ category, meta, modules }) => (
-                <div key={category} className="rounded-[16px] border border-[#d7e6f4] bg-white px-3 py-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <div className="font-brand text-[14px] font-medium text-[#17324d]">{category}</div>
-                      <div className="mt-1 text-[12px] text-[#6f8ba6]">{meta.eyebrow}</div>
-                    </div>
-                    <div className="inline-flex items-center gap-1.5 text-[11px] text-[#6f8ba6]">
-                      <ClockIcon className="h-3.5 w-3.5" />
-                      {modules.length}
-                    </div>
-                  </div>
-                  <p className="mt-2 text-[12px] leading-5 text-[#6f8ba6]">{meta.description}</p>
-                </div>
-              ))}
-            </div>
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href="/playground"
+              className="inline-flex items-center gap-2 rounded-full bg-[#4da2ff] px-6 py-3 text-[14px] font-medium text-white transition hover:bg-[#3b8de6]"
+            >
+              Open playground
+            </Link>
+            <Link
+              href="/module/R1"
+              className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-6 py-3 text-[14px] font-medium text-black transition hover:border-gray-400"
+            >
+              Start R1
+              <ArrowRightIcon className="h-4 w-4" />
+            </Link>
+            <Link
+              href="/modules"
+              className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-6 py-3 text-[14px] font-medium text-black transition hover:border-gray-400"
+            >
+              Browse lessons
+            </Link>
           </div>
         </div>
       </section>
 
-      <section className="surface-panel px-4 py-4 sm:px-5 lg:px-6">
-        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+      {/* Two-column features */}
+      <section className="border-b border-gray-200 bg-white">
+        <div className="grid lg:grid-cols-2 lg:divide-x lg:divide-gray-200">
+          <div className="px-6 py-16 lg:px-12">
+            <div className="lesson-eyebrow">The simulator</div>
+            <h2 className="mt-4 text-[2rem] font-medium leading-[1.05] tracking-[-0.03em] text-black sm:text-[2.6rem]">
+              Why learners use SuiBotics
+            </h2>
+          </div>
+          <div className="px-6 py-16 lg:px-12">
+            <div className="lesson-eyebrow">On-chain</div>
+            <h2 className="mt-4 text-[2rem] font-medium leading-[1.05] tracking-[-0.03em] text-black sm:text-[2.6rem]">
+              How every action hits the chain
+            </h2>
+          </div>
+        </div>
+
+        <div className="grid lg:grid-cols-2">
+          {FEATURES_LEFT.map((f, i) => (
+            <div key={f.title} className={`border-t border-gray-200 px-6 py-6 lg:px-12 ${i % 2 === 1 ? 'lg:border-l' : ''}`}>
+              <div className="flex items-start gap-3">
+                <span className="mt-1.5 h-[10px] w-[10px] shrink-0 rounded-[2px] bg-[#4da2ff]" />
+                <div>
+                  <h3 className="text-[16px] font-medium text-black">{f.title}</h3>
+                  <p className="mt-1.5 text-[14px] leading-6 text-gray-500">{f.desc}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+          {FEATURES_RIGHT.map((f, i) => (
+            <div key={f.title} className={`border-t border-gray-200 px-6 py-6 lg:px-12 ${i % 2 === 0 ? 'lg:border-l' : ''}`}>
+              <div className="flex items-start gap-3">
+                <span className="mt-1.5 h-[10px] w-[10px] shrink-0 rounded-[2px] bg-[#4da2ff]" />
+                <div>
+                  <h3 className="text-[16px] font-medium text-black">{f.title}</h3>
+                  <p className="mt-1.5 text-[14px] leading-6 text-gray-500">{f.desc}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Stats bar */}
+      <section className="border-b border-gray-200 bg-[#1a1a1a]">
+        <div className="grid grid-cols-2 divide-x divide-white/10 lg:grid-cols-4">
+          <div className="px-6 py-8 text-center">
+            <div className="text-[2.5rem] font-medium tracking-[-0.03em] text-white">{MODULES.length}</div>
+            <div className="mt-1 text-[13px] text-white/50">Sequenced lessons</div>
+          </div>
+          <div className="px-6 py-8 text-center">
+            <div className="text-[2.5rem] font-medium tracking-[-0.03em] text-white">{PHASES.length}</div>
+            <div className="mt-1 text-[13px] text-white/50">Curriculum phases</div>
+          </div>
+          <div className="px-6 py-8 text-center">
+            <div className="text-[2.5rem] font-medium tracking-[-0.03em] text-white">12</div>
+            <div className="mt-1 text-[13px] text-white/50">On-chain actions</div>
+          </div>
+          <div className="px-6 py-8 text-center">
+            <div className="text-[2.5rem] font-medium tracking-[-0.03em] text-[#4da2ff]">Testnet</div>
+            <div className="mt-1 text-[13px] text-white/50">Deployed network</div>
+          </div>
+        </div>
+      </section>
+
+      {/* Curriculum phases */}
+      <section className="border-b border-gray-200 bg-white px-6 py-16 lg:px-12">
+        <div className="text-center">
+          <div className="lesson-eyebrow mx-auto w-fit">Curriculum</div>
+          <h2 className="mt-4 text-[2rem] font-medium tracking-[-0.03em] text-black sm:text-[2.6rem]">
+            Four phases, ten lessons.
+          </h2>
+        </div>
+
+        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {PHASES.map(({ category, meta, modules }) => (
+            <div key={category} className="rounded-xl bg-gray-50 p-5">
+              <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-gray-400">{meta.eyebrow}</div>
+              <h3 className="mt-2 text-[20px] font-medium tracking-[-0.02em] text-black">{category}</h3>
+              <p className="mt-2 text-[13px] leading-5 text-gray-500">{meta.description}</p>
+              <div className="mt-4 text-[12px] font-medium text-[#4da2ff]">{modules.length} lessons</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* All modules grid */}
+      <section className="bg-white px-6 py-16 lg:px-12">
+        <div className="mb-8 flex items-end justify-between">
           <div>
-            <div className="lesson-eyebrow">Curriculum map</div>
-            <h2 className="mt-1 text-[1.5rem] font-medium tracking-[-0.05em] text-[#011829] sm:text-[1.85rem]">
+            <div className="lesson-eyebrow">All lessons</div>
+            <h2 className="mt-3 text-[2rem] font-medium tracking-[-0.03em] text-black sm:text-[2.2rem]">
               Every lesson, in order.
             </h2>
           </div>
-          <Link href="/modules" className="text-[12px] font-medium text-[#1d79e6]">
-            Open lesson index
+          <Link href="/modules" className="text-[13px] font-medium text-[#4da2ff] hover:underline">
+            View all
           </Link>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {MODULES.map((module) => {
             const phase = PHASES.find((entry) => entry.category === module.category);
 
@@ -119,28 +164,28 @@ export default function HomePage() {
               <Link
                 key={module.id}
                 href={`/module/${module.id}`}
-                className="group rounded-[18px] border border-[#d7e6f4] bg-white px-4 py-4 transition hover:border-[#bfd6ea] hover:shadow-[0_10px_22px_rgba(1,24,41,0.05)]"
+                className="group rounded-xl border border-gray-200 bg-white p-5 transition hover:border-gray-300 hover:shadow-sm"
               >
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <div className="text-[10px] uppercase tracking-[0.18em] text-[#6f8ba6]">{module.id}</div>
-                    <div className="mt-1 text-[18px] font-medium tracking-[-0.045em] text-[#011829]">{module.title}</div>
-                    <div className="mt-1 text-[12px] leading-5 text-[#6f8ba6]">{module.subtitle}</div>
+                    <div className="text-[11px] font-medium uppercase tracking-[0.1em] text-gray-400">{module.id}</div>
+                    <div className="mt-1 text-[17px] font-medium tracking-[-0.02em] text-black">{module.title}</div>
+                    <div className="mt-0.5 text-[13px] text-gray-500">{module.subtitle}</div>
                   </div>
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#d7e6f4] bg-[#f8fbff] text-[11px] font-medium text-[#17324d]">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-100 text-[11px] font-medium text-gray-600">
                     {getModuleOrder(module.id)}
                   </div>
                 </div>
 
-                <p className="mt-3 text-[13px] leading-5 text-[#5d7893]">{module.summary}</p>
+                <p className="mt-3 text-[14px] leading-6 text-gray-500">{module.summary}</p>
 
-                <div className="mt-4 flex items-center justify-between gap-3 border-t border-[#edf4fb] pt-3">
-                  <div className="text-[11px] text-[#6f8ba6]">
-                    {phase?.meta.eyebrow} · {module.category}
+                <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-3">
+                  <div className="text-[11px] text-gray-400">
+                    {phase?.meta.eyebrow}
                   </div>
-                  <div className="inline-flex items-center gap-1.5 text-[12px] font-medium text-[#17324d]">
+                  <div className="inline-flex items-center gap-1 text-[13px] font-medium text-black">
                     Open
-                    <ArrowRightIcon className="h-4 w-4 text-[#4DA2FF] transition group-hover:translate-x-1" />
+                    <ArrowRightIcon className="h-3.5 w-3.5 text-[#4da2ff] transition group-hover:translate-x-0.5" />
                   </div>
                 </div>
               </Link>
@@ -148,6 +193,19 @@ export default function HomePage() {
           })}
         </div>
       </section>
+
+      {/* Footer */}
+      <footer className="border-t border-gray-200 bg-[#1a1a1a] px-6 py-8 lg:px-12">
+        <div className="flex items-center justify-between">
+          <div className="text-[13px] text-white/40">
+            Built on Sui testnet
+          </div>
+          <div className="flex gap-4 text-[13px] text-white/40">
+            <Link href="/playground" className="hover:text-white/70">Playground</Link>
+            <Link href="/modules" className="hover:text-white/70">Lessons</Link>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

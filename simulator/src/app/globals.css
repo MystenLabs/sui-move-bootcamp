@@ -2,42 +2,54 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Inter+Tight:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+@font-face {
+  font-family: 'TWK Everett';
+  src: local('TWK Everett'), local('TWKEverett-Regular');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'TWK Everett';
+  src: local('TWK Everett Medium'), local('TWKEverett-Medium');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'TWK Everett';
+  src: local('TWK Everett Bold'), local('TWKEverett-Bold');
+  font-weight: 600 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'TWK Everett';
+  src: local('TWK Everett ExtraBold'), local('TWKEverett-ExtraBold');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
 
 :root {
-  --sui-sea: #4da2ff;
-  --sui-ocean: #011829;
-  --sui-aqua: #c0e6ff;
-  --sui-deep-ocean: #030f1c;
-  --sui-cloud: #ffffff;
-  --sui-paper: #f4f8fc;
-  --sui-shell: #eef5fb;
-  --sui-line: #d7e6f4;
-  --sui-line-strong: #bfd6ea;
-  --sui-ink: #16314b;
-  --sui-muted: #5d7893;
+  --sui-blue: #4da2ff;
+  --sui-black: #000000;
+  --sui-dark: #1a1a1a;
+  --sui-gray-900: #111111;
+  --sui-gray-700: #374151;
+  --sui-gray-500: #6b7280;
+  --sui-gray-400: #9ca3af;
+  --sui-gray-200: #e5e7eb;
+  --sui-gray-100: #f3f4f6;
+  --sui-gray-50: #f9fafb;
+  --sui-white: #ffffff;
   --sui-success: #1f8f6f;
-  --sui-warm: #f4a34f;
-  --background: #ffffff;
-  --foreground: #011829;
-  --primary: #4da2ff;
-  --primary-foreground: #ffffff;
-  --secondary: #f4f8fc;
-  --secondary-foreground: #16314b;
-  --border: #d7e6f4;
-  --accent: #eef5fb;
-  --accent-foreground: #17324d;
-  --muted: #f8fbff;
-  --muted-foreground: #5d7893;
-  --popover: #ffffff;
-  --popover-foreground: #011829;
-  --ring: #4da2ff;
-  --radius: 999px;
-  --font-sans: 'Google Sans', 'Google Sans Text', ui-sans-serif, system-ui, sans-serif;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-main: 'Google Sans', 'Google Sans Text', ui-sans-serif, system-ui, sans-serif;
-  --font-brand: 'TWK Everett', 'Inter Tight', ui-sans-serif, system-ui, sans-serif;
+  --font-main: 'TWK Everett', 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
 }
 
@@ -47,11 +59,10 @@ body {
 }
 
 body {
-  background:
-    radial-gradient(circle at top left, rgba(77, 162, 255, 0.1), transparent 28%),
-    radial-gradient(circle at top right, rgba(192, 230, 255, 0.28), transparent 32%),
-    linear-gradient(180deg, #f8fbff 0%, #eef5fb 100%);
-  color: var(--sui-ink);
+  background: var(--sui-white);
+  background-image: radial-gradient(circle, #d1d5db 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--sui-black);
   font-family: var(--font-main);
   overflow: hidden;
 }
@@ -63,12 +74,12 @@ a {
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(77, 162, 255, 0.35) transparent;
+  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
 }
 
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -76,16 +87,17 @@ a {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(77, 162, 255, 0.28);
+  background: rgba(0, 0, 0, 0.15);
   border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(77, 162, 255, 0.46);
+  background: rgba(0, 0, 0, 0.25);
 }
 
 .font-brand {
-  font-family: var(--font-brand);
+  font-family: var(--font-main);
+  font-weight: 500;
 }
 
 .font-mono-ui {
@@ -93,44 +105,49 @@ a {
 }
 
 .surface-panel {
-  @apply rounded-[28px] border shadow-[0_12px_36px_rgba(1,24,41,0.05)] backdrop-blur;
-  background: rgba(255, 255, 255, 0.92);
-  border-color: var(--sui-line);
+  @apply rounded-2xl border border-gray-200 bg-white;
 }
 
 .surface-subtle {
-  @apply rounded-[24px] border backdrop-blur;
-  background: rgba(255, 255, 255, 0.74);
-  border-color: rgba(191, 214, 234, 0.75);
+  @apply rounded-xl border border-gray-100 bg-gray-50;
 }
 
 .surface-muted {
-  background: rgba(244, 248, 252, 0.9);
-  border: 1px solid rgba(191, 214, 234, 0.7);
+  @apply rounded-xl bg-gray-50;
 }
 
 .lesson-chip {
   @apply inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-medium;
-  background: rgba(255, 255, 255, 0.82);
-  color: #49637d;
-  border: 1px solid rgba(191, 214, 234, 0.72);
+  background: var(--sui-gray-50);
+  color: var(--sui-gray-500);
+  border: 1px solid var(--sui-gray-200);
 }
 
 .lesson-eyebrow {
-  @apply text-[11px] font-medium uppercase tracking-[0.22em];
-  color: #6f8ba6;
+  @apply inline-flex items-center gap-2 text-[12px] font-medium uppercase tracking-[0.14em];
+  color: var(--sui-black);
+}
+
+.lesson-eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  background: var(--sui-blue);
+  border-radius: 2px;
+  flex-shrink: 0;
 }
 
 .prose-light p,
 .prose-light li {
-  color: #4b6781;
+  color: var(--sui-gray-500);
 }
 
 .prose-light h1,
 .prose-light h2,
 .prose-light h3,
 .prose-light strong {
-  color: var(--sui-ocean);
+  color: var(--sui-black);
 }
 
 @keyframes slide-in-right {

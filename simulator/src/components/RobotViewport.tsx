@@ -442,27 +442,25 @@ export default function RobotViewport() {
   const actionLabel = robotState?.actionLabel ?? 'Idle';
 
   return (
-    <div className="surface-panel relative flex min-h-[360px] flex-col overflow-hidden sm:min-h-[440px] xl:min-h-[620px]">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(77,162,255,0.12),transparent_26%),radial-gradient(circle_at_bottom_right,rgba(192,230,255,0.22),transparent_36%),linear-gradient(180deg,#fbfdff_0%,#edf5fc_100%)]" />
-
-      <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 border-b border-[#d7e6f4] px-4 py-3 sm:px-5">
+    <div className="relative flex min-h-[360px] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white sm:min-h-[440px] xl:min-h-[620px]">
+      <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 px-4 py-3 sm:px-5">
         <div className="flex items-center gap-3">
           <div>
-            <div className="lesson-eyebrow">Simulator</div>
-            <h2 className="font-brand mt-1 text-[15px] font-medium tracking-[-0.03em] text-[#011829] sm:text-[17px]">
+            <div className="text-[11px] font-medium uppercase tracking-[0.1em] text-gray-400">Simulator</div>
+            <h2 className="mt-1 text-[15px] font-medium tracking-[-0.02em] text-black sm:text-[17px]">
               Unitree GO1
             </h2>
           </div>
-          <span className="rounded-full border border-[#d7e6f4] bg-white/85 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-[#6f8ba6]">
+          <span className="rounded-full bg-gray-100 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.1em] text-gray-500">
             {actionLabel}
           </span>
         </div>
 
-        <div className="flex items-center gap-2 text-[11px] text-[#6f8ba6]">
-          <span className="hidden rounded-full border border-[#d7e6f4] bg-white/85 px-3 py-1.5 md:inline-flex">
+        <div className="flex items-center gap-2 text-[11px] text-gray-400">
+          <span className="hidden rounded-full bg-gray-100 px-3 py-1.5 font-medium md:inline-flex">
             Orbit camera
           </span>
-          <span className="rounded-full border border-[#d7e6f4] bg-white/85 px-3 py-1.5">{gridVisible ? 'Grid on' : 'Grid off'}</span>
+          <span className="rounded-full bg-gray-100 px-3 py-1.5 font-medium">{gridVisible ? 'Grid on' : 'Grid off'}</span>
         </div>
       </div>
 
@@ -470,7 +468,7 @@ export default function RobotViewport() {
 
       {assetState !== 'ready' ? (
         <div className="pointer-events-none absolute inset-x-0 bottom-5 z-20 flex justify-center">
-          <div className="rounded-full border border-[#d7e6f4] bg-white/92 px-4 py-2 text-[12px] text-[#5d7893] shadow-[0_10px_20px_rgba(1,24,41,0.06)]">
+          <div className="rounded-full bg-white px-4 py-2 text-[12px] font-medium text-gray-500 shadow-md">
             {assetState === 'loading' ? 'Loading GO1 model...' : 'GO1 model could not be loaded.'}
           </div>
         </div>
@@ -479,14 +477,14 @@ export default function RobotViewport() {
       <div className="absolute bottom-4 right-4 z-20 flex gap-2">
         <button
           onClick={resetCamera}
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-[#d7e6f4] bg-white/92 text-[#36526c] shadow-[0_8px_18px_rgba(1,24,41,0.06)] transition hover:border-[#bfd6ea] hover:text-[#011829]"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-sm transition hover:text-black"
           title="Reset camera"
         >
           <CameraResetIcon className="h-[18px] w-[18px]" />
         </button>
         <button
           onClick={toggleGrid}
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-[#d7e6f4] bg-white/92 text-[#36526c] shadow-[0_8px_18px_rgba(1,24,41,0.06)] transition hover:border-[#bfd6ea] hover:text-[#011829]"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-sm transition hover:text-black"
           title="Toggle grid"
         >
           <GridIcon className="h-[18px] w-[18px]" />

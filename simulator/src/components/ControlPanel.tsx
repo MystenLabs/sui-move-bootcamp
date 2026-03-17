@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSimulator } from '@/hooks/useSimulator';
 import { useOnChainAction } from '@/hooks/useOnChainAction';
 import { useOnChainQueue } from '@/hooks/useOnChainQueue';
-import { ChainIcon, ClockIcon, HardwareIcon } from '@/components/icons';
+import { ChainIcon, HardwareIcon } from '@/components/icons';
 
 interface CommandButton {
   code: string;
@@ -81,44 +81,36 @@ export default function ControlPanel() {
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.repeat) {
-        return;
-      }
+      if (event.repeat) return;
 
       const target = event.target;
       if (target instanceof HTMLElement) {
         const tagName = target.tagName.toLowerCase();
-        if (tagName === 'input' || tagName === 'textarea' || target.isContentEditable) {
-          return;
-        }
+        if (tagName === 'input' || tagName === 'textarea' || target.isContentEditable) return;
       }
 
       const key = event.code === 'Space' ? 'Space' : event.key.toUpperCase();
       const shortcut = KEYBOARD_SHORTCUTS.find((entry) => entry.key === key);
-      if (!shortcut) {
-        return;
-      }
+      if (!shortcut) return;
 
       event.preventDefault();
       sendActionWithChain(shortcut.code);
     }
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [sendActionWithChain]);
 
   return (
-    <aside className="surface-panel flex h-full min-h-[380px] flex-col overflow-hidden px-4 py-4">
+    <aside className="flex h-full min-h-[380px] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white px-4 py-4">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div>
-          <div className="lesson-eyebrow">Control</div>
-          <h2 className="font-brand mt-1 text-[16px] font-medium tracking-[-0.03em] text-[#011829]">
+          <div className="text-[11px] font-medium uppercase tracking-[0.12em] text-gray-400">Control</div>
+          <h2 className="mt-1 text-[16px] font-medium tracking-[-0.02em] text-black">
             GO1 command surface
           </h2>
         </div>
-        <div className="inline-flex items-center gap-1.5 rounded-full border border-[#d7e6f4] bg-[#f8fbff] px-2.5 py-1 text-[10px] text-[#6f8ba6]">
+        <div className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 text-[10px] font-medium text-gray-500">
           Live
         </div>
       </div>
@@ -130,23 +122,23 @@ export default function ControlPanel() {
         <StatusCard label="Battery" value={`${battery.toFixed(0)}%`} />
       </div>
 
-      <div className="mb-4 rounded-[16px] border border-[#d7e6f4] bg-[#f8fbff] px-3 py-3">
-        <div className="mb-2 flex items-center gap-2 text-[12px] text-[#5d7893]">
-          <HardwareIcon className="h-4 w-4 text-[#4DA2FF]" />
-          Battery envelope
+      <div className="mb-4 rounded-xl bg-gray-50 px-3 py-3">
+        <div className="mb-2 flex items-center gap-2 text-[12px] text-gray-500">
+          <HardwareIcon className="h-4 w-4 text-[#4da2ff]" />
+          Battery
         </div>
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-white">
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
           <div
-            className="h-full rounded-full bg-[linear-gradient(90deg,#4DA2FF_0%,#1f8f6f_100%)]"
+            className="h-full rounded-full bg-[#4da2ff]"
             style={{ width: `${battery}%` }}
           />
         </div>
       </div>
 
       {isOnChainConfigured && (
-        <div className="mb-4 rounded-[16px] border border-[#d7e6f4] bg-[#f8fbff] px-3 py-3">
-          <div className="mb-2 flex items-center gap-2 text-[12px] text-[#5d7893]">
-            <ChainIcon className="h-4 w-4 text-[#4DA2FF]" />
+        <div className="mb-4 rounded-xl bg-gray-50 px-3 py-3">
+          <div className="mb-2 flex items-center gap-2 text-[12px] text-gray-500">
+            <ChainIcon className="h-4 w-4 text-[#4da2ff]" />
             On-chain status
           </div>
           {isWalletConnected ? (
@@ -157,7 +149,7 @@ export default function ControlPanel() {
               <StatusCard label="Pending" value={String(pendingTxCount)} />
             </div>
           ) : (
-            <div className="text-[11px] text-[#6f8ba6]">
+            <div className="text-[11px] text-gray-400">
               Connect wallet for on-chain mode
             </div>
           )}
@@ -166,8 +158,8 @@ export default function ControlPanel() {
 
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
         {COMMAND_GROUPS.map((group) => (
-          <section key={group.title} className="rounded-[16px] border border-[#d7e6f4] bg-white px-3 py-3">
-            <div className="mb-2 text-[11px] uppercase tracking-[0.18em] text-[#6f8ba6]">{group.title}</div>
+          <section key={group.title} className="rounded-xl border border-gray-200 bg-white px-3 py-3">
+            <div className="mb-2 text-[11px] font-medium uppercase tracking-[0.12em] text-gray-400">{group.title}</div>
             <div className="grid grid-cols-2 gap-2">
               {group.commands.map((command) => {
                 const active = currentAction === command.code;
@@ -175,10 +167,10 @@ export default function ControlPanel() {
                   <button
                     key={command.code}
                     onClick={() => sendActionWithChain(command.code)}
-                    className={`rounded-[14px] border px-3 py-2 text-left text-[12px] font-medium transition ${
+                    className={`rounded-lg border px-3 py-2 text-left text-[12px] font-medium transition ${
                       active
-                        ? 'border-[#c9def1] bg-[#f4f8fc] text-[#17324d]'
-                        : 'border-[#d7e6f4] bg-[#f8fbff] text-[#5d7893] hover:border-[#bfd6ea] hover:bg-white'
+                        ? 'border-[#4da2ff] bg-[#4da2ff]/5 text-black'
+                        : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300 hover:bg-white'
                     }`}
                   >
                     {command.label}
@@ -190,23 +182,20 @@ export default function ControlPanel() {
         ))}
       </div>
 
-      <div className="mt-4 rounded-[16px] border border-[#d7e6f4] bg-white px-3 py-3">
-        <button onClick={() => setShowShortcuts((value) => !value)} className="flex w-full items-center justify-between">
-          <div className="text-[12px] font-medium text-[#17324d]">Keyboard</div>
-          <span className="rounded-full border border-[#d7e6f4] bg-[#f8fbff] px-2.5 py-1 text-[10px] text-[#6f8ba6]">
+      <div className="mt-4 rounded-xl border border-gray-200 bg-white px-3 py-3">
+        <button onClick={() => setShowShortcuts((v) => !v)} className="flex w-full items-center justify-between">
+          <div className="text-[12px] font-medium text-black">Keyboard</div>
+          <span className="rounded-full bg-gray-100 px-2.5 py-1 text-[10px] font-medium text-gray-500">
             {showShortcuts ? 'Hide' : 'Show'}
           </span>
         </button>
 
         {showShortcuts && (
-          <div className="mt-3 space-y-2">
+          <div className="mt-3 space-y-1.5">
             {KEYBOARD_SHORTCUTS.map((shortcut) => (
-              <div key={shortcut.key} className="flex items-center justify-between rounded-[14px] bg-[#f8fbff] px-3 py-2">
-                <div className="inline-flex items-center gap-2 text-[12px] text-[#5d7893]">
-                  <ClockIcon className="h-3.5 w-3.5 text-[#4DA2FF]" />
-                  {shortcut.action}
-                </div>
-                <kbd className="font-mono-ui rounded-full border border-[#d7e6f4] bg-white px-2.5 py-1 text-[10px] text-[#6f8ba6]">
+              <div key={shortcut.key} className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2">
+                <div className="text-[12px] text-gray-600">{shortcut.action}</div>
+                <kbd className="font-mono-ui rounded bg-white px-2 py-0.5 text-[10px] font-medium text-gray-500 shadow-sm">
                   {shortcut.key}
                 </kbd>
               </div>
@@ -220,9 +209,9 @@ export default function ControlPanel() {
 
 function StatusCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[14px] border border-[#d7e6f4] bg-[#f8fbff] px-3 py-3">
-      <div className="text-[10px] uppercase tracking-[0.18em] text-[#6f8ba6]">{label}</div>
-      <div className="font-brand mt-1 text-[14px] font-medium text-[#17324d]">{value}</div>
+    <div className="rounded-lg bg-gray-50 px-3 py-2.5">
+      <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-gray-400">{label}</div>
+      <div className="mt-0.5 text-[14px] font-medium text-black">{value}</div>
     </div>
   );
 }

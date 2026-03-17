@@ -513,7 +513,7 @@ export default function DiagramCanvas({ moduleId }: DiagramCanvasProps) {
   return (
     <canvas
       ref={canvasRef}
-      className="h-[200px] w-full rounded-[24px] border border-[#d7e6f4] bg-[#f8fbff]"
+      className="h-[200px] w-full rounded-xl border border-gray-200 bg-gray-50"
       style={{ imageRendering: 'auto' }}
     />
   );

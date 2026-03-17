@@ -1,17 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import {
-  ArrowRightIcon,
-  BridgeIcon,
-  ClockIcon,
-  CompassIcon,
-  HardwareIcon,
-  ShieldWaveIcon,
-  StackIcon,
-} from '@/components/icons';
+import { ArrowRightIcon, ClockIcon, HardwareIcon } from '@/components/icons';
 
-interface ModuleCardProps {
+export interface ModuleCardProps {
   order: number;
   id: string;
   title: string;
@@ -23,13 +15,6 @@ interface ModuleCardProps {
   artifact: string;
   focus: string[];
 }
-
-const CATEGORY_THEMES = {
-  Fundamentals: { icon: CompassIcon, accent: 'text-[#1d79e6]' },
-  Integration: { icon: BridgeIcon, accent: 'text-[#0f7eaa]' },
-  Security: { icon: ShieldWaveIcon, accent: 'text-[#3459d1]' },
-  'Full-Stack': { icon: StackIcon, accent: 'text-[#274965]' },
-};
 
 export default function ModuleCard({
   order,
@@ -43,62 +28,54 @@ export default function ModuleCard({
   artifact,
   focus,
 }: ModuleCardProps) {
-  const theme = CATEGORY_THEMES[category as keyof typeof CATEGORY_THEMES] ?? CATEGORY_THEMES.Fundamentals;
-  const Icon = theme.icon;
-
   return (
     <Link
       href={`/module/${id}`}
-      className="group rounded-[18px] border border-[#d7e6f4] bg-white px-4 py-4 transition hover:border-[#bfd6ea] hover:shadow-[0_10px_22px_rgba(1,24,41,0.05)]"
+      className="group rounded-xl border border-gray-200 bg-white p-4 transition hover:border-gray-300 hover:shadow-sm"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#d7e6f4] bg-[#f8fbff] text-[11px] font-medium text-[#17324d]">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-100 text-[11px] font-medium text-gray-600">
             {order}
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] uppercase tracking-[0.18em] text-[#6f8ba6]">{id}</span>
-              <span className={`inline-flex items-center gap-1 ${theme.accent}`}>
-                <Icon className="h-3.5 w-3.5" />
-              </span>
-            </div>
-            <div className="font-brand mt-1 text-[16px] font-medium tracking-[-0.03em] text-[#011829]">{title}</div>
-            <div className="mt-1 text-[12px] leading-5 text-[#6f8ba6]">{subtitle}</div>
+            <div className="text-[11px] font-medium uppercase tracking-[0.1em] text-gray-400">{id}</div>
+            <div className="mt-1 text-[16px] font-medium tracking-[-0.02em] text-black">{title}</div>
+            <div className="mt-0.5 text-[12px] text-gray-500">{subtitle}</div>
           </div>
         </div>
-        <span className="shrink-0 rounded-full border border-[#d7e6f4] bg-[#f8fbff] px-2.5 py-1 text-[10px] text-[#6f8ba6]">
+        <span className="shrink-0 rounded-full bg-gray-100 px-2.5 py-1 text-[10px] font-medium text-gray-500">
           {category}
         </span>
       </div>
 
-      <p className="mt-3 text-[13px] leading-5 text-[#5d7893]">{summary}</p>
+      <p className="mt-3 text-[13px] leading-5 text-gray-500">{summary}</p>
 
-      <div className="mt-3 flex flex-wrap gap-2">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-[#d7e6f4] bg-[#f8fbff] px-2.5 py-1 text-[10px] text-[#6f8ba6]">
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-50 px-2.5 py-1 text-[10px] font-medium text-gray-500">
           <ClockIcon className="h-3.5 w-3.5" />
           {time}
         </span>
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-[#d7e6f4] bg-[#f8fbff] px-2.5 py-1 text-[10px] text-[#6f8ba6]">
-          {hardware ? <HardwareIcon className="h-3.5 w-3.5" /> : <Icon className="h-3.5 w-3.5" />}
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-50 px-2.5 py-1 text-[10px] font-medium text-gray-500">
+          <HardwareIcon className="h-3.5 w-3.5" />
           {hardware ? 'Simulator' : 'Software'}
         </span>
-        <span className="inline-flex items-center rounded-full border border-[#d7e6f4] bg-[#f8fbff] px-2.5 py-1 text-[10px] text-[#6f8ba6]">
+        <span className="rounded-full bg-gray-50 px-2.5 py-1 text-[10px] font-medium text-gray-500">
           {artifact}
         </span>
       </div>
 
       <div className="mt-3 flex flex-wrap gap-1.5">
         {focus.slice(0, 3).map((item) => (
-          <span key={item} className="rounded-full bg-[#f8fbff] px-2.5 py-1 text-[10px] text-[#6f8ba6]">
+          <span key={item} className="rounded bg-gray-50 px-2 py-0.5 text-[10px] text-gray-400">
             {item}
           </span>
         ))}
       </div>
 
-      <div className="mt-3 flex items-center justify-between text-[12px] font-medium text-[#17324d]">
+      <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3 text-[12px] font-medium text-black">
         <span>Open lesson</span>
-        <ArrowRightIcon className="h-4 w-4 text-[#4DA2FF] transition group-hover:translate-x-1" />
+        <ArrowRightIcon className="h-4 w-4 text-[#4da2ff] transition group-hover:translate-x-0.5" />
       </div>
     </Link>
   );
