@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useWalletConnection, useWallets, useDAppKit } from '@mysten/dapp-kit-react';
 import type { UiWallet } from '@wallet-standard/ui';
 
@@ -63,6 +64,25 @@ function ConnectModal({ onClose }: { onClose: () => void }) {
   const dAppKit = useDAppKit();
   const [connecting, setConnecting] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    // Lock body scroll while modal is open
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
+
+  // Close on Escape key
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose();
+    }
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [onClose]);
 
   const handleConnect = useCallback(
     async (wallet: UiWallet) => {
@@ -81,16 +101,26 @@ function ConnectModal({ onClose }: { onClose: () => void }) {
     [dAppKit, onClose],
   );
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-[#011829]/40 backdrop-blur-sm" onClick={onClose} />
+  const modal = (
+    <div
+      style={{ position: 'fixed', inset: 0, zIndex: 99999 }}
+      className="flex items-center justify-center"
+    >
+      {/* Backdrop — full-page blur overlay */}
+      <div
+        style={{ position: 'absolute', inset: 0, zIndex: 0 }}
+        className="bg-[#011829]/50 backdrop-blur-md"
+        onClick={onClose}
+      />
 
-      {/* Modal */}
-      <div className="relative z-10 w-full max-w-[460px] rounded-[24px] border border-[#d7e6f4] bg-white shadow-[0_24px_64px_rgba(1,24,41,0.18)]">
+      {/* Modal card */}
+      <div
+        style={{ position: 'relative', zIndex: 1 }}
+        className="mx-4 w-full max-w-[460px] rounded-[24px] border border-[#d7e6f4] bg-white shadow-[0_32px_80px_rgba(1,24,41,0.28)]"
+      >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[#d7e6f4] px-6 py-5">
-          <h2 className="font-brand text-[18px] font-medium tracking-[-0.03em] text-[#011829]">
+          <h2 className="text-[18px] font-medium tracking-[-0.03em] text-[#011829]">
             Connect a Wallet
           </h2>
           <button
@@ -154,4 +184,7 @@ function ConnectModal({ onClose }: { onClose: () => void }) {
       </div>
     </div>
   );
+
+  if (!mounted) return null;
+  return createPortal(modal, document.body);
 }
