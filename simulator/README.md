@@ -84,6 +84,50 @@ The robot state machine supports 17 commands plus 30+ aliases covering every nam
 | `kup` | `up`, `standUp`, `stand_up` | Stand tall |
 | `kbf` | `bf`, `backFlip`, `back_flip` | Backflip |
 
+## On-Chain Robot Actions
+
+Every control panel button (Sit, Stand, Up, Rest, Wave, Jump, Push-up, Stretch, Forward, Back, Left, Right) and keyboard shortcut (W/A/S/D/Space) triggers a real Sui testnet transaction when a wallet is connected.
+
+### How it works
+
+Each button click fires two independent paths:
+
+1. **Path A (WebSocket)** — robot animates immediately (~10ms)
+2. **Path B (On-chain)** — builds a PTB calling `robot_queue::add_action`, wallet signs, submits to Sui testnet (~2-3s)
+
+The robot never waits for the blockchain. If no wallet is connected, only Path A runs.
+
+### Contract
+
+Uses the R2 `action_queue::robot_queue` contract deployed on Sui testnet:
+
+| | Address |
+|---|---|
+| Package | `0x27a3292a055a7904753a8c741579d9cdebc17010c8b65d3d1f00da43047962b7` |
+| ActionQueue | `0x83ba18609f73b99518b7aaa13ce4a17293c4d18c4e2bab38ce59c7dc0fef355c` |
+
+The `add_action` function is permissionless — anyone with a Sui wallet can call it. Each call emits an `ActionAdded` event with the action name, sender address, and current queue length.
+
+### Wallet integration
+
+The simulator uses `@mysten/dapp-kit-react` for wallet connection:
+
+- Click **Connect wallet** in the navbar to open the wallet selection modal
+- Select any installed Sui wallet (Slush, Phantom, Suiet, etc.)
+- Once connected, every action button prompts a transaction signature
+- The terminal shows submission status and transaction digests
+- The control panel shows on-chain status cards (chain, queue length, total actions, pending txs)
+- Disconnect at any time — the simulator falls back to local-only mode
+
+### Configuration
+
+The testnet contract addresses are hardcoded as defaults. To use a different deployment:
+
+```bash
+cp .env.example .env.local
+# Edit the addresses in .env.local
+```
+
 ## Tech Stack
 
 - **Next.js 14** (App Router, custom server)
@@ -92,3 +136,5 @@ The robot state machine supports 17 commands plus 30+ aliases covering every nam
 - **Three.js** (procedural robot model, OrbitControls)
 - **WebSocket** (`ws` library)
 - **Node.js TCP** (serial bridge)
+- **@mysten/dapp-kit-react** + **@mysten/sui** (wallet connection, transaction signing)
+- **Sui Move** (R2 `action_queue::robot_queue` contract on testnet)
