@@ -66,6 +66,13 @@ Reflection:
 
 - Why must this object be shared instead of owned by one address?
 
+💡
+
+- `shared object`: globally accessible object state, not wallet-owned state.
+- `UID` + `object::new`: unique object identity allocation at creation.
+- `transfer::share_object`: required to make the created object visible as shared.
+- if you create but do not share, tests cannot `take_shared` it.
+
 ### Milestone 2 - Increment + Event
 
 Target test:
@@ -80,6 +87,13 @@ What to implement:
 Reflection:
 
 - If an indexer listens only to events, what useful history does `Incremented` provide?
+
+💡
+
+- `event emission`: append-only off-chain observable record of state transitions.
+- `ctx.sender()`: authoritative actor identity inside transaction execution.
+- `String` move semantics: the `note` is moved into the emitted event payload.
+- emitting event before mutation can report stale `new_value`.
 
 ### Milestone 3 - Safe Decrement + Event
 
@@ -98,6 +112,12 @@ Reflection:
 
 - Why is protecting invariants on-chain better than relying on frontend checks?
 
+💡
+
+- `invariant`: rule that must always hold (counter value must never go below `0`).
+- `assert!` with contract error: deterministic failure path for invalid state transitions.
+- `abort`: transaction rollback when invariant is violated.
+
 ### Milestone 4 - Multi-user Sequence
 
 Target tests:
@@ -113,6 +133,12 @@ What to validate:
 Reflection:
 
 - What assumptions would break if each user had a private counter instead?
+
+💡
+
+- `shared mutability`: many senders can mutate one shared object over time.
+- `test_scenario` tx boundaries: `next_tx` simulates separate user transactions.
+- `take_shared`/`return_shared`: borrow lifecycle for shared objects in tests.
 
 ### Milestone 5 - TS SDK Transaction Build
 
@@ -134,6 +160,13 @@ Reflection:
 
 - Why do we use `onlyTransactionKind: true` before sponsorship?
 
+💡
+
+- `transaction kind bytes`: unsigned operation payload that sponsor can wrap.
+- `build step`: compiles transaction intent into bytes against network client.
+- `Uint8Array`: binary representation passed to sponsorship API.
+- building without `onlyTransactionKind: true` can produce the wrong payload type for sponsorship.
+
 ### Milestone 6 - Enoki Sponsorship Request
 
 Target file:
@@ -149,6 +182,13 @@ What to implement:
 Reflection:
 
 - What security risk appears if sponsorship targets are not constrained?
+
+💡
+
+- `allowedAddresses`: constrains which sender addresses sponsorship is valid for.
+- `allowedMoveCallTargets`: constrains which Move entrypoints can be sponsored.
+- `toBase64(txBytes)`: encoding required by Enoki API input shape.
+- over-broad allowlists can accidentally sponsor unintended calls.
 
 ### Milestone 7 - Sign + Execute Sponsored Transaction
 
@@ -171,6 +211,13 @@ Reflection:
 
 - Why does the user sign sponsored bytes, even when gas is paid by sponsor?
 
+💡
+
+- `user signature`: authorizes intent; sponsor pays gas but does not own user authority.
+- `digest`: identifier used to execute the sponsored transaction later.
+- `waitForTransaction`: finality/confirmation step before refreshing UI state.
+- executing before obtaining a valid signature must fail.
+
 ### Milestone 8 - zkLogin Understanding Check
 
 Reading targets:
@@ -187,6 +234,13 @@ What to explain:
 Reflection:
 
 - Which parts are auth-specific vs transaction-specific in this architecture?
+
+💡
+
+- `wallet initializer`: plugs Enoki zkLogin wallet into dApp Kit wallet interface.
+- `OAuth redirect URL`: must match configured callback exactly.
+- `callback page`: lightweight handoff point while session/proof state settles.
+- redirect mismatch causes sign-in success in provider but failure in app session.
 
 ## Suggested Workflow
 

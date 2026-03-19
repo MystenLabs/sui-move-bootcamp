@@ -23,7 +23,7 @@ export const useIncrement = () => {
     mutationFn: async (params: IncrementParams) => {
       const { note } = params;
 
-      // TODO (TS Milestone A): validate sender is connected.
+      // TS Milestone A (already scaffolded): validate sender is connected.
       if (!sender) {
         throw new TransactionError('Wallet not connected', 'wallet');
       }
