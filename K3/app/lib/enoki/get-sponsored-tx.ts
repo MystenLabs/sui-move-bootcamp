@@ -1,9 +1,7 @@
 'use server';
 
 import serverConfig from '@/lib/env-config-server';
-import { getMoveTarget } from '@/lib/helpers-onchain';
-import { EnokiClient, type EnokiNetwork } from '@mysten/enoki';
-import { toBase64 } from '@mysten/sui/utils';
+import { EnokiClient } from '@mysten/enoki';
 
 /**
  * Creates a sponsored transaction via Enoki
@@ -12,28 +10,18 @@ import { toBase64 } from '@mysten/sui/utils';
  * @returns Sponsored transaction with bytes and digest
  */
 export const getSponsoredTx = async ({
-  txBytes,
-  sender,
+  txBytes: _txBytes,
+  sender: _sender,
 }: {
   txBytes: Uint8Array;
   sender: string;
 }) => {
-  const enokiClient = new EnokiClient({
-    apiKey: serverConfig.ENOKI_PRIVATE_KEY,
-  });
-
-  const sponsoredTransaction = await enokiClient.createSponsoredTransaction({
-    network: process.env.NEXT_PUBLIC_SUI_NETWORK_NAME as EnokiNetwork,
-    transactionKindBytes: toBase64(txBytes),
-    sender: sender,
-    allowedAddresses: [sender],
-    allowedMoveCallTargets: [
-      getMoveTarget('counter', 'increment'),
-      getMoveTarget('counter', 'decrement'),
-    ],
-  });
-
-  return sponsoredTransaction;
+  // TODO (TS Milestone C):
+  // 1) Create Enoki client using private key
+  // 2) Request sponsored tx with toBase64(txBytes)
+  // 3) Restrict allowed addresses and Move call targets
+  // Hint: import helpers you need (toBase64, getMoveTarget, EnokiNetwork) when implementing.
+  throw new Error('TODO: implement getSponsoredTx');
 };
 
 /**

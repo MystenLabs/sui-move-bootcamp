@@ -1,15 +1,7 @@
 import { incrementTransaction } from '@/lib/counter/counter-transactions';
-import {
-  executeSponsoredTx,
-  getSponsoredTx,
-} from '@/lib/enoki/get-sponsored-tx';
 import clientConfig from '@/lib/env-config-client';
-import { TransactionError, isUserRejection } from '@/lib/errors';
-import {
-  useCurrentClient,
-  useCurrentAccount,
-  useDAppKit,
-} from '@mysten/dapp-kit-react';
+import { TransactionError } from '@/lib/errors';
+import { useCurrentClient, useCurrentAccount } from '@mysten/dapp-kit-react';
 import { useMutation } from '@tanstack/react-query';
 
 export interface IncrementParams {
@@ -26,18 +18,17 @@ export interface IncrementParams {
 export const useIncrement = () => {
   const client = useCurrentClient();
   const sender = useCurrentAccount();
-  const dAppKit = useDAppKit();
 
   return useMutation({
     mutationFn: async (params: IncrementParams) => {
       const { note } = params;
 
-      // 1. Validate wallet connection (works for both regular wallets and zkLogin)
+      // TODO (TS Milestone A): validate sender is connected.
       if (!sender) {
         throw new TransactionError('Wallet not connected', 'wallet');
       }
 
-      // 2. Build the transaction
+      // TS Milestone B: Build increment transaction bytes.
       let txBytes: Uint8Array;
       try {
         const transaction = incrementTransaction(
@@ -58,72 +49,15 @@ export const useIncrement = () => {
         );
       }
 
-      // 3. Get sponsored transaction from server
-      let sponsoredTxn: Awaited<ReturnType<typeof getSponsoredTx>>;
-      try {
-        sponsoredTxn = await getSponsoredTx({
-          sender: sender.address,
-          txBytes: txBytes,
-        });
-      } catch (error) {
-        throw new TransactionError(
-          'Failed to get sponsorship from Enoki',
-          'sponsor',
-          error,
-        );
-      }
-
-      // 4. Sign the sponsored transaction bytes with user's wallet
-      // This works for both regular wallets AND zkLogin wallets
-      let signature: string;
-      try {
-        const signResult = await dAppKit.signTransaction({
-          transaction: sponsoredTxn.bytes,
-        });
-        signature = signResult.signature;
-      } catch (error) {
-        if (isUserRejection(error)) {
-          throw new TransactionError(
-            'Transaction signing cancelled',
-            'sign',
-            error,
-          );
-        }
-        throw new TransactionError('Failed to sign transaction', 'sign', error);
-      }
-
-      // 5. Execute the sponsored transaction
-      let result: Awaited<ReturnType<typeof executeSponsoredTx>>;
-      try {
-        result = await executeSponsoredTx({
-          digest: sponsoredTxn.digest,
-          signature: signature,
-        });
-      } catch (error) {
-        throw new TransactionError(
-          'Failed to execute transaction',
-          'execute',
-          error,
-        );
-      }
-
-      // 6. Wait for transaction confirmation via gRPC (F1-style)
-      try {
-        const waitedResult = await client.core.waitForTransaction({
-          digest: result.digest,
-        });
-
-        return {
-          digest: result.digest,
-          result: waitedResult,
-        };
-      } catch (error) {
-        throw new TransactionError(
-          'Failed to confirm transaction',
-          'confirm',
-          error,
-        );
-      }
+      // TODO (TS Milestones C + D):
+      // 1) Request sponsorship from server with getSponsoredTx(...)
+      // 2) Sign sponsored bytes with dAppKit.signTransaction(...)
+      // 3) Execute with executeSponsoredTx(...)
+      // 4) Wait for confirmation and return { digest, result }
+      throw new TransactionError(
+        `TODO: complete sponsored increment flow for ${txBytes.length} built bytes`,
+        'sponsor',
+      );
     },
   });
 };

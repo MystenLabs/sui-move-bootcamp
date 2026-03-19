@@ -8,6 +8,8 @@ use std::string::String;
 // === Errors ===
 #[error]
 const ECannotDecrementBelowZero: vector<u8> = b"Cannot decrement counter below zero";
+#[error]
+const ENotImplementedYet: vector<u8> = b"Exercise TODO is not implemented yet";
 
 // === Structs ===
 
@@ -42,40 +44,42 @@ public struct Decremented has copy, drop {
 // === Init ===
 
 /// Creates and shares a single counter on module publish
-fun init(ctx: &mut TxContext) {
-  let counter = Counter {
-    id: object::new(ctx),
-    value: 0,
-  };
-  transfer::share_object(counter);
+/// TODO (Milestone 1):
+/// 1) Create the Counter object with value 0
+/// 2) Share it so all users can access the same shared counter
+fun init(_ctx: &mut TxContext) {
+  abort ENotImplementedYet
 }
 
 // === Public Functions ===
 
 /// Increments the counter by 1 with an optional note
 /// Emits an Incremented event with the sender, note, and new value
+/// TODO (Milestone 2):
+/// 1) Increment the value by exactly 1
+/// 2) Emit Incremented with:
+///    - by: ctx.sender()
+///    - note: the provided note
+///    - new_value: updated value
 public fun increment(counter: &mut Counter, note: String, ctx: &TxContext) {
-  counter.value = counter.value + 1;
-
-  sui::event::emit(Incremented {
-    by: ctx.sender(),
-    note,
-    new_value: counter.value,
-  });
+  let _ = counter;
+  let _ = note;
+  let _ = ctx;
+  abort ENotImplementedYet
 }
 
 /// Decrements the counter by 1 with an optional note
 /// Emits a Decremented event with the sender, note, and new value
 /// Aborts if the counter value is already 0
+/// TODO (Milestone 3):
+/// 1) Guard against decrementing below zero (reuse ECannotDecrementBelowZero)
+/// 2) Decrement by exactly 1
+/// 3) Emit Decremented with sender, note, and new_value
 public fun decrement(counter: &mut Counter, note: String, ctx: &TxContext) {
-  assert!(counter.value > 0, ECannotDecrementBelowZero);
-  counter.value = counter.value - 1;
-
-  sui::event::emit(Decremented {
-    by: ctx.sender(),
-    note,
-    new_value: counter.value,
-  });
+  let _ = counter;
+  let _ = note;
+  let _ = ctx;
+  abort ENotImplementedYet
 }
 
 // === Getter Functions ===
@@ -105,17 +109,16 @@ fun setup_counter(scenario: &mut Scenario) {
 }
 
 #[test]
-fun test_init_creates_counter() {
+fun milestone_1_init_creates_shared_counter() {
   let mut scenario = ts::begin(ADMIN);
 
-  // Init creates counter
+  // Milestone 1: init should create and share a counter.
   setup_counter(&mut scenario);
 
-  // Verify counter was created with value 0
   ts::next_tx(&mut scenario, ADMIN);
   {
     let counter = ts::take_shared<Counter>(&scenario);
-    assert!(value(&counter) == 0, 0);
+    assert!(value(&counter) == 0);
     ts::return_shared(counter);
   };
 
@@ -123,54 +126,17 @@ fun test_init_creates_counter() {
 }
 
 #[test]
-fun test_increment_with_note() {
+fun milestone_2_increment_updates_value() {
   let mut scenario = ts::begin(ADMIN);
   setup_counter(&mut scenario);
 
-  // Increment the counter with a note
   ts::next_tx(&mut scenario, USER);
   {
     let mut counter = ts::take_shared<Counter>(&scenario);
-    assert!(value(&counter) == 0, 0);
+    assert!(value(&counter) == 0);
 
-    increment(&mut counter, std::string::utf8(b"First increment!"), ts::ctx(&mut scenario));
-    assert!(value(&counter) == 1, 1);
-
-    increment(&mut counter, std::string::utf8(b"Second increment"), ts::ctx(&mut scenario));
-    assert!(value(&counter) == 2, 2);
-
-    ts::return_shared(counter);
-  };
-
-  ts::end(scenario);
-}
-
-#[test]
-fun test_decrement_with_note() {
-  let mut scenario = ts::begin(ADMIN);
-  setup_counter(&mut scenario);
-
-  // First increment to have something to decrement
-  ts::next_tx(&mut scenario, USER);
-  {
-    let mut counter = ts::take_shared<Counter>(&scenario);
-    increment(&mut counter, std::string::utf8(b"Setup"), ts::ctx(&mut scenario));
-    increment(&mut counter, std::string::utf8(b"Setup"), ts::ctx(&mut scenario));
-    increment(&mut counter, std::string::utf8(b"Setup"), ts::ctx(&mut scenario));
-    assert!(value(&counter) == 3, 0);
-    ts::return_shared(counter);
-  };
-
-  // Decrement the counter with notes
-  ts::next_tx(&mut scenario, USER);
-  {
-    let mut counter = ts::take_shared<Counter>(&scenario);
-
-    decrement(&mut counter, std::string::utf8(b"Going down!"), ts::ctx(&mut scenario));
-    assert!(value(&counter) == 2, 1);
-
-    decrement(&mut counter, std::string::utf8(b"Almost there"), ts::ctx(&mut scenario));
-    assert!(value(&counter) == 1, 2);
+    increment(&mut counter, b"First increment".to_string(), ts::ctx(&mut scenario));
+    assert!(value(&counter) == 1);
 
     ts::return_shared(counter);
   };
@@ -179,19 +145,19 @@ fun test_decrement_with_note() {
 }
 
 #[test]
-#[expected_failure(abort_code = ECannotDecrementBelowZero)]
-fun test_decrement_below_zero_fails() {
+fun milestone_3_decrement_updates_value() {
   let mut scenario = ts::begin(ADMIN);
   setup_counter(&mut scenario);
 
-  // Try to decrement counter that is at 0 - should fail
   ts::next_tx(&mut scenario, USER);
   {
     let mut counter = ts::take_shared<Counter>(&scenario);
-    assert!(value(&counter) == 0, 0);
+    increment(&mut counter, b"Setup".to_string(), ts::ctx(&mut scenario));
+    increment(&mut counter, b"Setup".to_string(), ts::ctx(&mut scenario));
+    assert!(value(&counter) == 2);
 
-    // This should abort with ECannotDecrementBelowZero
-    decrement(&mut counter, std::string::utf8(b"This will fail"), ts::ctx(&mut scenario));
+    decrement(&mut counter, b"Going down".to_string(), ts::ctx(&mut scenario));
+    assert!(value(&counter) == 1);
 
     ts::return_shared(counter);
   };
@@ -199,54 +165,47 @@ fun test_decrement_below_zero_fails() {
   ts::end(scenario);
 }
 
-#[test]
-fun test_increment_with_empty_note() {
+#[test, expected_failure(abort_code = ECannotDecrementBelowZero)]
+fun milestone_3_decrement_below_zero_fails() {
   let mut scenario = ts::begin(ADMIN);
   setup_counter(&mut scenario);
 
-  // Increment with empty note
   ts::next_tx(&mut scenario, USER);
   {
     let mut counter = ts::take_shared<Counter>(&scenario);
-
-    increment(&mut counter, std::string::utf8(b""), ts::ctx(&mut scenario));
-    assert!(value(&counter) == 1, 0);
-
+    assert!(value(&counter) == 0);
+    decrement(&mut counter, b"This should fail".to_string(), ts::ctx(&mut scenario));
     ts::return_shared(counter);
   };
-
   ts::end(scenario);
 }
 
 #[test]
-fun test_multiple_users_can_access() {
+fun milestone_4_multiple_users_share_one_counter() {
   let mut scenario = ts::begin(ADMIN);
   setup_counter(&mut scenario);
 
-  // User 1 increments
   ts::next_tx(&mut scenario, USER);
   {
     let mut counter = ts::take_shared<Counter>(&scenario);
-    increment(&mut counter, std::string::utf8(b"User 1 was here"), ts::ctx(&mut scenario));
-    assert!(value(&counter) == 1, 0);
+    increment(&mut counter, b"User increment".to_string(), ts::ctx(&mut scenario));
+    assert!(value(&counter) == 1);
     ts::return_shared(counter);
   };
 
-  // Admin increments
   ts::next_tx(&mut scenario, ADMIN);
   {
     let mut counter = ts::take_shared<Counter>(&scenario);
-    increment(&mut counter, std::string::utf8(b"Admin joined"), ts::ctx(&mut scenario));
-    assert!(value(&counter) == 2, 1);
+    increment(&mut counter, b"Admin increment".to_string(), ts::ctx(&mut scenario));
+    assert!(value(&counter) == 2);
     ts::return_shared(counter);
   };
 
-  // User 1 decrements
   ts::next_tx(&mut scenario, USER);
   {
     let mut counter = ts::take_shared<Counter>(&scenario);
-    decrement(&mut counter, std::string::utf8(b"User 1 decrements"), ts::ctx(&mut scenario));
-    assert!(value(&counter) == 1, 2);
+    decrement(&mut counter, b"User decrement".to_string(), ts::ctx(&mut scenario));
+    assert!(value(&counter) == 1);
     ts::return_shared(counter);
   };
 
@@ -254,39 +213,21 @@ fun test_multiple_users_can_access() {
 }
 
 #[test]
-fun test_increment_and_decrement_sequence() {
+fun milestone_4_operation_sequence() {
   let mut scenario = ts::begin(ADMIN);
   setup_counter(&mut scenario);
 
-  // Test a sequence of operations
   ts::next_tx(&mut scenario, USER);
   {
     let mut counter = ts::take_shared<Counter>(&scenario);
 
-    // Start at 0
-    assert!(value(&counter) == 0, 0);
+    assert!(value(&counter) == 0);
 
-    // Increment 3 times: 0 -> 1 -> 2 -> 3
-    increment(&mut counter, std::string::utf8(b"One"), ts::ctx(&mut scenario));
-    increment(&mut counter, std::string::utf8(b"Two"), ts::ctx(&mut scenario));
-    increment(&mut counter, std::string::utf8(b"Three"), ts::ctx(&mut scenario));
-    assert!(value(&counter) == 3, 1);
-
-    // Decrement once: 3 -> 2
-    decrement(&mut counter, std::string::utf8(b"Back to two"), ts::ctx(&mut scenario));
-    assert!(value(&counter) == 2, 2);
-
-    // Increment twice: 2 -> 3 -> 4
-    increment(&mut counter, std::string::utf8(b"Up again"), ts::ctx(&mut scenario));
-    increment(&mut counter, std::string::utf8(b"Final"), ts::ctx(&mut scenario));
-    assert!(value(&counter) == 4, 3);
-
-    // Decrement to 0: 4 -> 3 -> 2 -> 1 -> 0
-    decrement(&mut counter, std::string::utf8(b"4"), ts::ctx(&mut scenario));
-    decrement(&mut counter, std::string::utf8(b"3"), ts::ctx(&mut scenario));
-    decrement(&mut counter, std::string::utf8(b"2"), ts::ctx(&mut scenario));
-    decrement(&mut counter, std::string::utf8(b"1"), ts::ctx(&mut scenario));
-    assert!(value(&counter) == 0, 4);
+    increment(&mut counter, b"One".to_string(), ts::ctx(&mut scenario));
+    increment(&mut counter, b"Two".to_string(), ts::ctx(&mut scenario));
+    decrement(&mut counter, b"Back".to_string(), ts::ctx(&mut scenario));
+    increment(&mut counter, b"Again".to_string(), ts::ctx(&mut scenario));
+    assert!(value(&counter) == 2);
 
     ts::return_shared(counter);
   };
