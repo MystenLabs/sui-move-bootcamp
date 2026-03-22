@@ -1,0 +1,21 @@
+{
+  "name": "depin-energy-monitor-client",
+  "version": "1.0.0",
+  "description": "CLI helpers for the R11 DePIN energy monitor module",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "request-demo-tokens": "pnpm build && node dist/request-demo-tokens.js",
+    "check-balance": "pnpm build && node dist/check-balance.js",
+    "submit-reading": "pnpm build && node dist/submit-reading.js",
+    "demo": "pnpm build && node dist/demo.js"
+  },
+  "dependencies": {
+    "@mysten/sui": "^2.6.0",
+    "dotenv": "^16.6.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "typescript": "^5.9.3"
+  }
+}

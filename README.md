@@ -10,7 +10,7 @@ A comprehensive, hands-on learning resource for building on the [Sui](https://su
 - [How This Repository Works](#how-this-repository-works)
 - [Learning Paths](#learning-paths)
   - [Path 1: Sui & Move Fundamentals (Modules A–K)](#path-1-sui--move-fundamentals-modules-ak)
-  - [Path 2: Blockchain Robotics Workshop (Modules R1–R10)](#path-2-blockchain-robotics-workshop-modules-r1r10)
+  - [Path 2: Blockchain Robotics Workshop (Modules R1–R11)](#path-2-blockchain-robotics-workshop-modules-r1r11)
 - [Module Reference](#module-reference)
   - [Module A: Introduction to Sui](#module-a-introduction-to-sui)
   - [Module B: Move Language Fundamentals](#module-b-move-language-fundamentals)
@@ -68,7 +68,7 @@ A (Intro to Sui) → B (Move Basics) → C (Advanced Patterns) → D (Client SDK
 
 Start with **[Module A](#module-a-introduction-to-sui)** if you are new to Sui and Move.
 
-### Path 2: Blockchain Robotics Workshop (Modules R1–R10)
+### Path 2: Blockchain Robotics Workshop (Modules R1–R11)
 
 A progressive, project-based series that teaches Sui blockchain development through building a robot control platform — from a simple "Hello Robot" script to a complete rental marketplace with tokens, authentication, and multiplayer access.
 
@@ -76,9 +76,10 @@ A progressive, project-based series that teaches Sui blockchain development thro
 R1 (Serial) → R2 (Move Basics) → R3 (WebSocket) → R4 (Blockchain + Robot)
     → R5 (Real-time Control) → R6 (Tunneling) → R7 (Auth & State Channels)
     → R8 (Tokenomics) → R9 (Multiplayer) → R10 (Full Platform)
+    → R11 (DePIN Energy Monitor)
 ```
 
-**Hardware**: Most modules work in simulation mode. A physical [Petoi Bittle X](https://docs.petoi.com/) robot is required for the full experience in Modules R1, R4, R5+.
+**Hardware**: Most modules work in simulation mode. A physical [Petoi Bittle X](https://docs.petoi.com/) robot is optional for the robot-focused modules, while R11 can run either on a simulated energy feed or on ESP32-based meter hardware.
 
 Choose based on your goals:
 
@@ -86,7 +87,8 @@ Choose based on your goals:
 | ------------------------------------- | ----------------- | ----------- |
 | Control a robot from your browser     | R1 → R5 → R6      | 4–6 hours   |
 | Learn Sui blockchain through projects | R2 → R7 → R8 → R9 | 8–12 hours  |
-| Full stack blockchain robotics        | R1 → R2 → … → R10 | 25–35 hours |
+| Full stack blockchain robotics        | R1 → R2 → … → R11 | 31–42 hours |
+| DePIN-focused extension               | R2 → R8 → R11     | 7–10 hours  |
 
 Start with **[Module R1](#module-r1-hello-bittle--serial-basics)** or **[Module R2](#module-r2-my-first-move-contract--blockchain-fundamentals)** depending on your interest.
 
@@ -166,7 +168,7 @@ Start with **[Module R1](#module-r1-hello-bittle--serial-basics)** or **[Module 
 
 ### Module R: SuiBotics — Blockchain Robotics
 
-A progressive, project-based series that teaches Sui development through building blockchain-controlled robotics — from a simple serial connection to a full rental platform with tokens, authentication, and multiplayer access. Most modules work in simulation mode; a physical [Petoi Bittle X](https://docs.petoi.com/) robot is optional.
+A progressive, project-based series that teaches Sui development through building blockchain-controlled robotics — from a simple serial connection to a full rental platform with tokens, authentication, and multiplayer access. A physical [Petoi Bittle X](https://docs.petoi.com/) robot is optional for the robot modules, and R11 offers a full hardware implementation or software simulation.
 
 #### Fundamentals
 
@@ -199,6 +201,8 @@ A progressive, project-based series that teaches Sui development through buildin
   On-chain fairness queue, React dApp with wallet integration (`@mysten/dapp-kit-react`), and WebSocket broadcast server.
 - [R10: Robot Rental Platform — Capstone](./R10/)
   Complete platform: TREAT token escrow, robot registry, Ed25519 command signing, time-based billing, and rental receipts.
+- [R11: DePIN Energy Monitor](./R11/)
+  Complete energy telemetry module with on-chain meter readings, WATT rewards, and pay-per-kWh billing. Includes full ESP32 meter firmware and an alternative software simulator.
 
 ---
 
@@ -208,8 +212,8 @@ A progressive, project-based series that teaches Sui development through buildin
 | --------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
 | [Sui CLI](https://docs.sui.io/guides/developer/getting-started/sui-install) | All Move modules                                                         |
 | Node.js 18+ & npm/pnpm                                                      | TypeScript projects (D, E, F, K, R series)                               |
-| Python 3                                                                    | Robot device detection (R1)                                              |
-| [Petoi Bittle X](https://docs.petoi.com/)                                   | Physical robot experience (R1, R4, R5+) — optional, simulation available |
+| Python 3                                                                    | Robot device detection (R1) and simulation tooling (R11)                 |
+| [Petoi Bittle X](https://docs.petoi.com/) / ESP32 + meter hardware          | Optional hardware experience for the R modules — simulation available     |
 | Docker                                                                      | J3 (Prometheus/Grafana monitoring)                                       |
 
 ## Technology Stack
@@ -220,7 +224,7 @@ A progressive, project-based series that teaches Sui development through buildin
 | Backend    | Node.js, TypeScript                   |
 | Frontend   | React, Vite, `@mysten/dapp-kit-react` |
 | Real-time  | WebSocket (`ws` library)              |
-| Hardware   | `serialport` library, Petoi Bittle X  |
+| Hardware   | `serialport` library, Petoi Bittle X, ESP32 + energy meter |
 | Networking | Cloudflare Tunnel                     |
 | Crypto     | Ed25519 (`@noble/ed25519`)            |
 | Monitoring | Prometheus, Grafana, Docker Compose   |
