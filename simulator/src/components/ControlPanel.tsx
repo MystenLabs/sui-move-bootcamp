@@ -6,6 +6,7 @@ import { useOnChainAction } from '@/hooks/useOnChainAction';
 import { useOnChainQueue } from '@/hooks/useOnChainQueue';
 import { useSessionTracker } from '@/hooks/useSessionTracker';
 import { useCommandHistory } from '@/hooks/useCommandHistory';
+import { useCookieToken } from '@/hooks/useCookieToken';
 import { ChainIcon, HardwareIcon } from '@/components/icons';
 
 interface CommandButton {
@@ -77,6 +78,7 @@ export default function ControlPanel() {
   const queue = useOnChainQueue();
   const session = useSessionTracker(isWalletConnected, robotState?.commandsExecuted ?? 0);
   const history = useCommandHistory();
+  const cookie = useCookieToken();
   const [showShortcuts, setShowShortcuts] = useState(false);
 
   const currentAction = robotState?.action ?? 'idle';
@@ -147,6 +149,23 @@ export default function ControlPanel() {
           ) : (
             <div className="text-[11px] text-gray-400">Connect wallet for on-chain mode</div>
           )}
+        </Section>
+      )}
+
+      {/* COOKIE Token (R8) */}
+      {isWalletConnected && (
+        <Section title="COOKIE Token (R8)">
+          <div className="grid grid-cols-2 gap-1.5">
+            <Stat label="Balance" value={String(cookie.balance)} />
+            <Stat label="Supply" value="1B" />
+          </div>
+          <button
+            onClick={() => cookie.mint(100)}
+            disabled={cookie.isMinting}
+            className="mt-2 w-full rounded-lg bg-[#4da2ff] px-3 py-2 text-[12px] font-medium text-white transition hover:bg-[#3b8de6] disabled:opacity-50"
+          >
+            {cookie.isMinting ? 'Minting...' : 'Mint 100 COOKIE'}
+          </button>
         </Section>
       )}
 

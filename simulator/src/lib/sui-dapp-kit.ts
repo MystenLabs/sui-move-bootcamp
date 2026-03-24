@@ -37,6 +37,12 @@ export const SUI_CONTRACT = {
   queueId: process.env.NEXT_PUBLIC_SUI_QUEUE_ID ?? '0x83ba18609f73b99518b7aaa13ce4a17293c4d18c4e2bab38ce59c7dc0fef355c',
 } as const;
 
+export const COOKIE_CONTRACT = {
+  packageId: '0x1a0761c44b99b65d9d4220d7be34c9042954126699c4f4ce7339d9ac90a11821',
+  faucetId: '0xcdefdd53f71d25b76020aa5420dfc4950228f3c8f87ecc2f38eff19444d405f0',
+  coinType: '0x1a0761c44b99b65d9d4220d7be34c9042954126699c4f4ce7339d9ac90a11821::cookie::COOKIE',
+} as const;
+
 export function isOnChainConfigured(): boolean {
   return SUI_CONTRACT.packageId.length > 0 && SUI_CONTRACT.queueId.length > 0;
 }
