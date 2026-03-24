@@ -1070,7 +1070,7 @@ SDK combines *t* derived keys → reconstructs k_sym → AES-GCM decrypts the da
 ```typescript
 const sessionKey = await SessionKey.create({
   address: suiAddress,
-  packageId: fromHEX(packageId),
+  packageId,
   ttlMin: 10,                    // expires in 10 minutes
   suiClient,
 });
@@ -1141,8 +1141,8 @@ const {
   key: backupKey,
 } = await client.encrypt({
   threshold: 2,
-  packageId: fromHEX(packageId),
-  id: fromHEX(id),
+  packageId,
+  id,
   data,
 });
 ```
