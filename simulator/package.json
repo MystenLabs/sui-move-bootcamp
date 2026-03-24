@@ -9,6 +9,7 @@
     "start": "NODE_ENV=production tsx server.ts"
   },
   "dependencies": {
+    "@dimforge/rapier3d-compat": "^0.19.3",
     "@mysten/dapp-kit-core": "^1.2.0",
     "@mysten/dapp-kit-react": "^2.0.1",
     "@mysten/sui": "^2.8.0",
