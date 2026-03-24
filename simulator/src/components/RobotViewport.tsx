@@ -552,6 +552,9 @@ export default function RobotViewport() {
   }, [showDof]);
 
   const actionLabel = robotState?.actionLabel ?? 'Idle';
+  const { latencyMs, connectedClients } = useSimulator();
+
+  const latencyColor = latencyMs === null ? 'bg-gray-300' : latencyMs < 100 ? 'bg-emerald-400' : latencyMs < 300 ? 'bg-yellow-400' : 'bg-red-400';
 
   return (
     <div className="relative flex min-h-[360px] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white sm:min-h-[440px] xl:min-h-[620px]">
@@ -570,6 +573,15 @@ export default function RobotViewport() {
         </div>
 
         <div className="flex items-center gap-2 text-[11px] text-gray-400">
+          {/* Latency indicator (R5) */}
+          <span className="hidden items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1.5 font-mono-ui font-medium sm:inline-flex">
+            <span className={`h-1.5 w-1.5 rounded-full ${latencyColor}`} />
+            {latencyMs !== null ? `${latencyMs}ms` : '—'}
+          </span>
+          {/* Client count (R9) */}
+          <span className="hidden rounded-full bg-gray-100 px-3 py-1.5 font-medium md:inline-flex">
+            {connectedClients} client{connectedClients !== 1 ? 's' : ''}
+          </span>
           <span className="hidden rounded-full bg-gray-100 px-3 py-1.5 font-medium md:inline-flex">
             Orbit camera
           </span>

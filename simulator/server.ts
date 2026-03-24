@@ -245,16 +245,31 @@ app.prepare().then(() => {
   const wssUI = new WebSocketServer({ noServer: true });
   const uiClients = new Set<WebSocket>();
 
+  function broadcastClientCount() {
+    const msg = JSON.stringify({ type: 'clients_update', count: uiClients.size });
+    for (const c of uiClients) {
+      if (c.readyState === WebSocket.OPEN) c.send(msg);
+    }
+  }
+
   wssUI.on('connection', (ws: WebSocket) => {
     uiClients.add(ws);
     console.log(`[WS /ws] Client connected (${uiClients.size} total)`);
 
     // Send current state immediately
     ws.send(JSON.stringify({ type: 'state', data: robot.getState() }));
+    broadcastClientCount();
 
     ws.on('message', (data: Buffer) => {
       try {
         const msg = JSON.parse(data.toString());
+
+        // Ping/pong for latency measurement (R5)
+        if (msg.type === 'ping') {
+          ws.send(JSON.stringify({ type: 'pong', ts: msg.ts }));
+          return;
+        }
+
         if (msg.type === 'command' && msg.command) {
           const result = robot.processCommand(msg.command);
           ws.send(JSON.stringify({ type: 'command_ack', result }));
@@ -273,6 +288,7 @@ app.prepare().then(() => {
     ws.on('close', () => {
       uiClients.delete(ws);
       console.log(`[WS /ws] Client disconnected (${uiClients.size} total)`);
+      broadcastClientCount();
     });
   });
 

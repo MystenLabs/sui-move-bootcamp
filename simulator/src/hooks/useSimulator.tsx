@@ -60,6 +60,8 @@ interface SimulatorContextValue {
   robotState: RobotState | null;
   connectionStatus: ConnectionStatus;
   terminalLogs: TerminalEntry[];
+  latencyMs: number | null;
+  connectedClients: number;
   sendCommand: (cmd: string) => void;
   sendAction: (action: string) => void;
   addTerminalLog: (type: TerminalEntry['type'], message: string) => void;
@@ -117,10 +119,13 @@ export function SimulatorProvider({ children }: { children: ReactNode }) {
   const [robotState, setRobotState] = useState<RobotState | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected');
   const [terminalLogs, setTerminalLogs] = useState<TerminalEntry[]>([]);
+  const [latencyMs, setLatencyMs] = useState<number | null>(null);
+  const [connectedClients, setConnectedClients] = useState(1);
 
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reconnectAttemptRef = useRef(0);
+  const pingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const addTerminalLog = useCallback((type: TerminalEntry['type'], message: string) => {
     setTerminalLogs((prev) => {
@@ -151,11 +156,29 @@ export function SimulatorProvider({ children }: { children: ReactNode }) {
       setConnectionStatus('connected');
       reconnectAttemptRef.current = 0;
       addTerminalLog('system', 'Connected to simulator server');
+
+      // Start ping interval for latency measurement (R5)
+      if (pingTimerRef.current) clearInterval(pingTimerRef.current);
+      pingTimerRef.current = setInterval(() => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: 'ping', ts: Date.now() }));
+        }
+      }, 3000);
     };
 
     ws.onmessage = (event) => {
       try {
         const msg = JSON.parse(event.data);
+
+        if (msg.type === 'pong' && msg.ts) {
+          setLatencyMs(Date.now() - msg.ts);
+          return;
+        }
+
+        if (msg.type === 'clients_update') {
+          setConnectedClients(msg.count);
+          return;
+        }
 
         if (msg.type === 'state') {
           setRobotState(msg.data);
@@ -197,6 +220,8 @@ export function SimulatorProvider({ children }: { children: ReactNode }) {
     ws.onclose = () => {
       setConnectionStatus('disconnected');
       wsRef.current = null;
+      setLatencyMs(null);
+      if (pingTimerRef.current) clearInterval(pingTimerRef.current);
       addTerminalLog('system', 'Disconnected from server');
 
       // Auto-reconnect with exponential backoff
@@ -253,6 +278,8 @@ export function SimulatorProvider({ children }: { children: ReactNode }) {
         robotState: robotState ?? DEFAULT_STATE,
         connectionStatus,
         terminalLogs,
+        latencyMs,
+        connectedClients,
         sendCommand,
         sendAction,
         addTerminalLog,

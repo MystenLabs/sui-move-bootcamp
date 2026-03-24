@@ -6,6 +6,7 @@ import { Transaction } from '@mysten/sui/transactions';
 import { useSimulator } from '@/hooks/useSimulator';
 import { SUI_CONTRACT, isOnChainConfigured } from '@/lib/sui-dapp-kit';
 import { showToast } from '@/components/Toast';
+import { emitActionEvent } from '@/lib/action-events';
 
 const SUI_CLOCK_OBJECT = '0x6';
 
@@ -73,14 +74,17 @@ function useOnChainActionInner() {
 
           // Tx confirmed — now animate the robot
           sendAction(action);
-          const short = result.Transaction.digest.slice(0, 10);
+          const digest = result.Transaction.digest;
+          const short = digest.slice(0, 10);
           addTerminalLog('ok', `\u2713 Confirmed: ${short}...`);
           showToast('success', `${action} confirmed on-chain`);
+          emitActionEvent({ action, txDigest: digest, timestamp: Date.now(), status: 'confirmed' });
         })
         .catch((err: unknown) => {
           const msg = err instanceof Error ? err.message : String(err);
           addTerminalLog('error', `\u2717 Failed: ${msg}`);
           showToast('error', msg.length > 60 ? msg.slice(0, 60) + '...' : msg);
+          emitActionEvent({ action, txDigest: '', timestamp: Date.now(), status: 'failed' });
         })
         .finally(() => {
           pendingRef.current -= 1;
