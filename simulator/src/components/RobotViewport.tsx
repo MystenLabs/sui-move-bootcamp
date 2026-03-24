@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { CameraResetIcon, GridIcon } from '@/components/icons';
+import { SIMULATOR_TO_URDF, JOINT_LIMITS, GO1_DIMENSIONS, GO1_MASS } from '@/lib/unitree-go1';
 
 function deg2rad(deg: number): number {
   return (deg * Math.PI) / 180;
@@ -209,16 +210,9 @@ function createWorldAxes(): THREE.Group {
 
 // ── Joint name mapping ───────────────────────────────────────
 
-const JOINT_LABELS: Record<string, string> = {
-  frontLeftHip: 'FL Hip',
-  frontLeftKnee: 'FL Knee',
-  frontRightHip: 'FR Hip',
-  frontRightKnee: 'FR Knee',
-  backLeftHip: 'BL Hip',
-  backLeftKnee: 'BL Knee',
-  backRightHip: 'BR Hip',
-  backRightKnee: 'BR Knee',
-};
+const JOINT_LABELS: Record<string, string> = Object.fromEntries(
+  Object.entries(SIMULATOR_TO_URDF).map(([sim, urdf]) => [sim, urdf.replace('_joint', '')]),
+);
 
 const JOINT_COLORS: Record<string, number> = {
   frontLeftHip: 0xffa726, frontRightHip: 0xffa726, backLeftHip: 0xffa726, backRightHip: 0xffa726,
@@ -593,32 +587,63 @@ export default function RobotViewport() {
       {/* 3D Canvas */}
       <div ref={containerRef} className="relative z-10 flex-1" />
 
-      {/* Joint angles panel */}
+      {/* Joint angles panel — Unitree ROS SDK naming */}
       {showDof && assetState === 'ready' && (
-        <div className="absolute left-4 top-[72px] z-20 w-44 rounded-xl border border-gray-200 bg-white/92 px-3 py-3 shadow-sm backdrop-blur-sm">
-          <div className="mb-2 text-[10px] font-medium uppercase tracking-[0.12em] text-gray-400">
-            Joint angles
+        <div className="absolute left-4 top-[72px] z-20 w-52 rounded-xl border border-gray-200 bg-white/95 px-3 py-3 shadow-sm backdrop-blur-sm">
+          <div className="mb-1 text-[9px] font-medium uppercase tracking-[0.12em] text-gray-400">
+            Unitree GO1 — Joint State
           </div>
-          {Object.entries(JOINT_LABELS).map(([key, label]) => (
-            <div key={key} className="flex items-center justify-between py-[3px]">
-              <span className="text-[10px] text-gray-500">{label}</span>
-              <span className="font-mono-ui text-[10px] text-gray-700">
-                {rad2deg(displayAngles[key] ?? 0).toFixed(1)}°
-              </span>
-            </div>
-          ))}
+          <div className="mb-2 text-[8px] text-gray-300">unitree_ros / go1_description</div>
+
+          {Object.entries(JOINT_LABELS).map(([key, label]) => {
+            const angle = displayAngles[key] ?? 0;
+            const isThigh = label.includes('thigh');
+            const limits = isThigh ? JOINT_LIMITS.thigh : JOINT_LIMITS.calf;
+            const pct = Math.abs(angle - limits.lower) / (limits.upper - limits.lower) * 100;
+            return (
+              <div key={key} className="py-[2px]">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono-ui text-[9px] text-gray-500">{label}</span>
+                  <span className="font-mono-ui text-[9px] text-gray-700">
+                    {rad2deg(angle).toFixed(1)}°
+                  </span>
+                </div>
+                <div className="mt-0.5 h-[3px] w-full overflow-hidden rounded-full bg-gray-100">
+                  <div
+                    className="h-full rounded-full bg-orange-400/60"
+                    style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+
           <div className="mt-1.5 border-t border-gray-100 pt-1.5">
-            <div className="flex items-center justify-between py-[3px]">
-              <span className="text-[10px] text-red-400">Pitch</span>
-              <span className="font-mono-ui text-[10px] text-gray-700">
+            <div className="flex items-center justify-between py-[2px]">
+              <span className="font-mono-ui text-[9px] text-red-400">body_pitch</span>
+              <span className="font-mono-ui text-[9px] text-gray-700">
                 {rad2deg(displayAngles.bodyPitch ?? 0).toFixed(1)}°
               </span>
             </div>
-            <div className="flex items-center justify-between py-[3px]">
-              <span className="text-[10px] text-blue-400">Roll</span>
-              <span className="font-mono-ui text-[10px] text-gray-700">
+            <div className="flex items-center justify-between py-[2px]">
+              <span className="font-mono-ui text-[9px] text-blue-400">body_roll</span>
+              <span className="font-mono-ui text-[9px] text-gray-700">
                 {rad2deg(displayAngles.bodyRoll ?? 0).toFixed(1)}°
               </span>
+            </div>
+          </div>
+
+          <div className="mt-2 border-t border-gray-100 pt-2">
+            <div className="text-[8px] font-medium uppercase tracking-[0.1em] text-gray-300">Kinematics</div>
+            <div className="mt-1 grid grid-cols-2 gap-x-3 gap-y-0.5 text-[8px]">
+              <span className="text-gray-400">Thigh</span>
+              <span className="font-mono-ui text-gray-500">{GO1_DIMENSIONS.thighLength}m</span>
+              <span className="text-gray-400">Calf</span>
+              <span className="font-mono-ui text-gray-500">{GO1_DIMENSIONS.calfLength}m</span>
+              <span className="text-gray-400">Mass</span>
+              <span className="font-mono-ui text-gray-500">{GO1_MASS.totalApprox}kg</span>
+              <span className="text-gray-400">DOF</span>
+              <span className="font-mono-ui text-gray-500">12 (3/leg)</span>
             </div>
           </div>
         </div>
