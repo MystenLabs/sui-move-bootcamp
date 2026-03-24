@@ -1,0 +1,5 @@
+[package]
+name = "seal_demo"
+edition = "2024"
+
+[dependencies]
