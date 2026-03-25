@@ -7,6 +7,9 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { CameraResetIcon, GridIcon } from '@/components/icons';
 import { SIMULATOR_TO_URDF, JOINT_LIMITS, GO1_DIMENSIONS, GO1_MASS } from '@/lib/unitree-go1';
+import { createRobotCameraRig, type RobotCameraRig } from '@/lib/camera/robot-cameras';
+import PiPCameraPanel from '@/components/PiPCameraPanel';
+import EnvironmentLoader from '@/components/EnvironmentLoader';
 
 function deg2rad(deg: number): number {
   return (deg * Math.PI) / 180;
@@ -246,14 +249,24 @@ export default function RobotViewport() {
   const movingRef = useRef(false);
   const actionRef = useRef('idle');
 
+  const robotCameraRef = useRef<RobotCameraRig | null>(null);
+  const cameraCanvasRefs = useRef<(HTMLCanvasElement | null)[]>([]);
+  const envMeshesRef = useRef<THREE.Object3D[]>([]);
+  const frameCountRef = useRef(0);
+
   const [gridVisible, setGridVisible] = useState(true);
   const [showDof, setShowDof] = useState(false);
+  const [showCameras, setShowCameras] = useState(false);
+  const [hasEnvironment, setHasEnvironment] = useState(false);
+  const [envLoading, setEnvLoading] = useState(false);
   const [assetState, setAssetState] = useState<'loading' | 'ready' | 'error'>('loading');
   const [displayAngles, setDisplayAngles] = useState<Record<string, number>>({});
   const showDofRef = useRef(false);
+  const showCamerasRef = useRef(false);
 
-  // Sync ref for animation loop
+  // Sync refs for animation loop
   useEffect(() => { showDofRef.current = showDof; }, [showDof]);
+  useEffect(() => { showCamerasRef.current = showCameras; }, [showCameras]);
 
   // Throttled angle display sync
   useEffect(() => {
@@ -385,6 +398,10 @@ export default function RobotViewport() {
           map.set('bodyRoll', createDOFIndicator(rig.body.node, 0x42a5f5, dofRadius * 1.5));
 
           dofMapRef.current = map;
+
+          // Create robot camera rig (5 cameras at URDF positions)
+          robotCameraRef.current = createRobotCameraRig(rig.body.node);
+
           setAssetState('ready');
         } catch {
           setAssetState('error');
@@ -495,6 +512,16 @@ export default function RobotViewport() {
 
       controls.update();
       renderer.render(scene, camera);
+
+      // Robot camera PiP (round-robin, 1 per frame)
+      frameCountRef.current++;
+      if (showCamerasRef.current && robotCameraRef.current && cameraCanvasRefs.current) {
+        const rig = robotCameraRef.current;
+        const idx = frameCountRef.current % rig.cameras.length;
+        rig.renderCamera(idx, renderer, scene);
+        const canvas = cameraCanvasRefs.current[idx];
+        if (canvas) rig.copyToCanvas(idx, renderer, canvas);
+      }
     }
 
     animate();
@@ -550,6 +577,50 @@ export default function RobotViewport() {
     }
     if (worldAxesRef.current) worldAxesRef.current.visible = next || true; // axes always visible
   }, [showDof]);
+
+  const toggleCameras = useCallback(() => {
+    setShowCameras((v) => !v);
+  }, []);
+
+  const loadEnvironment = useCallback((file: File) => {
+    if (!sceneRef.current) return;
+    setEnvLoading(true);
+    const url = URL.createObjectURL(file);
+    const loader = new GLTFLoader();
+    loader.load(
+      url,
+      (gltf) => {
+        const scene = sceneRef.current!;
+        // Clear previous environment
+        for (const m of envMeshesRef.current) scene.remove(m);
+        envMeshesRef.current = [];
+
+        gltf.scene.traverse((child) => {
+          if (child instanceof THREE.Mesh) {
+            child.receiveShadow = true;
+            child.castShadow = true;
+          }
+        });
+        scene.add(gltf.scene);
+        envMeshesRef.current.push(gltf.scene);
+        setHasEnvironment(true);
+        setEnvLoading(false);
+        URL.revokeObjectURL(url);
+      },
+      undefined,
+      () => {
+        setEnvLoading(false);
+        URL.revokeObjectURL(url);
+      },
+    );
+  }, []);
+
+  const clearEnvironment = useCallback(() => {
+    if (!sceneRef.current) return;
+    for (const m of envMeshesRef.current) sceneRef.current.remove(m);
+    envMeshesRef.current = [];
+    setHasEnvironment(false);
+  }, []);
 
   const actionLabel = robotState?.actionLabel ?? 'Idle';
   const { latencyMs, connectedClients } = useSimulator();
@@ -695,12 +766,45 @@ export default function RobotViewport() {
           <CameraResetIcon className="h-[18px] w-[18px]" />
         </button>
         <button
+          onClick={toggleCameras}
+          className={`flex h-9 items-center gap-1.5 rounded-full border px-3 text-[11px] font-medium shadow-sm transition ${
+            showCameras
+              ? 'border-blue-300 bg-blue-50 text-blue-600'
+              : 'border-gray-200 bg-white text-gray-500 hover:text-black'
+          }`}
+          title="Toggle robot cameras"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+            <circle cx="12" cy="13" r="4" />
+          </svg>
+          Cam
+        </button>
+        <button
           onClick={toggleGrid}
           className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-sm transition hover:text-black"
           title="Toggle grid"
         >
           <GridIcon className="h-[18px] w-[18px]" />
         </button>
+      </div>
+
+      {/* PiP camera views */}
+      {showCameras && assetState === 'ready' && robotCameraRef.current && (
+        <PiPCameraPanel
+          names={robotCameraRef.current.names}
+          canvasRefs={cameraCanvasRefs}
+        />
+      )}
+
+      {/* Environment loader */}
+      <div className="absolute bottom-4 left-4 z-20 w-52">
+        <EnvironmentLoader
+          onLoadFile={loadEnvironment}
+          onClear={clearEnvironment}
+          hasEnvironment={hasEnvironment}
+          loading={envLoading}
+        />
       </div>
     </div>
   );
