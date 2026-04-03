@@ -1,6 +1,6 @@
 module display::hero;
 use std::string::String;
-use sui::display_registry::{Self, DisplayRegistry, Display, DisplayCap};
+use sui::display_registry::{Self, DisplayRegistry};
 use sui::package::{Self, Publisher};
 
 public struct HERO has drop {}
@@ -36,6 +36,8 @@ public fun mint(name: String, blob_id: String, ctx: &mut TxContext): Hero {
 
 #[test_only]
 use sui::test_scenario as ts;
+#[test_only]
+use sui::display_registry::{Display, DisplayCap};
 #[test_only]
 use std::unit_test::assert_eq;
 #[test_only]
