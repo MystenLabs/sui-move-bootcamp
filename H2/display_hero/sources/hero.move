@@ -1,7 +1,7 @@
 module display::hero;
 use std::string::String;
-use sui::display;
-use sui::package;
+use sui::display_registry::{Self, DisplayRegistry};
+use sui::package::{Self, Publisher};
 
 public struct HERO has drop {}
 
@@ -13,9 +13,18 @@ public struct Hero has key, store {
 
 fun init(otw: HERO, ctx: &mut TxContext) {
     let publisher = package::claim(otw, ctx);
-
-    // setup the display
+    transfer::public_transfer(publisher, ctx.sender());
 }
+
+// In Display V2, the `DisplayRegistry` is a shared system object.
+// Since `init` cannot receive shared objects, display creation
+// must happen in a separate entry function called after publish.
+
+entry fun create_display(
+    registry: &mut DisplayRegistry,
+    publisher: &mut Publisher,
+    ctx: &mut TxContext,
+) {}
 
 public fun mint(name: String, blob_id: String, ctx: &mut TxContext): Hero {
     Hero {
@@ -26,11 +35,11 @@ public fun mint(name: String, blob_id: String, ctx: &mut TxContext): Hero {
 }
 
 #[test_only]
-use sui::{test_scenario as ts};
+use sui::test_scenario as ts;
+#[test_only]
+use sui::display_registry::{Display, DisplayCap};
 #[test_only]
 use std::unit_test::assert_eq;
-#[test_only]
-use sui::display::Display;
 #[test_only]
 const ADMIN: address = @0xAA;
 
@@ -38,13 +47,24 @@ const ADMIN: address = @0xAA;
 fun test_publisher_receives_the_display_object() {
     let mut ts = ts::begin(ADMIN);
 
+    // Initialize system objects (DisplayRegistry, Clock, etc.)
+    ts.create_system_objects();
+
+    ts.next_tx(ADMIN);
+
     init(HERO {}, ts.ctx());
 
     ts.next_tx(ADMIN);
 
-    let display = ts.take_from_sender<Display<Hero>>();
+    let mut publisher = ts.take_from_sender<Publisher>();
+    let mut registry = ts.take_shared<DisplayRegistry>();
+
+    create_display(&mut registry, &mut publisher, ts.ctx());
+
+    ts.next_tx(ADMIN);
+
+    let display = ts.take_shared<Display<Hero>>();
     let fields = display.fields();
-    assert_eq!(display.version(), 1);
     assert_eq!(*fields.get(&b"name".to_string()), b"{name}".to_string());
     assert_eq!(
         *fields.get(&b"image_url".to_string()),
@@ -55,7 +75,12 @@ fun test_publisher_receives_the_display_object() {
         b"{name} - A true Hero of the Sui ecosystem!".to_string(),
     );
 
-    ts.return_to_sender(display);
+    let cap = ts.take_from_sender<DisplayCap<Hero>>();
+
+    ts::return_to_sender(&ts, cap);
+    ts::return_to_sender(&ts, publisher);
+    ts::return_shared(display);
+    ts::return_shared(registry);
 
     ts.end();
 }

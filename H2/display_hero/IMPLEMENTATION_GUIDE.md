@@ -1,62 +1,72 @@
 # Display Hero — Implementation Guide
 
-Complete the `init` function in `sources/hero.move` and the TypeScript test in `ts/src/tests/createDisplay.test.ts` to create a `Display<Hero>` both on-chain and off-chain.
+Complete the `create_display` function in `sources/hero.move` and the TypeScript test in `ts/src/tests/createDisplay.test.ts` to create a `Display<Hero>` both on-chain and off-chain.
 
 ## Overview
 
 You will:
 
-1. **(Move)** Set up display templates in the `init` function and transfer Display + Publisher to the deployer
-2. **(TypeScript)** Build a programmable transaction that creates a Display via SDK calls
+1. **(Move)** Implement the `create_display` entry function to register a Display via the `DisplayRegistry`, set template fields, share the Display, and transfer the `DisplayCap`
+2. **(TypeScript)** Build a programmable transaction that creates a Display via SDK calls to `display_registry`
 
 ---
 
 ## Part A: Move
 
-### Step 1 — Complete the `init` function
+### Step 1 — Complete the `create_display` function
 
-**File:** `sources/hero.move`, lines 14–18
+**File:** `sources/hero.move`, the `create_display` entry function
 
-The starter code already claims a `Publisher` from the one-time witness. You need to:
+The starter code already has:
+- An `init` function that claims a `Publisher` and transfers it to the deployer
+- An empty `create_display` stub that receives `&mut DisplayRegistry` and `&mut Publisher`
 
-1. Define the keys and values vectors for the display template
-2. Create the `Display<Hero>` object using `display::new_with_fields`
-3. Call `update_version()` to apply the template
-4. Transfer both the `Publisher` and `Display` to the deployer
+You need to:
 
-Replace the `// setup the display` comment with:
+1. Call `display_registry::new_with_publisher` to create a `Display<Hero>` and `DisplayCap<Hero>`
+2. Set three fields (`name`, `image_url`, `description`) using `display_registry::set`
+3. Share the `Display` object
+4. Transfer the `DisplayCap` to the caller
+
+Replace the empty function body with:
 
 ```move
-fun init(otw: HERO, ctx: &mut TxContext) {
-    let publisher = package::claim(otw, ctx);
-
-    let keys = vector[b"name".to_string(), b"image_url".to_string(), b"description".to_string()];
-
-    let values = vector[
-        b"{name}".to_string(),
-        b"https://aggregator.walrus-testnet.walrus.space/v1/blobs/{blob_id}".to_string(),
-        b"{name} - A true Hero of the Sui ecosystem!".to_string(),
-    ];
-
-    let mut display = display::new_with_fields<Hero>(
-        &publisher,
-        keys,
-        values,
+entry fun create_display(
+    registry: &mut DisplayRegistry,
+    publisher: &mut Publisher,
+    ctx: &mut TxContext,
+) {
+    let (mut display, cap) = display_registry::new_with_publisher<Hero>(
+        registry,
+        publisher,
         ctx,
     );
 
-    display.update_version();
+    display.set(&cap, b"name".to_string(), b"{name}".to_string());
+    display.set(
+        &cap,
+        b"image_url".to_string(),
+        b"https://aggregator.walrus-testnet.walrus.space/v1/blobs/{blob_id}".to_string(),
+    );
+    display.set(
+        &cap,
+        b"description".to_string(),
+        b"{name} - A true Hero of the Sui ecosystem!".to_string(),
+    );
 
-    transfer::public_transfer(publisher, ctx.sender());
-    transfer::public_transfer(display, ctx.sender());
+    display.share();
+    transfer::public_transfer(cap, ctx.sender());
 }
 ```
 
 > **Key concepts:**
 >
+> - `DisplayRegistry` is a shared system object (like `Clock`). Since `init` cannot receive shared objects, display creation must happen in a separate entry function called after publish.
+> - `new_with_publisher` returns a tuple `(Display<T>, DisplayCap<T>)`. The `Display` holds template fields; the `DisplayCap` authorizes modifications.
+> - Fields are set individually with `set(display, cap, key, value)` — there is no bulk `new_with_fields` in Display V2.
+> - The `Display` must be **shared** (not transferred) — it is a shared object that indexers read from.
+> - The `DisplayCap` is transferred to the caller so they can modify fields later.
 > - Template syntax `{name}` and `{blob_id}` reference field names on the `Hero` struct. At query time, Sui substitutes the actual values from each Hero instance.
-> - `update_version()` must be called after modifying display fields — this increments the version counter, signaling to indexers that the template has changed.
-> - `public_transfer` is required (not `transfer`) because `Publisher` and `Display` both have the `store` ability.
 
 ### Verify Move
 
@@ -67,8 +77,9 @@ sui move test
 
 The test `test_publisher_receives_the_display_object` will verify that:
 
-- The display version is `1` (after one `update_version` call)
 - The three fields (`name`, `image_url`, `description`) have the expected template values
+- The `Display<Hero>` is a shared object
+- The `DisplayCap<Hero>` is owned by the sender
 
 ---
 
@@ -81,66 +92,80 @@ This part demonstrates creating a `Display` off-chain using the Sui TypeScript S
 1. Publish the package to devnet: `sui client publish --gas-budget 100000000`
 2. Note the **package ID** and **Publisher object ID** from the publish output
 3. Set up environment:
-  ```bash
+   ```bash
    cd ts
    npm install
    cp .env.example .env
-  ```
+   ```
 4. Fill in `.env`:
-  ```
+   ```
    SUI_NETWORK=devnet
    DISPLAY_PACKAGE_ID=0x<your_package_id>
    PUBLISHER_ID=0x<your_publisher_id>
-  ```
+   ```
 
-### Step 2 — Create the Display object
+### Step 2 — Create the Display via the registry
 
-**File:** `ts/src/tests/createDisplay.test.ts`, line 17
+**File:** `ts/src/tests/createDisplay.test.ts`, after the `//TODO: Create a new display using the registry` comment
 
-After the `//TODO: Create a new display object` comment, add a `moveCall` to `0x2::display::new_with_fields`:
+Call `0x2::display_registry::new_with_publisher` to create a `Display` and `DisplayCap`:
 
 ```typescript
-let display = tx.moveCall({
-    target: '0x2::display::new_with_fields',
+let [display, cap] = tx.moveCall({
+    target: '0x2::display_registry::new_with_publisher',
     arguments: [
+        tx.object('0xd'), // DisplayRegistry (shared system object)
         tx.object(ENV.PUBLISHER_ID),
-        tx.pure.vector("string", keys),
-        tx.pure.vector("string", values),
     ],
     typeArguments: [`${ENV.DISPLAY_PACKAGE_ID}::hero::Hero`],
 });
 ```
 
-> The `typeArguments` tells Sui which type this Display is for — it must match the `Hero` type from your deployed package.
+> The `DisplayRegistry` lives at the well-known system address `0xd`, similar to how `Clock` lives at `0x6`. The `typeArguments` tells Sui which type this Display is for — it must match the `Hero` type from your deployed package.
 
-### Step 3 — Update the Display version
+### Step 3 — Set the display fields
 
-**File:** `ts/src/tests/createDisplay.test.ts`, line 19
+**File:** `ts/src/tests/createDisplay.test.ts`, after the `//TODO: Set the display fields` comment
 
-After the `//TODO: Update the display object version` comment:
+Use `0x2::display_registry::set` to add each template field:
+
+```typescript
+for (let i = 0; i < keys.length; i++) {
+    tx.moveCall({
+        target: '0x2::display_registry::set',
+        arguments: [
+            display,
+            cap,
+            tx.pure.string(keys[i]),
+            tx.pure.string(values[i]),
+        ],
+        typeArguments: [`${ENV.DISPLAY_PACKAGE_ID}::hero::Hero`],
+    });
+}
+```
+
+> In Display V2, fields are set individually with `set` — there is no bulk `new_with_fields`. The `DisplayCap` (second argument) authorizes the modification.
+
+### Step 4 — Share the Display and transfer the cap
+
+**File:** `ts/src/tests/createDisplay.test.ts`, after the `//TODO: Share the display and transfer the cap` comment
+
+Share the `Display` (making it a shared object) and transfer the `DisplayCap` to yourself:
 
 ```typescript
 tx.moveCall({
-    target: '0x2::display::update_version',
+    target: '0x2::display_registry::share',
     arguments: [display],
     typeArguments: [`${ENV.DISPLAY_PACKAGE_ID}::hero::Hero`],
 });
-```
 
-### Step 4 — Transfer the Display object
-
-**File:** `ts/src/tests/createDisplay.test.ts`, line 21
-
-After the `//TODO: Transfer the display object to your address` comment:
-
-```typescript
 tx.transferObjects(
-    [display],
+    [cap],
     tx.pure.address("0xf38a463604d2db4582033a09db6f8d4b846b113b3cd0a7c4f0d4690b3fe6aa37"),
 );
 ```
 
-> Replace the address with your own if needed. This is the same address set as `tx.setSender` below.
+> Replace the address with your own if needed. This is the same address set as `tx.setSender` below. The `Display` is shared (readable by indexers), while the `DisplayCap` is transferred to you so you retain control over the display fields.
 
 ### Verify TypeScript
 
