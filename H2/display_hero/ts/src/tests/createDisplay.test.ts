@@ -14,11 +14,11 @@ test("Create Display - Devnet", async () => {
         "{name} - A true Hero of the Sui ecosystem!"
     ];
 
-    //TODO: Create a new display object
+    //TODO: Create a new display using the registry
     
-    //TODO: Update the display object version
+    //TODO: Set the display fields
 
-    //TODO: Transfer the display object to your address
+    //TODO: Share the display and transfer the cap
 
     tx.setGasBudget(1000000000);
     tx.setSender("0xf38a463604d2db4582033a09db6f8d4b846b113b3cd0a7c4f0d4690b3fe6aa37");
