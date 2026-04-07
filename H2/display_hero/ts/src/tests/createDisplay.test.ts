@@ -9,27 +9,46 @@ test("Create Display - Devnet", async () => {
 
     let keys = ["name", "image_url", "description"];
     let values = [
-        "{name}", 
-        "https://aggregator.walrus-testnet.walrus.space/v1/blobs/{blob_id}", 
+        "{name}",
+        "https://aggregator.walrus-testnet.walrus.space/v1/blobs/{blob_id}",
         "{name} - A true Hero of the Sui ecosystem!"
     ];
 
-    //TODO: Create a new display object
-    let display = tx.moveCall({
-            target: '0x2::display::new_with_fields',
-            arguments: [tx.object(ENV.PUBLISHER_ID), tx.pure.vector("string", keys), tx.pure.vector("string", values)],
+    // Create a new display using the registry
+    let [display, cap] = tx.moveCall({
+        target: '0x2::display_registry::new_with_publisher',
+        arguments: [
+            tx.object('0xd'), // DisplayRegistry (shared system object)
+            tx.object(ENV.PUBLISHER_ID),
+        ],
+        typeArguments: [`${ENV.DISPLAY_PACKAGE_ID}::hero::Hero`],
+    });
+
+    // Set the display fields
+    for (let i = 0; i < keys.length; i++) {
+        tx.moveCall({
+            target: '0x2::display_registry::set',
+            arguments: [
+                display,
+                cap,
+                tx.pure.string(keys[i]),
+                tx.pure.string(values[i]),
+            ],
             typeArguments: [`${ENV.DISPLAY_PACKAGE_ID}::hero::Hero`],
         });
-    
-    //TODO: Update the display object version
+    }
+
+    // Share the display and transfer the cap
     tx.moveCall({
-        target: '0x2::display::update_version',
+        target: '0x2::display_registry::share',
         arguments: [display],
         typeArguments: [`${ENV.DISPLAY_PACKAGE_ID}::hero::Hero`],
     });
 
-    //TODO: Transfer the display object to your address
-    tx.transferObjects([display], tx.pure.address("0xf38a463604d2db4582033a09db6f8d4b846b113b3cd0a7c4f0d4690b3fe6aa37"));
+    tx.transferObjects(
+        [cap],
+        tx.pure.address("0xf38a463604d2db4582033a09db6f8d4b846b113b3cd0a7c4f0d4690b3fe6aa37"),
+    );
 
     tx.setGasBudget(1000000000);
     tx.setSender("0xf38a463604d2db4582033a09db6f8d4b846b113b3cd0a7c4f0d4690b3fe6aa37");
