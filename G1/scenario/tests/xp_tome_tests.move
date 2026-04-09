@@ -27,7 +27,7 @@ fun test_new_xp_tome() {
 
     // Check `XPTome`'s field values
     let new_tome_effects = scenario.next_tx(hero_owner);
-    assert!(new_tome_effects.transferred_to_account().size() == 1);
+    assert!(new_tome_effects.transferred_to_account().length() == 1);
     {
         let tome = scenario.take_from_sender<XPTome>();
         assert!(tome.health() == health);

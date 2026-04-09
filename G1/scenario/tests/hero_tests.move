@@ -28,7 +28,7 @@ fun test_mint() {
 
     let mint_effects = scenario.next_tx(hero_owner);
     let mut transferred = mint_effects.transferred_to_account();
-    assert!(transferred.size() == 1);
+    assert!(transferred.length() == 1);
     let (hero_id, transferred_to) = transferred.pop();
     assert!(transferred_to == hero_owner);
     // Check `Hero`'s fields
@@ -67,7 +67,7 @@ fun test_level_up() {
 
     let mint_effects = scenario.next_tx(hero_owner);
     let transferred = mint_effects.transferred_to_account();
-    assert!(transferred.size() == 2);
+    assert!(transferred.length() == 2);
     // Apply `XPTome` to `Hero` and check updated stats.
     {
         let mut hero = scenario.take_from_sender<Hero>();
