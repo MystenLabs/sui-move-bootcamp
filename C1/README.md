@@ -62,13 +62,43 @@ The capability module demonstrates access control using a capability pattern:
 
 - **Delegation model**: Existing admins can create new admins, creating a delegation pattern for authorization.
 
+#### Hot Potato Module
+The hot potato module demonstrates enforcing mandatory steps within a transaction using a struct with no abilities:
+
+- **Struct with no abilities**: `HotPotato` has no `copy`, `drop`, `key`, or `store` abilities, meaning it cannot be stored, copied, or discarded — it must be consumed in the same transaction it was created:
+  ```move
+  public struct HotPotato {
+      payment_approved: bool,
+  }
+  ```
+
+- **Create → Process → Consume flow**: The caller must complete all steps in a single transaction or it aborts:
+  1. `borrow_potato()` creates the hot potato
+  2. `process_payment()` validates and records the payment
+  3. `mint_hero()` consumes (destructures) the hot potato and mints the Hero
+
+- **Destructuring to consume**: The only way to get rid of the hot potato is to unpack it in the defining module:
+  ```move
+  public fun mint_hero(hot_potato: HotPotato, ctx: &mut TxContext): Hero {
+      let HotPotato { payment_approved } = hot_potato;
+      assert!(payment_approved, EInvalidPayment);
+      // ...
+  }
+  ```
+
+- **Compile-time guarantee**: Because the struct lacks `drop`, the Move compiler itself enforces that the hot potato is consumed — no runtime checks needed for this invariant.
+
+- **Tests cover all paths**: Success with valid payment, failure with insufficient payment, and failure when skipping payment entirely.
+
 ## Key Differences
 
 - The Publisher pattern ensures a **singleton** authority tied to the module publisher.
 - The Capability pattern allows for **multiple** authorized entities through delegation.
 - Publisher requires verification of module origin, while Capability relies on object ownership.
+- The Hot Potato pattern enforces **mandatory transaction steps** at compile time through a struct with no abilities.
 
 ---
 ### Useful Links
  - [The Publisher Authority](https://move-book.com/programmability/publisher.html)
  - [Pattern: Capability](https://move-book.com/programmability/capability.html)
+ - [Pattern: Hot Potato](https://move-book.com/programmability/hot-potato-pattern/)
