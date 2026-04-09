@@ -49,11 +49,13 @@ public fun new_for_testing(health: u64, stamina: u64): XPTome {
     }
 }
 
+#[test_only]
+use std::unit_test;
+#[test_only]
+use scenario::acl;
+
 #[test]
 fun test_new() {
-    use sui::test_utils;
-    use scenario::acl;
-
     let admin = @0x11111;
     let hero_owner = @0x22222;
     let health = 20;
@@ -62,5 +64,5 @@ fun test_new() {
 
     new(&admins, health, stamina, hero_owner, &mut tx_context::new_from_hint(admin, 0, 0, 0, 0));
 
-    test_utils::destroy(admins);
+    unit_test::destroy(admins);
 }
