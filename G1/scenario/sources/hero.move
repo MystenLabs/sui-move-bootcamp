@@ -1,7 +1,7 @@
 module scenario::hero;
 
 use scenario::acl::Admins;
-use scenario::xp_tome::XPTome;
+use scenario::xp_tome::{Self, XPTome};
 
 public struct HERO() has drop;
 
@@ -43,11 +43,13 @@ public fun level_up(self: &mut Hero, tome: XPTome) {
     self.stamina = self.stamina + stamina;
 }
 
+#[test_only]
+use std::unit_test;
+#[test_only]
+use scenario::acl;
+
 #[test]
 fun test_mint() {
-    use sui::test_utils;
-    use scenario::acl;
-
     let admin = @0x11111;
     let hero_owner = @0x22222;
     let health = 100;
@@ -55,12 +57,11 @@ fun test_mint() {
 
     let admins = acl::new_admins_for_testing(admin);
     mint(&admins, health, stamina, hero_owner, &mut tx_context::new_from_hint(admin, 0, 0, 0, 0));
-    test_utils::destroy(admins);
+    unit_test::destroy(admins);
 }
 
 #[test]
 fun test_level_up() {
-    use scenario::xp_tome;
     let health = 100;
     let xp_health = 10;
     let stamina = 10;

@@ -20,7 +20,7 @@ fun test_add_admin() {
     let transferred = begin_effects.transferred_to_account();
     assert!(created.length() == 3);
     assert!(shared.length() == 1);
-    assert!(transferred.size() == 2);
+    assert!(transferred.length() == 2);
 
     // Task: Add admin `new_admin`
     {
