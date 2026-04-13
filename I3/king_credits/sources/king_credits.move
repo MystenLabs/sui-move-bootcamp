@@ -1,9 +1,8 @@
 /// Module: king_credits
 module king_credits::king_credits;
 
-use sui::coin;
+use sui::coin_registry;
 use sui::token;
-use sui::url;
 
 use king_credits::crown_council_rule::{Self, CrownCouncilRule};
 const DECIMALS: u8 = 9;
@@ -12,17 +11,17 @@ const SYMBOL: vector<u8> = b"KING_CREDITS";
 const DESCRIPTION: vector<u8> = b"Awarded to citizens for heroic actions.";
 const ICON_URL: vector<u8> = b"https://aggregator.walrus-testnet.walrus.space/v1/blobs/uh8f-t66vVmQLtZEhO024rvHOVskOrLq_Wb2BHJRKBw";
 
-public struct KING_CREDITS() has drop;
+public struct KING_CREDITS has drop {}
 
 fun init(otw: KING_CREDITS, ctx: &mut TxContext) {
-    let (tcap, metadata) = coin::create_currency(
+    let (builder, tcap) = coin_registry::new_currency_with_otw(
         otw,
         DECIMALS,
-        SYMBOL,
-        NAME,
-        DESCRIPTION,
-        option::some(url::new_unsafe_from_bytes(ICON_URL)),
-        ctx
+        SYMBOL.to_string(),
+        NAME.to_string(),
+        DESCRIPTION.to_string(),
+        ICON_URL.to_string(),
+        ctx,
     );
 
     let (mut policy, policy_cap) = token::new_policy(&tcap, ctx);
@@ -31,14 +30,16 @@ fun init(otw: KING_CREDITS, ctx: &mut TxContext) {
         &mut policy,
         &policy_cap,
         token::transfer_action(),
-        ctx
+        ctx,
     );
     crown_council_rule::add_rule_config(&mut policy, &policy_cap, vector[], ctx);
+
+    let metadata_cap = builder.finalize(ctx);
 
     token::share_policy(policy);
     transfer::public_transfer(policy_cap, ctx.sender());
     transfer::public_transfer(tcap, ctx.sender());
-    transfer::public_transfer(metadata, ctx.sender());
+    transfer::public_transfer(metadata_cap, ctx.sender());
 }
 
 #[test_only]
@@ -57,7 +58,7 @@ fun test_transfer() {
     let mut scenario = test_scenario::begin(publisher);
     // Initialize package
     {
-        init(KING_CREDITS(), scenario.ctx());
+        init(KING_CREDITS {}, scenario.ctx());
     };
 
     // Edit Policy rules

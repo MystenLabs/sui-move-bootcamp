@@ -45,7 +45,7 @@ public fun add_council_member<T>(
         policy,
         cap
     );
-    assert!(config.members.size() < MAX_CROWN_COUNCIL_MEMBERS, EMaxCouncilMembers);
+    assert!(config.members.length() < MAX_CROWN_COUNCIL_MEMBERS, EMaxCouncilMembers);
     config.members.insert(member_addr);
 }
 
@@ -89,12 +89,12 @@ fun test_edit_council() {
     add_council_member(&mut policy, &cap, council_member_2);
     let config: &Config = token::rule_config(CrownCouncilRule(), &policy);
     assert!(config.members.contains(&council_member_2));
-    assert!(config.members.size() == 2);
+    assert!(config.members.length() == 2);
 
     remove_council_member(&mut policy, &cap, council_member_1);
     let config: &Config = token::rule_config(CrownCouncilRule(), &policy);
     assert!(!config.members.contains(&council_member_1));
-    assert!(config.members.size() == 1);
+    assert!(config.members.length() == 1);
     policy.burn_policy_for_testing(cap);
 }
 
