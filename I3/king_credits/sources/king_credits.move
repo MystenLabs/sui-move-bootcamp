@@ -1,9 +1,8 @@
 /// Module: king_credits
 module king_credits::king_credits;
 
-use sui::coin;
+use sui::coin_registry;
 use sui::token;
-use sui::url;
 
 use king_credits::crown_council_rule::{Self, CrownCouncilRule};
 
@@ -15,21 +14,23 @@ const SYMBOL: vector<u8> = b"KING_CREDITS";
 const DESCRIPTION: vector<u8> = b"Awarded to citizens for heroic actions.";
 const ICON_URL: vector<u8> = b"https://aggregator.walrus-testnet.walrus.space/v1/blobs/uh8f-t66vVmQLtZEhO024rvHOVskOrLq_Wb2BHJRKBw";
 
-public struct KING_CREDITS() has drop;
+public struct KING_CREDITS has drop {}
 
 fun init(otw: KING_CREDITS, ctx: &mut TxContext) {
-    let (tcap, metadata) = coin::create_currency(
+    let (builder, tcap) = coin_registry::new_currency_with_otw(
         otw,
         DECIMALS,
-        SYMBOL,
-        NAME,
-        DESCRIPTION,
-        option::some(url::new_unsafe_from_bytes(ICON_URL)),
-        ctx
+        SYMBOL.to_string(),
+        NAME.to_string(),
+        DESCRIPTION.to_string(),
+        ICON_URL.to_string(),
+        ctx,
     );
 
-    // Task: Create policy, allow transfer with CrownCouncilRule and setup its
-    // config.
+    // Task: Create a token policy from the TreasuryCap, add CrownCouncilRule
+    // for the transfer action, setup the rule config with an empty initial
+    // members list, finalize the builder, then share the policy and transfer
+    // the policy_cap, tcap, and metadata_cap to sender.
     abort(ETodo)
 }
 
@@ -49,7 +50,7 @@ fun test_transfer() {
     let mut scenario = test_scenario::begin(publisher);
     // Initialize package
     {
-        init(KING_CREDITS(), scenario.ctx());
+        init(KING_CREDITS {}, scenario.ctx());
     };
 
     // Edit Policy rules
