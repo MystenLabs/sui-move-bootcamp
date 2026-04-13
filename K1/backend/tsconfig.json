@@ -14,13 +14,6 @@
     "rootDir": "./",
     "types": ["node", "vitest/globals"]
   },
-  "ts-node": {
-    "transpileOnly": true,
-    "compilerOptions": {
-      "module": "es2020",
-      "moduleResolution": "bundler"
-    }
-  },
   "include": ["**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }
