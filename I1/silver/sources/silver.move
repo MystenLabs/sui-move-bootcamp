@@ -27,6 +27,7 @@ fun create_currency(
 ): (coin_registry::CurrencyInitializer<SILVER>, TreasuryCap<SILVER>) {
     // Task: Use coin_registry::new_currency_with_otw to create a new currency
     // with the constants defined above. String arguments should use .to_string()
+    // Hint: Returns (CurrencyInitializer<SILVER>, TreasuryCap<SILVER>) tuple
     todo!()
 }
 
@@ -36,6 +37,7 @@ public fun mint(
     ctx: &mut TxContext,
 ): sui::coin::Coin<SILVER> {
     // Task: Mint `amount` coins using the TreasuryCap
+    // This creates new coins and increases total_supply. Use tcap.mint(amount, ctx)
     todo!()
 }
 
@@ -56,8 +58,7 @@ fun test_mint() {
     let mut ctx = tx_context::dummy();
     let (builder, mut tcap) = create_currency(SILVER {}, &mut ctx);
 
-    // Task: Call mint to get a coin of `amount`
-    let coin: sui::coin::Coin<SILVER> = todo!();
+    let coin = mint(&mut tcap, amount, &mut ctx);
 
     assert!(coin.value() == amount);
     assert!(tcap.total_supply() == amount);
@@ -84,6 +85,6 @@ fun test_burn() {
     unit_test::destroy(tcap);
 }
 
-public macro fun todo<$T>(): $T {
+macro fun todo<$T>(): $T {
     abort(ETodo)
 }

@@ -27,10 +27,12 @@ fun init(otw: KING_CREDITS, ctx: &mut TxContext) {
         ctx,
     );
 
-    // Task: Create a token policy from the TreasuryCap, add CrownCouncilRule
-    // for the transfer action, setup the rule config with an empty initial
-    // members list, finalize the builder, then share the policy and transfer
-    // the policy_cap, tcap, and metadata_cap to sender.
+    // Task: Complete the init function:
+    // 1. Create a token policy from the TreasuryCap using token::new_policy(&tcap, ctx)
+    // 2. Add CrownCouncilRule for the transfer action using token::add_rule_for_action
+    // 3. Setup the rule config with an empty initial members list using crown_council_rule::add_rule_config
+    // 4. Finalize the builder to get the metadata_cap
+    // 5. Share the policy and transfer policy_cap, tcap, and metadata_cap to sender
     abort(ETodo)
 }
 

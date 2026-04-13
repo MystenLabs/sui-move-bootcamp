@@ -25,6 +25,7 @@ public fun add_rule_config<T>(
     ctx: &mut TxContext,
 ) {
     // Task: Setup rule config for CrownCouncilRule. It will initialize with `initial_members`.
+    // Use token::add_rule_config to register Config{members: vec_set::from_keys(initial_members)}
     assert!(initial_members.length() <= MAX_CROWN_COUNCIL_MEMBERS, EMaxCouncilMembers);
     todo!()
 }

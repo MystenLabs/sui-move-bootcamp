@@ -18,10 +18,12 @@ const TOTAL_SUPPLY: u64 = 10_000_000_000_000_000_000;
 fun init(otw: SILVER, ctx: &mut TxContext) {
     let (mut builder, mut tcap) = create_silver_currency(otw, ctx);
 
-    // Task: Mint the total supply and transfer to sender.
-    // Then lock the supply as fixed using builder.make_supply_fixed(tcap)
-    // which consumes the TreasuryCap, preventing further minting or burning.
-    // Finally, finalize the builder and transfer the metadata_cap to sender.
+    // Task: Complete the init function:
+    // 1. Mint the total supply using tcap.mint(TOTAL_SUPPLY, ctx)
+    // 2. Transfer the minted coin to the sender
+    // 3. Lock the supply as fixed using builder.make_supply_fixed(tcap)
+    //    Note: This consumes the TreasuryCap - once called, no more minting or burning is possible
+    // 4. Finalize the builder and transfer the metadata_cap to sender
     todo!<()>()
 }
 
@@ -40,7 +42,7 @@ fun create_silver_currency(
     )
 }
 
-public macro fun todo<$T>(): $T {
+macro fun todo<$T>(): $T {
     abort(ETodo)
 }
 
