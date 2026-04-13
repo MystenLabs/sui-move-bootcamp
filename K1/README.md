@@ -5,6 +5,9 @@
 This module demonstrates how to build a real-time event indexer for the Sui blockchain. You'll learn how to work with a Move smart contract that emits events and build a TypeScript-based backend service that subscribes to and processes those events using gRPC streaming.
 It also includes a retriever that can be used to retrieve past events from the blockchain, using GraphQL.
 
+In this example, we are using the `indexer_sample` contract, and the `UserRegistered` event.
+To extend this example, you can change the event name to suit your needs, and extend the `parseEvent` function to handle different events, as well as the retriever and indexer.
+
 ### What You'll Learn
 
 - Working with Move smart contracts with event emission
@@ -134,6 +137,7 @@ Configure your `.env` file:
 ```env
 PACKAGE_ID=<your_package_id_from_deployment>
 MODULE_NAME=indexer_sample
+EVENT_NAME=YourEventName
 PRIVATE_KEY=<your_base64_encoded_private_key>
 USERS_COUNTER_OBJECT_ID=<your_shared_users_counter_object_id>
 ```
