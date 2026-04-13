@@ -169,7 +169,7 @@ sui keytool convert <your-suiprivkey>
 The indexer listens for `UserRegistered` events in real-time:
 
 ```bash
-npm listen
+npm run listen
 ```
 
 You should see:
@@ -180,13 +180,14 @@ Subscribed to checkpoint stream...
 
 The indexer will now print event data whenever a user registers.
 
-### Run Tests (emit events)
+### Emit Events
 
-Execute the test suite:
+You can emit events by running the test suite:
 
 ```bash
-npm retrieve
+npm run test
 ```
+or by executing the contract function elsewhere (sdk, explorer, cli, ...)
 
 ### Retrieve Past Events
 
@@ -298,10 +299,6 @@ For more info and description about parameters, see: https://docs.sui.io/guides/
 ## Test Suite
 
 The test suite is mainly used to emit events via Typescript, and checking if they are emitted correctly.
-
-```bash
-npm test
-```
 
 ## Additional Resources
 
