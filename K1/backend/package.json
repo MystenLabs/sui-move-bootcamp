@@ -4,20 +4,19 @@
   "description": "",
   "license": "ISC",
   "author": "",
-  "type": "commonjs",
-  "main": "index.js",
+  "type": "module",
   "scripts": {
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "start": "ts-node indexer.ts"
+    "test": "vitest run",
+    "listen": "tsx indexer.ts",
+    "retrieve": "tsx retriever.ts"
   },
   "dependencies": {
-    "@mysten/sui": "^1.43.1",
+    "@mysten/sui": "^2.15.0",
     "@types/node": "^24.9.1",
     "dotenv": "^17.2.3",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.4"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
