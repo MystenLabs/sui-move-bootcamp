@@ -1,0 +1,19 @@
+{
+  "name": "ts",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@mysten/sui": "^2.6.0",
+    "vitest": "^4.0.18"
+  }
+}
