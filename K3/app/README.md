@@ -4,6 +4,20 @@ Educational Next.js app showing how to build a gasless Sui UX using Enoki sponso
 
 ---
 
+## Feature Recap
+
+| Feature                            | Description                                                                                      |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Enoki-sponsored transactions       | Builds transaction kind bytes, requests sponsorship server-side, signs, then executes via Enoki. |
+| Direct wallet transactions         | Supports non-sponsored flow where users sign and pay gas directly.                               |
+| zkLogin with Google OAuth          | Registers Enoki wallet initializer so users can authenticate with Google-based zkLogin.          |
+| Traditional wallet support         | Works with standard Sui wallets in the same app and UI flow.                                     |
+| Shared on-chain counter demo       | Increment/decrement a shared Move counter object with optional message notes.                    |
+| Live counter state + activity feed | Polls current counter value and recent increment/decrement events for real-time UX.              |
+| gRPC + GraphQL read architecture   | Uses gRPC for object/balance reads and GraphQL for event history queries.                        |
+
+---
+
 ## What This Project Teaches
 
 - How Enoki-sponsored transactions work end-to-end
