@@ -18,5 +18,5 @@ Off-chain ID derivation using the `@mysten/sui` SDK's `deriveObjectID` utility. 
 
 ### Useful Links
 
-- [Derived Objects](https://docs.sui.io/concepts/object-model/derived-objects)
+- [Derived Objects](https://docs.sui.io/guides/developer/objects/derived-objects)
 - [Sui TypeScript SDK](https://sdk.mystenlabs.com/typescript)
