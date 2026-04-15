@@ -9,10 +9,7 @@ import { enokiWalletsInitializer } from '@mysten/enoki';
 
 const NETWORKS: SuiNetworkName[] = ['mainnet', 'testnet', 'devnet'];
 const ENOKI_REDIRECT_PATH = '/auth/callback';
-export type AppDAppKit = ReturnType<typeof createHybridDAppKit>;
-let dAppKitSingleton: AppDAppKit | null = null;
-
-function createHybridDAppKit() {
+function createAppDAppKit() {
   if (typeof window === 'undefined') {
     throw new Error('dAppKit must be initialized in the browser');
   }
@@ -38,15 +35,4 @@ function createHybridDAppKit() {
   });
 }
 
-export function getDAppKit(): AppDAppKit {
-  if (!dAppKitSingleton) {
-    dAppKitSingleton = createHybridDAppKit();
-  }
-  return dAppKitSingleton;
-}
-
-declare module '@mysten/dapp-kit-react' {
-  interface Register {
-    dAppKit: AppDAppKit;
-  }
-}
+export const dAppKit = createAppDAppKit();

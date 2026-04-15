@@ -1,13 +1,11 @@
 'use client';
 
-import { getDAppKit } from '@/lib/dapp-kit';
+import { dAppKit } from '@/lib/dapp-kit';
 import { DAppKitProvider } from '@mysten/dapp-kit-react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Provider as JotaiProvider } from 'jotai';
 import * as React from 'react';
 import { Toaster } from 'sonner';
-
-const dAppKit = getDAppKit();
 
 const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
   const [queryClient] = React.useState(
