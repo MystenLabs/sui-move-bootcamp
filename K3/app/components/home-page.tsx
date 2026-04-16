@@ -13,14 +13,12 @@ import {
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
-import { ZkLoginButton } from '@/components/zklogin-button';
 import { useDecrement } from '@/hooks/counter/useDecrement';
 import { useDecrementDirect } from '@/hooks/counter/useDecrementDirect';
 import { useIncrement } from '@/hooks/counter/useIncrement';
 import { useIncrementDirect } from '@/hooks/counter/useIncrementDirect';
 import { useLoginType } from '@/hooks/useLoginType';
 import {
-  type AppTab,
   activeCodeStepAtom,
   activeTabAtom,
   logActiveStepAtom,
@@ -47,13 +45,17 @@ import { useCurrentAccount } from '@mysten/dapp-kit-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { Loader2 } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import * as React from 'react';
 import { toast } from 'sonner';
 
-const NAV_TABS = [
-  { id: 'demo', label: 'Demo' },
-  { id: 'code', label: 'Code' },
-] as const;
+const ConnectButton = dynamic(
+  () =>
+    import('@mysten/dapp-kit-react/ui').then((mod) => ({
+      default: mod.ConnectButton,
+    })),
+  { ssr: false },
+);
 
 const formatAddress = (address: string) => {
   if (address.length <= 10) {
@@ -91,21 +93,7 @@ const HomePage = () => {
   );
 };
 
-const Navbar = React.memo(() => {
-  const [activeTab, setActiveTab] = useAtom(activeTabAtom);
-
-  const handleTabClick = React.useCallback(
-    (event: React.MouseEvent<HTMLButtonElement>) => {
-      const tab = event.currentTarget.getAttribute('data-tab') as AppTab | null;
-      if (!tab) {
-        return;
-      }
-
-      setActiveTab(tab);
-    },
-    [setActiveTab],
-  );
-
+const Navbar = () => {
   return (
     <header className="border-b border-border/60 bg-background/80 backdrop-blur">
       <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-4">
@@ -113,40 +101,16 @@ const Navbar = React.memo(() => {
           <div className="text-xs font-semibold tracking-[0.2em] text-foreground uppercase">
             Enoki Sponsored Transactions
           </div>
-          {/* <nav className="flex items-center gap-1 rounded-none border border-border bg-muted/60 p-0.5 text-xs tracking-wide uppercase">
-            {NAV_TABS.map((tab) => {
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  data-tab={tab.id}
-                  onClick={handleTabClick}
-                  className={cn(
-                    'rounded-none px-3 py-1 transition',
-                    isActive
-                      ? 'bg-background text-foreground'
-                      : 'text-muted-foreground hover:text-foreground',
-                  )}
-                  aria-pressed={isActive}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
-          </nav> */}
         </div>
         <div className="flex items-center gap-2">
-          <ZkLoginButton />
+          <ConnectButton />
         </div>
       </div>
     </header>
   );
-});
+};
 
-Navbar.displayName = 'Navbar';
-
-const DemoPanel = React.memo(() => {
+const DemoPanel = () => {
   const queryClient = useQueryClient();
   const account = useCurrentAccount();
   const [message, setMessage] = React.useState('');
@@ -620,11 +584,9 @@ const DemoPanel = React.memo(() => {
       <ActivityCard />
     </div>
   );
-});
+};
 
-DemoPanel.displayName = 'DemoPanel';
-
-const ActivityCard = React.memo(() => {
+const ActivityCard = () => {
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const { data: events, isLoading, dataUpdatedAt } = useCounterEvents(6);
 
@@ -694,11 +656,9 @@ const ActivityCard = React.memo(() => {
       </CardContent>
     </Card>
   );
-});
+};
 
-ActivityCard.displayName = 'ActivityCard';
-
-const CodePanel = React.memo(() => {
+const CodePanel = () => {
   const [activeStep, setActiveStep] = useAtom(activeCodeStepAtom);
   const visitedSteps = useAtomValue(visitedStepsAtom);
   const setVisitedSteps = useSetAtom(visitedStepsAtom);
@@ -793,13 +753,10 @@ const CodePanel = React.memo(() => {
       </CardContent>
     </Card>
   );
-});
+};
 
-CodePanel.displayName = 'CodePanel';
-
-type LogStepStatus = 'idle' | 'active' | 'done' | 'skipped';
-
-const TransactionLog = React.memo(() => {
+const TransactionLog = () => {
+  type LogStepStatus = 'idle' | 'active' | 'done' | 'skipped';
   const logActiveStep = useAtomValue(logActiveStepAtom);
   const logProgress = useAtomValue(logProgressAtom);
   const logDigest = useAtomValue(logDigestAtom);
@@ -951,8 +908,6 @@ const TransactionLog = React.memo(() => {
       </div>
     </details>
   );
-});
-
-TransactionLog.displayName = 'TransactionLog';
+};
 
 export default HomePage;

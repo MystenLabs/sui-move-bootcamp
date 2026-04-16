@@ -1,4 +1,4 @@
-import ClientProviders from '@/components/client-providers';
+import LayoutWrapper from '@/components/layout-wrapper';
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono, JetBrains_Mono } from 'next/font/google';
 
@@ -34,7 +34,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ClientProviders>{children}</ClientProviders>
+        <LayoutWrapper>{children}</LayoutWrapper>
       </body>
     </html>
   );
