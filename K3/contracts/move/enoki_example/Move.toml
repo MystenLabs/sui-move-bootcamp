@@ -1,0 +1,3 @@
+[package]
+name = "enoki_example"
+edition = "2024"

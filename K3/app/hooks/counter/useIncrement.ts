@@ -1,0 +1,129 @@
+import { incrementTransaction } from '@/lib/counter/counter-transactions';
+import {
+  executeSponsoredTx,
+  getSponsoredTx,
+} from '@/lib/enoki/get-sponsored-tx';
+import clientConfig from '@/lib/env-config-client';
+import { TransactionError, isUserRejection } from '@/lib/errors';
+import {
+  useCurrentClient,
+  useCurrentAccount,
+  useDAppKit,
+} from '@mysten/dapp-kit-react';
+import { useMutation } from '@tanstack/react-query';
+
+export interface IncrementParams {
+  note: string;
+}
+
+/**
+ * Hook for incrementing the counter with Enoki-sponsored transactions
+ *
+ * Works with both traditional wallets AND zkLogin wallets seamlessly.
+ * When zkLogin is registered via registerEnokiWallets(), it appears as
+ * a standard wallet in dapp-kit, so the same hooks work for both.
+ */
+export const useIncrement = () => {
+  const client = useCurrentClient();
+  const sender = useCurrentAccount();
+  const dAppKit = useDAppKit();
+
+  return useMutation({
+    mutationFn: async (params: IncrementParams) => {
+      const { note } = params;
+
+      // 1. Validate wallet connection (works for both regular wallets and zkLogin)
+      if (!sender) {
+        throw new TransactionError('Wallet not connected', 'wallet');
+      }
+
+      // 2. Build the transaction
+      let txBytes: Uint8Array;
+      try {
+        const transaction = incrementTransaction(
+          clientConfig.NEXT_PUBLIC_COUNTER_OBJECT_ID,
+          note,
+          clientConfig.NEXT_PUBLIC_PACKAGE_ADDRESS,
+        );
+
+        txBytes = await transaction.build({
+          client,
+          onlyTransactionKind: true,
+        });
+      } catch (error) {
+        throw new TransactionError(
+          'Failed to build transaction',
+          'build',
+          error,
+        );
+      }
+
+      // 3. Get sponsored transaction from server
+      let sponsoredTxn: Awaited<ReturnType<typeof getSponsoredTx>>;
+      try {
+        sponsoredTxn = await getSponsoredTx({
+          sender: sender.address,
+          txBytes: txBytes,
+        });
+      } catch (error) {
+        throw new TransactionError(
+          'Failed to get sponsorship from Enoki',
+          'sponsor',
+          error,
+        );
+      }
+
+      // 4. Sign the sponsored transaction bytes with user's wallet
+      // This works for both regular wallets AND zkLogin wallets
+      let signature: string;
+      try {
+        const signResult = await dAppKit.signTransaction({
+          transaction: sponsoredTxn.bytes,
+        });
+        signature = signResult.signature;
+      } catch (error) {
+        if (isUserRejection(error)) {
+          throw new TransactionError(
+            'Transaction signing cancelled',
+            'sign',
+            error,
+          );
+        }
+        throw new TransactionError('Failed to sign transaction', 'sign', error);
+      }
+
+      // 5. Execute the sponsored transaction
+      let result: Awaited<ReturnType<typeof executeSponsoredTx>>;
+      try {
+        result = await executeSponsoredTx({
+          digest: sponsoredTxn.digest,
+          signature: signature,
+        });
+      } catch (error) {
+        throw new TransactionError(
+          'Failed to execute transaction',
+          'execute',
+          error,
+        );
+      }
+
+      // 6. Wait for transaction confirmation via gRPC (F1-style)
+      try {
+        const waitedResult = await client.core.waitForTransaction({
+          digest: result.digest,
+        });
+
+        return {
+          digest: result.digest,
+          result: waitedResult,
+        };
+      } catch (error) {
+        throw new TransactionError(
+          'Failed to confirm transaction',
+          'confirm',
+          error,
+        );
+      }
+    },
+  });
+};
