@@ -57,7 +57,7 @@ sui move build
 sui client publish --gas-budget 100000000
 ```
 
-Copy the published **Package ID** from the output and update `PACKAGE_ID` in `app/src/App.tsx`.
+Copy the published **Package ID** from the output and update `PACKAGE_ID` in `app/src/config.ts` (and `ts/src/config.ts` for the CLI demo).
 
 ## CLI demo (Node.js)
 
@@ -86,5 +86,7 @@ npm run demo
 ## SDK versions
 
 - `@mysten/seal` ^1.1.1
-- `@mysten/sui` ^2.9.1
-- `@mysten/dapp-kit` ^1.0.4
+- `@mysten/sui` ^2.16.0 (uses `SuiGrpcClient` from `@mysten/sui/grpc`)
+- `@mysten/dapp-kit-react` ^2.0.1 + `@mysten/dapp-kit-core` ^1.3.0
+
+Seal is registered as a client extension: `new SuiGrpcClient({...}).$extend(seal({...}))`, then used as `client.seal.encrypt(...)` / `client.seal.decrypt(...)`. See `seal-extension.ts` in both `app/src` and `ts/src` for the factory.
