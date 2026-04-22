@@ -3,6 +3,10 @@
 ## Overview
 
 This module demonstrates how to build a real-time event indexer for the Sui blockchain. You'll learn how to work with a Move smart contract that emits events and build a TypeScript-based backend service that subscribes to and processes those events using gRPC streaming.
+It also includes a retriever that can be used to retrieve past events from the blockchain, using GraphQL.
+
+In this example, we are using the `indexer_sample` contract, and the `UserRegistered` event.
+To extend this example, you can change the event name to suit your needs, and extend the `parseEvent` function to handle different events, as well as the retriever and indexer.
 
 ### What You'll Learn
 
@@ -10,6 +14,7 @@ This module demonstrates how to build a real-time event indexer for the Sui bloc
 - Setting up a gRPC-based indexer to listen for blockchain events
 - Decoding BCS (Binary Canonical Serialization) encoded event data
 - Real-time blockchain data streaming and processing
+- Retrieving past events from the blockchain using GraphQL
 
 ## Project Structure
 
@@ -21,7 +26,9 @@ K1/
 │   └── Move.toml
 └── backend/                  # TypeScript indexer and tests
     ├── indexer.ts           # Main indexer implementation
+    ├── retriever.ts         # Retriever implementation
     ├── utils/
+    │   ├── clients.ts       # gRPC and GraphQL clients
     │   └── parseEvent.ts    # BCS event decoder
     ├── tests/
     │   ├── registerUser.test.ts
@@ -29,7 +36,7 @@ K1/
     │       └── getSigner.ts
     ├── package.json
     ├── tsconfig.json
-    ├── jest.config.js
+    ├── vitest.config.ts
     └── env.example
 ```
 
@@ -130,6 +137,7 @@ Configure your `.env` file:
 ```env
 PACKAGE_ID=<your_package_id_from_deployment>
 MODULE_NAME=indexer_sample
+EVENT_NAME=YourEventName
 PRIVATE_KEY=<your_base64_encoded_private_key>
 USERS_COUNTER_OBJECT_ID=<your_shared_users_counter_object_id>
 ```
@@ -161,7 +169,7 @@ sui keytool convert <your-suiprivkey>
 The indexer listens for `UserRegistered` events in real-time:
 
 ```bash
-npm start
+npm run listen
 ```
 
 You should see:
@@ -172,13 +180,23 @@ Subscribed to checkpoint stream...
 
 The indexer will now print event data whenever a user registers.
 
-### Run Tests
+### Emit Events
 
-Execute the test suite:
+You can emit events by running the test suite:
 
 ```bash
-npm test
+npm run test
 ```
+or by executing the contract function elsewhere (sdk, explorer, cli, ...)
+
+### Retrieve Past Events
+
+Retrieve past events from the blockchain:
+```bash
+npm run retrieve
+```
+
+You should see the past events in the console.
 
 ### Inspect results
 
@@ -245,59 +263,42 @@ The structure must match the Move struct definition exactly.
 Filter events by constructing the fully qualified event name:
 
 ```typescript
-const FULL_EVENT_NAME = `${PACKAGE_ID}::${MODULE_NAME}::UserRegistered`;
+const FULL_EVENT_NAME = `${PACKAGE_ID}::${MODULE_NAME}::${EVENT_NAME}`;
 
 if (FULL_EVENT_NAME === event.eventType) {
   // Process this event
 }
 ```
 
-### 5. Shared Objects
+### 5. Event Retrieval
 
-The `UsersCounter` is a shared object that can be accessed concurrently:
+The retriever is used to retrieve past events from the blockchain using GraphQL.
 
-```move
-fun init(ctx: &mut TxContext) {
-    let users_counter = UsersCounter {
-        id: object::new(ctx),
-        count: 0,
-    };
-    transfer::share_object(users_counter);
-}
-```
-
-All users can call `register_user` with the same shared object.
-
-## Testing Strategy
-
-The test suite demonstrates:
-
-1. **Transaction Building**: Creating and signing transactions
-2. **Smart Contract Interaction**: Calling Move functions
-3. **Event Verification**: Checking that events are emitted correctly
-4. **Error Handling**: Managing transaction failures
-
-Example test structure:
-
+Use the `events` query to query past events using GraphQL, and pass as input the event type(`package::module::EventName`) you want to retrieve.
 ```typescript
-test("should successfully register a new user", async () => {
-  // Arrange: Set up transaction
-  const tx = new Transaction();
-  tx.moveCall({
-    target: `${packageId}::${moduleName}::register_user`,
-    arguments: [tx.pure.string(userName), tx.object(usersCounterObjectId)],
-  });
-
-  // Act: Execute transaction
-  const result = await client.signAndExecuteTransaction({
-    signer: getSigner({ secretKey: process.env.PRIVATE_KEY! }),
-    transaction: tx,
-  });
-
-  // Assert: Verify success
-  expect(result.effects?.status.status).toBe("success");
+const response = await graphqlClient.query({
+  query: `
+    query discoverEvents($type: String) {
+      events(filter: { type: $type }) {
+        nodes {
+          contents {
+            json
+            type {
+              layout
+            }
+          }
+        }
+      }
+    }
+  `,
+  variables: { type: `${PACKAGE_ID}::${MODULE_NAME}::${EVENT_NAME}` }
 });
 ```
+For more info and description about parameters, see: https://docs.sui.io/guides/developer/accessing-data/query-with-graphql.
+
+## Test Suite
+
+The test suite is mainly used to emit events via Typescript, and checking if they are emitted correctly.
 
 ## Additional Resources
 

@@ -1,11 +1,11 @@
-import { describe, test, expect, beforeAll, afterAll } from "@jest/globals";
-import { SuiClient, getFullnodeUrl } from "@mysten/sui/client";
+import { SuiGrpcClient } from "@mysten/sui/grpc";
 import { Transaction } from "@mysten/sui/transactions";
-import { getSigner } from "./helpers/getSigner";
 import dotenv from "dotenv";
+import { grpcClient } from "../utils/clients";
+import { getSigner } from "./helpers/getSigner";
 
 describe("User Registration Tests", () => {
-  let client: SuiClient;
+  let client: SuiGrpcClient;
   let moduleName: string;
   let packageId: string;
   let usersCounterObjectId: string;
@@ -13,7 +13,7 @@ describe("User Registration Tests", () => {
   beforeAll(async () => {
     dotenv.config();
     // Initialize Sui client for testnet
-    client = new SuiClient({ url: getFullnodeUrl("testnet") });
+    client = grpcClient;
 
     // Get package ID and shared object from environment
     packageId = process.env.PACKAGE_ID || "";
@@ -42,20 +42,22 @@ describe("User Registration Tests", () => {
     const result = await client.signAndExecuteTransaction({
       signer: getSigner({ secretKey: process.env.PRIVATE_KEY! }),
       transaction: tx,
-      options: {
-        showEffects: true,
-        showEvents: true,
-        showObjectChanges: true,
-      },
+      include: {
+        effects: true,
+        events: true,
+        objectChanges: true,
+      }
     });
-    await client.waitForTransaction({ digest: result.digest });
-
+    
     // Assert
     expect(result).toBeDefined();
-    expect(result.effects?.status.status).toBe("success");
+    expect(result.Transaction).toBeDefined();
+    await client.waitForTransaction({ digest: result.Transaction!.digest }); // wait for propagation
+    expect(result.FailedTransaction).toBeUndefined();
+    expect(result.Transaction?.effects.status.success).toBe(true);
 
     // Log transaction details for debugging
-    console.log("Transaction digest:", result.digest);
-    console.log("Gas used:", result.effects?.gasUsed);
+    console.log("Transaction digest:", result.Transaction!.digest);
+    console.log("Gas used:", result.Transaction!.effects.gasUsed);
   });
 });

@@ -1,14 +1,8 @@
-import { getFullnodeUrl } from "@mysten/sui/client";
-import { SuiGrpcClient } from "@mysten/sui/grpc";
 import dotenv from "dotenv";
+import { grpcClient } from "./utils/clients";
 import { decodeBcsEvent } from "./utils/parseEvent";
 
 dotenv.config();
-
-const grpcClient = new SuiGrpcClient({
-  network: "testnet",
-  baseUrl: getFullnodeUrl("testnet"),
-});
 
 // Construct the full event name for UserRegistered
 const FULL_EVENT_NAME =
@@ -16,7 +10,7 @@ const FULL_EVENT_NAME =
   "::" +
   process.env.MODULE_NAME +
   "::" +
-  "UserRegistered";
+  process.env.EVENT_NAME;
 
 const processCheckpoint = async (response: any): Promise<void> => {
   const checkpoint = response.checkpoint;
@@ -39,6 +33,8 @@ const processCheckpoint = async (response: any): Promise<void> => {
           continue;
         }
         console.log("Event Data:", decodeBcsEvent(event));
+
+        // optionally handle saving to db here if needed
       } catch (error) {
         console.error("Error while parsing event:", error);
       }
