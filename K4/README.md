@@ -6,10 +6,6 @@ Nautilus is a framework for secure and verifiable off-chain computation on Sui. 
 
 This lesson provides a theoretical foundation for understanding Nautilus, including its architecture, security model, and how it enables trustless off-chain computation. You'll learn how TEEs work with blockchain verification and see code examples demonstrating the key concepts.
 
-> 📺 **Companion Slides**: [Nautilus Theory Presentation](https://docs.google.com/presentation/d/1TfXcnQqzbQzcR35FaoCPKR3SKpN3RaELKTEIPZVCs0g/edit?slide=id.g3c2d3c20532_0_249#slide=id.g3c2d3c20532_0_249)
->
-> This README provides detailed reference material. For a visual walkthrough, see the slides.
-
 ### What You'll Learn
 
 - What Trusted Execution Environments (TEEs) are and why they matter for blockchain
@@ -19,11 +15,6 @@ This lesson provides a theoretical foundation for understanding Nautilus, includ
 - Move smart contract patterns for enclave registration and verification
 - Rust server patterns for building Nautilus applications
 - The complete trust model and security guarantees
-
-> **How to use this material**:
->
-> - **Slides** → Conceptual understanding, visual flow
-> - **README** → Reference material, code examples, deployment commands
 
 ## Project Structure
 
@@ -82,7 +73,7 @@ A TEE is a secure area within a processor that guarantees code and data loaded i
 2. **Proves its identity** - Can generate cryptographic attestations of what code is running
 3. **Protects secrets** - Private keys and sensitive data never leave the enclave
 
-Nautilus currently uses **AWS Nitro Enclaves**, which provide hardware-based isolation:
+The Nautilus reference template is based on **AWS Nitro Enclaves**, which provide hardware-based isolation. Other TEE options are available through the [Marlin Oyster TEE Marketplace](https://docs.marlin.org/learn/oyster/overview):
 
 ```
 ┌────────────────────────────────────────────────────────────────────┐
@@ -153,14 +144,14 @@ PCRs are SHA-384 hashes that uniquely identify the enclave's code and configurat
 
 ### Attestation Documents
 
-An attestation document is a cryptographically signed proof from AWS that certifies:
+An attestation document is a cryptographically signed proof from the TEE hardware provider (e.g., AWS for Nitro Enclaves) that certifies:
 
-- The enclave is running on genuine AWS Nitro hardware
+- The enclave is running on genuine TEE hardware
 - The exact PCR values of the running code
 - The enclave's public key (for signature verification)
 - A timestamp (to prevent replay attacks)
 
-The certificate chain leads back to AWS as the root of trust:
+The certificate chain leads back to the TEE vendor as the root of trust. For AWS Nitro Enclaves:
 
 ```
 AWS Root CA
@@ -511,10 +502,10 @@ This section provides a condensed overview of the steps to build and deploy a Na
 
 ### What Nautilus Does NOT Protect Against
 
-- **Side-Channel Attacks**: TEEs have known vulnerabilities (though AWS patches quickly)
+- **Side-Channel Attacks**: TEEs have known vulnerabilities (mitigated by managed cloud TEEs)
 - **Buggy Application Code**: Verified code can still have bugs
 - **Compromised Dependencies**: Supply chain attacks during build
-- **AWS Compromise**: Root of trust is AWS (nation-state level threat)
+- **TEE Vendor Compromise**: Root of trust is the TEE hardware provider (nation-state level threat)
 
 ### Best Practices
 
@@ -526,12 +517,12 @@ This section provides a condensed overview of the steps to build and deploy a Na
 
 ## Important Limitations
 
-> **Note**: The Nautilus template is not feature complete and has not undergone a security audit. It is offered as a reference for evaluation purposes only. Developers must deploy and manage their own TEEs (AWS Nitro Enclaves).
+> **Note**: The Nautilus template is not feature complete and has not undergone a security audit. It is offered as a reference for evaluation purposes only.
 
-- **Self-Managed Infrastructure**: No native TEE network - you run your own
-- **AWS Dependency**: Currently only supports AWS Nitro Enclaves
-- **Cost**: EC2 with Nitro costs approximately $0.19/hour [as of February 2026]
-- **Complexity**: Requires AWS account setup, enclave provisioning, and key management
+- **Not security audited yet**: Use as a reference, not in production without your own audit
+- **Deployment options**: The reference template targets AWS Nitro Enclaves. For other TEE providers or managed deployments, see the [Marlin Oyster TEE Marketplace](https://docs.marlin.org/learn/oyster/overview)
+- **Cost**: EC2 with Nitro costs approximately $0.19/hour [as of February 2026]; managed alternatives have their own pricing
+- **Complexity**: Requires TEE provisioning, attestation handling, and key management
 
 ## Useful Links
 
@@ -554,10 +545,15 @@ This section provides a condensed overview of the steps to build and deploy a Na
 - [Server Template (main.rs)](https://github.com/MystenLabs/nautilus/blob/main/src/nautilus-server/src/main.rs) - Rust server entry point
 - [Common Utilities (common.rs)](https://github.com/MystenLabs/nautilus/blob/main/src/nautilus-server/src/common.rs) - Attestation and signing
 - [Sui Framework](https://github.com/MystenLabs/sui)
+- [nautilus-ops](https://github.com/MystenLabs/nautilus-ops) - Community ops tooling for Nautilus deployments
 
-### AWS Resources
+### TEE Platforms
 
-- [AWS Nitro Enclaves](https://aws.amazon.com/ec2/nitro/nitro-enclaves/)
+- [AWS Nitro Enclaves](https://aws.amazon.com/ec2/nitro/nitro-enclaves/) - Default platform used by the Nautilus reference template
+- [Marlin Oyster TEE Marketplace](https://docs.marlin.org/learn/oyster/overview) - Marketplace of additional TEE options for deploying enclaves
+
+### AWS Nitro Reference Material
+
 - [Nitro Enclaves User Guide](https://docs.aws.amazon.com/enclaves/latest/user/)
 
 ### Related Concepts
