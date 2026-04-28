@@ -6,6 +6,7 @@
   "scripts": {
     "generate-keys": "npx tsx src/generate-keys.ts",
     "server": "npx tsx src/server.ts",
+    "sim": "npx tsx src/sim.ts",
     "client": "npx tsx src/client.ts",
     "demo": "npx tsx src/demo.ts"
   },

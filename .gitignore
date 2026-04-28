@@ -16,6 +16,10 @@ build
 node_modules
 target
 
+# Next.js
+.next/
+dist/
+
 # claude
 CLAUDE.md
 .claude/

@@ -1,0 +1,37 @@
+{
+  "name": "suibotics-simulator",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx server.ts",
+    "build": "next build",
+    "start": "NODE_ENV=production tsx server.ts"
+  },
+  "dependencies": {
+    "@dimforge/rapier3d-compat": "^0.19.3",
+    "@mysten/dapp-kit-core": "^1.2.0",
+    "@mysten/dapp-kit-react": "^2.0.1",
+    "@mysten/sui": "^2.8.0",
+    "@react-three/drei": "^9.114.3",
+    "@react-three/fiber": "^8.17.10",
+    "marked": "^15.0.4",
+    "next": "^14.2.18",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "three": "^0.170.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@types/three": "^0.170.0",
+    "@types/ws": "^8.5.13",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.16",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

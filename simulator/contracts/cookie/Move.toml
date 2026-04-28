@@ -1,0 +1,5 @@
+[package]
+name = "cookie_token"
+edition = "2024"
+
+[dependencies]

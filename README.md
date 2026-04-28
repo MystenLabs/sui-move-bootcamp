@@ -168,6 +168,21 @@ Start with **[Module R1](#module-r1-hello-bittle--serial-basics)** or **[Module 
 
 A progressive, project-based series that teaches Sui development through building blockchain-controlled robotics — from a simple serial connection to a full rental platform with tokens, authentication, and multiplayer access. Most modules work in simulation mode; a physical [Petoi Bittle X](https://docs.petoi.com/) robot is optional.
 
+#### Simulator — No Hardware Required
+
+A 3D robot simulator (Next.js + Three.js) lets you run every R module without a physical robot. Start the playground and all hardware-dependent modules connect to it automatically:
+
+```bash
+cd simulator && npm install && npm run dev
+# Then in another terminal:
+cd R1/hello-bittle && pnpm sim          # serial simulation
+cd R4/processor   && pnpm sim          # blockchain → simulator bridge
+cd R5/server      && pnpm sim          # WebSocket + simulator
+cd R7/part-a-offchain && pnpm sim      # auth server + simulator
+```
+
+The simulator exposes a TCP serial bridge on port 8375 and a WebSocket UI at `http://localhost:3000` with command buttons, architecture diagrams, and full lesson content for each module. See [`simulator/README.md`](./simulator/README.md) for details.
+
 #### Fundamentals
 
 - [R1: Hello Bittle — Serial Basics](./R1/)
