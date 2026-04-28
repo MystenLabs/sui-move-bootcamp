@@ -1,10 +1,10 @@
 /// Module: silver
 module silver::silver;
 
-use sui::coin::{TreasuryCap, CoinMetadata};
-use sui::url;
+use sui::coin::TreasuryCap;
+use sui::coin_registry;
 
-public struct SILVER() has drop;
+public struct SILVER has drop {}
 
 const ETodo: u64 = 0;
 
@@ -15,79 +15,76 @@ const DESCRIPTION: vector<u8> = b"Silver, commonly used by heroes to purchase ne
 const ICON_URL: vector<u8> = b"https://aggregator.walrus-testnet.walrus.space/v1/blobs/cWTbHE-yC4z3JLmEYWDXM6uhQ1nxu-R0GOLReRwQcH4";
 
 fun init(otw: SILVER, ctx: &mut TxContext) {
-    let (tcap, metadata) = create_silver_currency(otw, ctx);
+    let (builder, tcap) = create_currency(otw, ctx);
+    let metadata_cap = builder.finalize(ctx);
     transfer::public_transfer(tcap, ctx.sender());
-    transfer::public_freeze_object(metadata);
+    transfer::public_transfer(metadata_cap, ctx.sender());
 }
 
-fun create_silver_currency(
+fun create_currency(
     otw: SILVER,
-    ctx: &mut TxContext
-): (TreasuryCap<SILVER>, CoinMetadata<SILVER>) {
-    // Task: Use coin::create_currency
+    ctx: &mut TxContext,
+): (coin_registry::CurrencyInitializer<SILVER>, TreasuryCap<SILVER>) {
+    // Task: Use coin_registry::new_currency_with_otw to create a new currency
+    // with the constants defined above. String arguments should use .to_string()
+    // Hint: Returns (CurrencyInitializer<SILVER>, TreasuryCap<SILVER>) tuple
+    todo!()
+}
+
+public fun mint(
+    tcap: &mut TreasuryCap<SILVER>,
+    amount: u64,
+    ctx: &mut TxContext,
+): sui::coin::Coin<SILVER> {
+    // Task: Mint `amount` coins using the TreasuryCap
+    // This creates new coins and increases total_supply. Use tcap.mint(amount, ctx)
     todo!()
 }
 
 #[test_only]
-use sui::{coin::Coin, test_utils};
-
+use std::unit_test;
 
 #[test]
-fun create_currency() {
-    let (tcap, metadata) = create_silver_currency(
-        SILVER(),
-        &mut tx_context::dummy()
-    );
+fun test_create_currency() {
+    let (builder, tcap) = create_currency(SILVER {}, &mut tx_context::dummy());
     assert!(tcap.total_supply() == 0);
-    assert!(metadata.get_decimals() == DECIMALS);
-    assert!(metadata.get_name() == NAME.to_string());
-    assert!(metadata.get_symbol() == SYMBOL.to_ascii_string());
-    assert!(metadata.get_description() == DESCRIPTION.to_string());
-    assert!(metadata.get_icon_url() == option::some(url::new_unsafe_from_bytes(ICON_URL)));
-    test_utils::destroy(tcap);
-    test_utils::destroy(metadata);
+    unit_test::destroy(builder);
+    unit_test::destroy(tcap);
 }
 
 #[test]
-fun mint() {
+fun test_mint() {
     let amount = 10_000_000_000;
     let mut ctx = tx_context::dummy();
-    let (mut tcap, metadata) = create_silver_currency(
-        SILVER(),
-        &mut ctx
-    );
+    let (builder, mut tcap) = create_currency(SILVER {}, &mut ctx);
 
-    // Task: Mint coin of amount
-    let coin: Coin<SILVER> = todo!();
+    let coin = mint(&mut tcap, amount, &mut ctx);
 
     assert!(coin.value() == amount);
     assert!(tcap.total_supply() == amount);
 
-    test_utils::destroy(coin);
-    test_utils::destroy(tcap);
-    test_utils::destroy(metadata);
+    unit_test::destroy(builder);
+    unit_test::destroy(coin);
+    unit_test::destroy(tcap);
 }
 
 #[test]
-fun burn() {
+fun test_burn() {
     let amount = 10_000_000_000;
     let mut ctx = tx_context::dummy();
-    let (mut tcap, metadata) = create_silver_currency(
-        SILVER(),
-        &mut ctx
-    );
+    let (builder, mut tcap) = create_currency(SILVER {}, &mut ctx);
 
-    // Mint coin of amount
-    let coin: Coin<SILVER> = todo!();
+    let coin = mint(&mut tcap, amount, &mut ctx);
 
-    // Task: Burn coin
+    // Task: Burn the coin using the TreasuryCap
     todo!<()>();
 
-    test_utils::destroy(tcap);
-    test_utils::destroy(metadata);
+    assert!(tcap.total_supply() == 0);
+
+    unit_test::destroy(builder);
+    unit_test::destroy(tcap);
 }
 
-
-public macro fun todo<$T>(): $T {
+macro fun todo<$T>(): $T {
     abort(ETodo)
 }

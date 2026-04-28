@@ -25,6 +25,7 @@ public fun add_rule_config<T>(
     ctx: &mut TxContext,
 ) {
     // Task: Setup rule config for CrownCouncilRule. It will initialize with `initial_members`.
+    // Use token::add_rule_config to register Config{members: vec_set::from_keys(initial_members)}
     assert!(initial_members.length() <= MAX_CROWN_COUNCIL_MEMBERS, EMaxCouncilMembers);
     todo!()
 }
@@ -78,12 +79,12 @@ fun test_edit_council() {
     add_council_member(&mut policy, &cap, council_member_2);
     let config: &Config = token::rule_config(CrownCouncilRule(), &policy);
     assert!(config.members.contains(&council_member_2));
-    assert!(config.members.size() == 2);
+    assert!(config.members.length() == 2);
 
     remove_council_member(&mut policy, &cap, council_member_1);
     let config: &Config = token::rule_config(CrownCouncilRule(), &policy);
     assert!(!config.members.contains(&council_member_1));
-    assert!(config.members.size() == 1);
+    assert!(config.members.length() == 1);
     policy.burn_policy_for_testing(cap);
 }
 

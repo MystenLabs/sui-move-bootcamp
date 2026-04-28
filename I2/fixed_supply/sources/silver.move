@@ -1,8 +1,10 @@
 /// Module: silver
 module fixed_supply::silver;
 
-use sui::coin::{Self, TreasuryCap, CoinMetadata};
-use sui::url;
+use sui::coin::TreasuryCap;
+use sui::coin_registry;
+
+public struct SILVER has drop {}
 
 const ETodo: u64 = 0;
 
@@ -13,37 +15,30 @@ const DESCRIPTION: vector<u8> = b"Silver, commonly used by heroes to purchase ne
 const ICON_URL: vector<u8> = b"https://aggregator.walrus-testnet.walrus.space/v1/blobs/cWTbHE-yC4z3JLmEYWDXM6uhQ1nxu-R0GOLReRwQcH4";
 const TOTAL_SUPPLY: u64 = 10_000_000_000_000_000_000;
 
-public struct SILVER() has drop;
-
-public struct Freezer has key {
-    id: UID
-}
-
-public struct TreasuryCapKey() has copy, drop, store;
-
 fun init(otw: SILVER, ctx: &mut TxContext) {
-    let (tcap, metadata) = create_silver_currency(otw, ctx);
+    let (mut builder, mut tcap) = create_silver_currency(otw, ctx);
 
-    transfer::public_freeze_object(metadata);
-
-    // Task Part 1: Mint the total supply, and transfer it to sender.
-    // Lock the treasury cap inside the freezer as DOF so that it is unusable
-    // but still easily indexable, and lastly freeze Freezer.
+    // Task: Complete the init function:
+    // 1. Mint the total supply using tcap.mint(TOTAL_SUPPLY, ctx)
+    // 2. Transfer the minted coin to the sender
+    // 3. Lock the supply as fixed using builder.make_supply_fixed(tcap)
+    //    Note: This consumes the TreasuryCap - once called, no more minting or burning is possible
+    // 4. Finalize the builder and transfer the metadata_cap to sender
     todo!<()>()
 }
 
 fun create_silver_currency(
     otw: SILVER,
-    ctx: &mut TxContext
-): (TreasuryCap<SILVER>, CoinMetadata<SILVER>) {
-    coin::create_currency<SILVER>(
+    ctx: &mut TxContext,
+): (coin_registry::CurrencyInitializer<SILVER>, TreasuryCap<SILVER>) {
+    coin_registry::new_currency_with_otw(
         otw,
         DECIMALS,
-        SYMBOL,
-        NAME,
-        DESCRIPTION,
-        option::some(url::new_unsafe_from_bytes(ICON_URL)),
-        ctx
+        SYMBOL.to_string(),
+        NAME.to_string(),
+        DESCRIPTION.to_string(),
+        ICON_URL.to_string(),
+        ctx,
     )
 }
 
@@ -52,26 +47,22 @@ macro fun todo<$T>(): $T {
 }
 
 #[test_only]
-use sui::{coin::Coin, dynamic_object_field as dof, test_scenario};
+use std::unit_test;
 
 #[test]
 fun test_init() {
     let publisher = @0x11111;
 
-    let mut scenario = test_scenario::begin(publisher);
-    init(SILVER(), scenario.ctx());
+    let mut scenario = sui::test_scenario::begin(publisher);
+    init(SILVER {}, scenario.ctx());
     scenario.next_tx(publisher);
     {
-        let freezer = scenario.take_immutable<Freezer>();
-        assert!(dof::exists_(&freezer.id, TreasuryCapKey()));
-        let cap: &TreasuryCap<SILVER> = dof::borrow(&freezer.id, TreasuryCapKey());
-        assert!(cap.total_supply() == TOTAL_SUPPLY);
-
-        let coin = scenario.take_from_sender<Coin<SILVER>>();
+        let coin = scenario.take_from_sender<sui::coin::Coin<SILVER>>();
         assert!(coin.value() == TOTAL_SUPPLY);
         scenario.return_to_sender(coin);
-        test_scenario::return_immutable(freezer);
+
+        let metadata_cap = scenario.take_from_sender<coin_registry::MetadataCap<SILVER>>();
+        unit_test::destroy(metadata_cap);
     };
     scenario.end();
 }
-
