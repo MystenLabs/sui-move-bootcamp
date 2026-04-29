@@ -1,0 +1,132 @@
+name: R11 Validation
+
+on:
+  pull_request:
+    paths:
+      - "R11/**"
+      - "README.md"
+      - ".github/workflows/r11-validation.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "R11/**"
+      - "README.md"
+      - ".github/workflows/r11-validation.yml"
+
+jobs:
+  move:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Sui CLI
+        run: cargo install --locked --git https://github.com/MystenLabs/sui.git sui
+
+      - name: Build Move package
+        working-directory: R11/move
+        run: sui move build
+
+      - name: Run Move tests
+        working-directory: R11/move
+        run: sui move test
+
+  typescript:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package:
+          - server
+          - client
+          - dapp
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        working-directory: R11/${{ matrix.package }}
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Build package
+        working-directory: R11/${{ matrix.package }}
+        run: pnpm build
+
+      - name: Run server unit tests
+        if: matrix.package == 'server'
+        working-directory: R11/server
+        run: pnpm test
+
+  simulator:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Check Python syntax
+        run: python3 -m py_compile R11/simulator/energy_sim.py R11/simulator/lora_sim.py
+
+      - name: Run energy simulator smoke test
+        run: python3 R11/simulator/energy_sim.py --count 3
+
+      - name: Run LoRa simulator smoke test
+        run: python3 R11/simulator/lora_sim.py --count 3
+
+      - name: Build bridge server
+        working-directory: R11/server
+        run: pnpm install --no-frozen-lockfile && pnpm build
+
+      - name: Bridge integration — serial transport
+        working-directory: R11/server
+        run: |
+          python3 ../simulator/energy_sim.py --count 5 | \
+            node -e "
+              process.env.PACKAGE_ADDRESS='0xdeadbeef';
+              process.env.METER_OBJECT_ID='0xcafe';
+              import('./dist/server.js');
+            " &
+          sleep 2
+          OUTPUT=$(curl -sf http://127.0.0.1:8080)
+          echo "Status endpoint: $OUTPUT"
+          COUNT=$(echo "$OUTPUT" | python3 -c "import sys,json; print(json.load(sys.stdin)['count'])")
+          if [ "$COUNT" -ne 5 ]; then echo "Expected count=5, got $COUNT"; exit 1; fi
+          echo "Serial bridge integration: OK (count=$COUNT)"
+
+      - name: Bridge integration — LoRa transport
+        working-directory: R11/server
+        run: |
+          python3 ../simulator/lora_sim.py --count 3 | \
+            node -e "
+              process.env.PACKAGE_ADDRESS='0xdeadbeef';
+              process.env.METER_OBJECT_ID='0xcafe';
+              process.env.TRANSPORT='lora';
+              process.env.HTTP_PORT='8081';
+              import('./dist/server.js');
+            " &
+          sleep 2
+          OUTPUT=$(curl -sf http://127.0.0.1:8081)
+          COUNT=$(echo "$OUTPUT" | python3 -c "import sys,json; print(json.load(sys.stdin)['count'])")
+          if [ "$COUNT" -ne 3 ]; then echo "Expected count=3, got $COUNT"; exit 1; fi
+          echo "LoRa bridge integration: OK (count=$COUNT)"
+
+

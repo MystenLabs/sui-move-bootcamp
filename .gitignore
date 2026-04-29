@@ -13,9 +13,18 @@
 
 .history
 build
+dist
 node_modules
 target
+__pycache__
 
-# claude
-CLAUDE.md
+# local Sui toolchain (suiup)
+.cache/
+.config/
+.local/
+.move/
+.sui/
+
+# llm context
+SKILL.md
 .claude/

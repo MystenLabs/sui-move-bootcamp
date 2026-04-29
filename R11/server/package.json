@@ -1,0 +1,24 @@
+{
+  "name": "depin-energy-monitor-server",
+  "version": "1.0.0",
+  "description": "Bridge service for the R11 DePIN energy monitor module",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "predev": "pnpm build",
+    "dev": "node dist/server.js",
+    "start": "node dist/server.js",
+    "test": "pnpm build && node --test dist/server.test.js"
+  },
+  "dependencies": {
+    "@mysten/sui": "^2.6.0",
+    "dotenv": "^16.6.1"
+  },
+  "optionalDependencies": {
+    "serialport": "^12.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "typescript": "^5.9.3"
+  }
+}

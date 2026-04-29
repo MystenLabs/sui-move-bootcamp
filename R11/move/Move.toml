@@ -1,0 +1,9 @@
+[package]
+name = "depin_energy_monitor"
+edition = "2024"
+
+[dependencies]
+
+[environments]
+localnet = "ee9d75e4"
+devnet = "01accae1"
